@@ -1,0 +1,40 @@
+version: '3'
+services:
+  next-backend:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: next-backend
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/usr/src/app:rw
+    depends_on:
+      - next-mysql
+    networks:
+      - web
+
+  next-mysql:
+    container_name: next-mysql
+    image: mysql:latest
+    restart: always
+    environment:
+      - MYSQL_ROOT_HOST="%"
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    ports:
+      - 3306:3306
+    volumes:
+      - ./docker/mysql-data:/var/lib/mysql
+    networks:
+      - web
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
+      retries: 3
+      timeout: 5s
+
+networks:
+  web:
+    driver: bridge
