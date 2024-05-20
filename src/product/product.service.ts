@@ -52,10 +52,17 @@ export class ProductService {
     return await this.productRepository.find({});
   }
 
-  async findOne(id: number): Promise<Product> {
+  async findProductById(id: number): Promise<Product> {
     return await this.productRepository.findOne({
       where: { id, isActive: true },
-      relations: ['productRemnants'], // Explicitly include the relationship
+      relations: ['productRemnants'],
+    });
+  }
+
+  async findProductBySlug(slug: string): Promise<Product> {
+    return await this.productRepository.findOne({
+      where: { slug, isActive: true },
+      relations: ['productRemnants'],
     });
   }
 

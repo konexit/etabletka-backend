@@ -16,8 +16,8 @@ $ docker-compose up --build -d
 ### Generate migration
 ```bash
 $ npm run typeorm migration:generate -- db/migrations/User
-$ npm run typeorm migration:generate -- db/migrations/Product
-$ npm run typeorm migration:generate -- db/migrations/ProductRemnant
+$ npm run typeorm migration:generate -- db/migrations/Products
+$ npm run typeorm migration:generate -- db/migrations/ProductRemnants
 ```
 
 ### Run migration

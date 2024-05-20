@@ -9,6 +9,7 @@ import {
   Delete,
   UseInterceptors,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import Product from './entities/product.entity';
@@ -29,8 +30,33 @@ export class ProductController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.productService.findOne(+id);
+  async findOne(@Param('id') id: number, @Res() res) {
+    try {
+      const product = await this.productService.findProductById(+id);
+
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+
+      return res.json(product);
+    } catch (error) {
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
+  @Post(':slug')
+  async getProductBySlug(@Param('slug') slug: string, @Res() res) {
+    try {
+      const product = await this.productService.findProductBySlug(slug);
+
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+
+      return res.json(product);
+    } catch (error) {
+      return res.status(500).json({ message: 'Internal server error' });
+    }
   }
 
   @UseInterceptors(ClassSerializerInterceptor)

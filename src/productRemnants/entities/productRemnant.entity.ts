@@ -8,26 +8,28 @@ import {
 } from 'typeorm';
 import { Product } from '../../product/entities/product.entity';
 
-@Entity()
+@Entity({
+  name: 'product_remnants',
+})
 export class ProductRemnant {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Index()
-  @Column()
+  @Column({ name: 'product_id' })
   productId: number;
 
   @ManyToOne(() => Product, (product) => product.productRemnants)
-  @JoinColumn({ name: 'productId' })
+  @JoinColumn({ name: 'product_id' })
   product: Product;
 
-  @Column({ default: 1 })
+  @Column({ name: 'store_id', default: 1 })
   storeId: number;
 
   @Column({ name: 'quantity', default: 0 })
   quantity: number;
 
-  @Column({ default: false })
+  @Column({ name: 'active', default: false })
   isActive: boolean;
 }
 
