@@ -3,6 +3,7 @@
 /node_modules
 /build/
 /docker/mysql-data/*
+/db/migrations/*
 
 # Logs
 logs
