@@ -1,20 +1,21 @@
 services:
-  next-backend:
+  nest-backend:
     build:
       context: .
       dockerfile: ./docker/Dockerfile
-    container_name: next-backend
+    container_name: nest-backend
     ports:
       - 3000:3000
     volumes:
       - .:/usr/src/app:rw
+      - /usr/src/app/node_modules
     depends_on:
-      - next-mysql
+      - nest-mysql
     networks:
       - web
 
-  next-mysql:
-    container_name: next-mysql
+  nest-mysql:
+    container_name: nest-mysql
     image: mysql:latest
     restart: always
     environment:
@@ -33,6 +34,7 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
       retries: 3
       timeout: 5s
+    attach: false
 
 networks:
   web:

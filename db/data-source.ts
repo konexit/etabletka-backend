@@ -2,7 +2,7 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 
 export const dataSourceOptions: DataSourceOptions = {
   type: 'mysql',
-  host: 'next-mysql',
+  host: 'nest-mysql',
   username: 'test',
   password: 'testtest',
   database: 'test',
