@@ -3,18 +3,18 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile
-    container_name: next-backend
+    container_name: eTab-NestJS-Backend
     ports:
       - 3000:3000
     volumes:
       - .:/usr/src/app:rw
     depends_on:
-      - next-mysql
+      - eTab-NestJS-mysql
     networks:
       - web
 
-  next-mysql:
-    container_name: next-mysql
+  eTab-NestJS-mysql:
+    container_name: eTab-NestJS-mysql
     image: mysql:latest
     restart: always
     environment:
