@@ -49,6 +49,15 @@ export class ProductRemnantService {
     return await this.productRemnantsRepository.findOneBy({ id: id });
   }
 
+  async findProductRemnantsInStore(
+    productId: number,
+    storeId: number,
+  ): Promise<ProductRemnant> {
+    return await this.productRemnantsRepository.findOne({
+      where: { productId: productId, storeId: storeId },
+    });
+  }
+
   async update(
     id: number,
     updateProductRemnantDto: UpdateProductRemnantDto,

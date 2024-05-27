@@ -56,14 +56,14 @@ export class ProductService {
     return await this.productRepository.findOne({
       where: { id, isActive: true },
       relations: ['productRemnants'],
-    });
+    })
   }
 
   async findProductBySlug(slug: string): Promise<Product> {
     return await this.productRepository.findOne({
       where: { slug, isActive: true },
       relations: ['productRemnants'],
-    });
+    })
   }
 
   async update(

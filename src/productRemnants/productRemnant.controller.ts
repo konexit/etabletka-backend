@@ -5,6 +5,7 @@ import {
   Body,
   Patch,
   Param,
+  Res,
   Delete,
   UseInterceptors,
   ClassSerializerInterceptor,
@@ -37,6 +38,29 @@ export class ProductRemnantController {
   @Get(':id')
   findOne(@Param('id') id: number) {
     return this.productRemnantService.findOne(+id);
+  }
+
+  @Get(':productId/:storeId')
+  async getProductRemnantsInStore(
+    @Param('productId') productId: number,
+    @Param('storeId') storeId: number,
+    @Res() res,
+  ): Promise<any> {
+    try {
+      const productRemnants =
+        await this.productRemnantService.findProductRemnantsInStore(
+          productId,
+          storeId,
+        );
+      if (!productRemnants) {
+        return res.status(404).json({ message: 'Product remnants not found' });
+      }
+      return res.json(productRemnants);
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ message: 'Internal remnants server error' });
+    }
   }
 
   @UseGuards(AuthGuard)

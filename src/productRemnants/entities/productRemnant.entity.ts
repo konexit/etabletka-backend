@@ -23,7 +23,7 @@ export class ProductRemnant {
   @JoinColumn({ name: 'product_id' })
   product: Product;
 
-  @Column({ name: 'store_id', default: 1 })
+  @Column({ name: 'store_id', default: 0 })
   storeId: number;
 
   @Column({ name: 'quantity', default: 0 })
