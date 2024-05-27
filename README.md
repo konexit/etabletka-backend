@@ -9,15 +9,22 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-## Docker
+## Docker start
 ```bash
 $ docker-compose up --build -d
 ```
+## Docker rebuild
+```bash
+$ docker-compose build --no-cache
+$ docker-compose up -d
+```
+
 ### Generate migration
 ```bash
 $ npm run typeorm migration:generate -- db/migrations/User
 $ npm run typeorm migration:generate -- db/migrations/Products
 $ npm run typeorm migration:generate -- db/migrations/ProductRemnants
+$ npm run typeorm migration:generate -- db/migrations/ProductTypes
 ```
 
 ### Run migration

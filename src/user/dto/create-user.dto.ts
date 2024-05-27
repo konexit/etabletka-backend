@@ -10,6 +10,6 @@ export class CreateUserDto {
   password: string;
 
   firstName: string;
-  lasrName: string;
+  lastName: string;
 }
 export default CreateUserDto;

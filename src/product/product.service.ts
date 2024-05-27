@@ -44,7 +44,7 @@ export class ProductService {
       });
     }
     const payload = await this.jwtService.decode(token);
-    if (payload.userType === 1) {
+    if (payload.roleId === 1) {
       return await this.productRepository.find({
         where: { isActive: true },
       });
