@@ -1,8 +1,9 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 
 export const dataSourceOptions: DataSourceOptions = {
-  type: 'mysql',
-  host: 'next-mysql',
+  type: 'postgres',
+  host: 'eTab-NestJS-postgres',
+  port: 5432,
   username: 'test',
   password: 'testtest',
   database: 'test',
