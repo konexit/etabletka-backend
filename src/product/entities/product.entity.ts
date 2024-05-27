@@ -1,4 +1,4 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { ProductRemnant } from '../../productRemnants/entities/productRemnant.entity';
 @Entity({
   name: 'products',
