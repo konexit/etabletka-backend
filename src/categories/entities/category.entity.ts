@@ -1,4 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+	Column,
+	Entity,
+	PrimaryGeneratedColumn,
+	CreateDateColumn,
+	UpdateDateColumn
+} from 'typeorm';
 @Entity({
 	name: 'categories',
 })
@@ -57,9 +63,15 @@ export class Category {
 	@Column({ default: 0 })
 	position: number;
 
-	@Column({ type: 'json', default: true })
+	@Column({ default: true })
 	active: boolean;
 
 	@Column({ name: 'show_menu', type: 'boolean', default: true })
 	showMenu: JSON;
+
+	@CreateDateColumn({ type: 'timestamp' })
+	created_at: Date;
+
+	@UpdateDateColumn({ type: 'timestamp' })
+	updated_at: Date;
 }
