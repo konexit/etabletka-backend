@@ -6,7 +6,7 @@ export const dataSourceOptions: DataSourceOptions = {
   port: 5432,
   username: 'test',
   password: 'testtest',
-  database: 'test',
+  database: 'eTab',
   entities: ['dist/**/*.entity.js'],
   migrations: ['dist/db/migrations/*.js'],
 };

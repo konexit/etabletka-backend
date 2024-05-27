@@ -17,7 +17,7 @@ import CreateProductRemnantDto from './dto/create-product-remnant.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { UpdateProductDto } from '../product/dto/update-product.dto';
 
-@Controller()
+@Controller('product-remnants')
 export class ProductRemnantController {
   constructor(private readonly productRemnantService: ProductRemnantService) {}
 

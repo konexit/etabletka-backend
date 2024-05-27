@@ -8,6 +8,7 @@ import { dataSourceOptions } from '../db/data-source';
 import { AuthModule } from './auth/auth.module';
 import { ProductModule } from './product/product.module';
 import { ProductRemnantModule } from './productRemnants/productRemnant.module';
+import { ProductTypeModule } from './productTypes/productType.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ProductRemnantModule } from './productRemnants/productRemnant.module';
     TypeOrmModule.forRoot(dataSourceOptions),
     AuthModule,
     ProductModule,
+    ProductTypeModule,
     ProductRemnantModule,
     UserModule,
   ],

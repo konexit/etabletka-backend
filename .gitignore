@@ -4,7 +4,7 @@
 /build/
 /docker/mysql-data/*
 /docker/postgres-data/*
-/db/migrations/*
+/db/migrations
 
 # Logs
 logs
