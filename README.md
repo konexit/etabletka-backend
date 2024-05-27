@@ -19,12 +19,9 @@ $ docker-compose build --no-cache
 $ docker-compose up -d
 ```
 
-### Generate migration
+### Generate migrations
 ```bash
-$ npm run typeorm migration:generate -- db/migrations/User
-$ npm run typeorm migration:generate -- db/migrations/Products
-$ npm run typeorm migration:generate -- db/migrations/ProductRemnants
-$ npm run typeorm migration:generate -- db/migrations/ProductTypes
+$ npm run typeorm migration:generate -- db/migrations/BaseMigrations
 ```
 
 ### Run migration

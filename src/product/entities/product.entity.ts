@@ -1,5 +1,14 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { ProductRemnant } from '../../productRemnants/entities/productRemnant.entity';
+import { ProductType } from '../../productTypes/entities/productType.entity';
+
 @Entity({
   name: 'products',
 })
@@ -102,6 +111,10 @@ export class Product {
 
   @OneToMany(() => ProductRemnant, (productRemnant) => productRemnant.product)
   productRemnants: ProductRemnant[];
+
+  @OneToOne(() => ProductType, (productType) => productType.product) // Specify inverse side
+  @JoinColumn({ name: 'productTypeId' })
+  productType: ProductType;
 }
 
 export default Product;
