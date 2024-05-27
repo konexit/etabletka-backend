@@ -30,8 +30,8 @@ export class User {
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
-  @Column({ name: 'user_type', default: 1 })
-  userType: number;
+  @Column({ name: 'role_id', default: 1 })
+  roleID: number;
 
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);
