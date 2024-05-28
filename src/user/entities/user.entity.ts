@@ -39,10 +39,10 @@ export class User {
   @Column({ name: 'role_id', default: 1 })
   roleId: number;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
   constructor(partial: Partial<User>) {

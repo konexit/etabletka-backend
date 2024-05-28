@@ -11,10 +11,10 @@ export class ProductType {
   @Column({ length: 200, unique: true })
   name: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
   @OneToOne(() => Product, (product) => product.productType)

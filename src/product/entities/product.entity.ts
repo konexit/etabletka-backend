@@ -111,10 +111,10 @@ export class Product {
   @Column({ name: 'product_type_id', default: false })
   productTypeId: boolean;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
   @OneToMany(() => ProductRemnant, (productRemnant) => productRemnant.product)
