@@ -1,4 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Exclude } from 'class-transformer';
 
 @Entity({
@@ -11,7 +17,7 @@ export class User {
   @Column({ unique: true })
   phone: string;
 
-  @Column( { nullable: true })
+  @Column({ nullable: true })
   email: string;
 
   @Exclude()
@@ -33,9 +39,13 @@ export class User {
   @Column({ name: 'role_id', default: 1 })
   roleId: number;
 
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);
   }
 }
-
-export default User;

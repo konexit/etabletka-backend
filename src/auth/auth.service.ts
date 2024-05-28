@@ -26,7 +26,7 @@ export class AuthService {
       throw new UnauthorizedException();
     }
     const payload = {
-      email: user.email,
+      phone: user.phone,
       sub: user.id,
       roleId: user.roleId,
     };

@@ -5,6 +5,8 @@ import {
   PrimaryGeneratedColumn,
   OneToMany,
   OneToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { ProductRemnant } from '../../productRemnants/entities/productRemnant.entity';
 import { ProductType } from '../../productTypes/entities/productType.entity';
@@ -108,6 +110,12 @@ export class Product {
 
   @Column({ name: 'product_type_id', default: false })
   productTypeId: boolean;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @OneToMany(() => ProductRemnant, (productRemnant) => productRemnant.product)
   productRemnants: ProductRemnant[];

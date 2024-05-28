@@ -5,6 +5,8 @@ import {
   PrimaryGeneratedColumn,
   Index,
   ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Product } from '../../product/entities/product.entity';
 
@@ -31,6 +33,12 @@ export class ProductRemnant {
 
   @Column({ name: 'active', default: false })
   isActive: boolean;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
 
 export default ProductRemnant;

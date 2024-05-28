@@ -9,6 +9,10 @@ import { AuthModule } from './auth/auth.module';
 import { ProductModule } from './product/product.module';
 import { ProductRemnantModule } from './productRemnants/productRemnant.module';
 import { ProductTypeModule } from './productTypes/productType.module';
+import { RegionModule } from './places/region/region.module';
+import { CityModule } from './places/city/city.module';
+import { CommunityModule } from './places/communitiy/community.module';
+import { DistrictModule } from './places/district/district.module';
 import { CategoriesModule } from './categories/categories.module';
 
 @Module({
@@ -22,6 +26,10 @@ import { CategoriesModule } from './categories/categories.module';
     ProductModule,
     ProductTypeModule,
     ProductRemnantModule,
+    CityModule,
+    CommunityModule,
+    DistrictModule,
+    RegionModule,
     UserModule,
     CategoriesModule,
   ],
