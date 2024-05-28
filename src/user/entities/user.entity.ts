@@ -49,3 +49,5 @@ export class User {
     Object.assign(this, partial);
   }
 }
+
+export default User;
