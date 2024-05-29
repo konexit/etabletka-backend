@@ -11,7 +11,7 @@ import {
   ClassSerializerInterceptor,
   UseGuards,
 } from '@nestjs/common';
-import ProductRemnant from './entities/productRemnant.entity';
+import { ProductRemnant } from './entities/productRemnant.entity';
 import { ProductRemnantService } from './productRemnant.service';
 import CreateProductRemnantDto from './dto/create-product-remnant.dto';
 import { AuthGuard } from '../auth/auth.guard';

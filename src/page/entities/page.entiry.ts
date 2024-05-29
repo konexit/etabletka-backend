@@ -55,5 +55,3 @@ export class Page {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 }
-
-export default Page;

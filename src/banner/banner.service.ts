@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import Banner from './entities/banner.entity';
+import { Banner } from './entities/banner.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 

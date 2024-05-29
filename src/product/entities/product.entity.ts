@@ -10,6 +10,8 @@ import {
 } from 'typeorm';
 import { ProductRemnant } from '../../productRemnants/entities/productRemnant.entity';
 import { ProductType } from '../../productTypes/entities/productType.entity';
+import { ProductBadge } from '../../relations/productBadge/entities/productBadge.entity';
+import { ProductDiscount } from '../../relations/productDiscount/entities/productDiscount.entity';
 
 @Entity({
   name: 'products',
@@ -27,7 +29,7 @@ export class Product {
   @Column({ name: 'brand_id', nullable: true })
   brandId: number;
 
-  @Column({ name: 'name', type: 'json' })
+  @Column({ type: 'json' })
   name: JSON;
 
   @Column({ name: 'short_name', type: 'json' })
@@ -84,7 +86,7 @@ export class Product {
   @Column({ name: 'seo_text_auto', default: true })
   seoTextAuto: boolean;
 
-  @Column({ default: 0 })
+  @Column({ default: 0, type: 'float' })
   price: number;
 
   @Column({ name: 'discount_price', default: 0 })
@@ -123,6 +125,13 @@ export class Product {
   @OneToOne(() => ProductType, (productType) => productType.product) // Specify inverse side
   @JoinColumn({ name: 'productTypeId' })
   productType: ProductType;
-}
 
-export default Product;
+  @OneToMany(() => ProductBadge, (productBadge) => productBadge.product)
+  productBadges: ProductBadge[];
+
+  @OneToMany(
+    () => ProductDiscount,
+    (productDiscount) => productDiscount.product,
+  )
+  productDiscounts: ProductDiscount[];
+}

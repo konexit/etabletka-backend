@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-import Community from './entities/community.entity';
+import { Community } from './entities/community.entity';
 
 @Injectable()
 export class CommunityService {

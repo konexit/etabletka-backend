@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Res } from '@nestjs/common';
 import { BannerService } from './banner.service';
-import Banner from './entities/banner.entity';
+import { Banner } from './entities/banner.entity';
 
 @Controller('api/v1/banners')
 export class BannerController {

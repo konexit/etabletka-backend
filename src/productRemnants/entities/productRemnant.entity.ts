@@ -40,5 +40,3 @@ export class ProductRemnant {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 }
-
-export default ProductRemnant;

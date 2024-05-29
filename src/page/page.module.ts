@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import Page from './entities/page.entiry';
+import { Page } from './entities/page.entiry';
 import { PageController } from './page.controller';
 import { PageService } from './page.service';
 

@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToOne, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  OneToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Product } from '../../product/entities/product.entity';
 
 @Entity({
@@ -20,5 +27,3 @@ export class ProductType {
   @OneToOne(() => Product, (product) => product.productType)
   product: Product;
 }
-
-export default ProductType;

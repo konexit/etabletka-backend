@@ -1,7 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import Product from './entities/product.entity';
+import { Product } from './entities/product.entity';
+import { Badge } from '../badge/entities/badge.entity';
+import { ProductBadge } from '../relations/productBadge/entities/productBadge.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -11,6 +13,10 @@ export class ProductService {
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(Badge)
+    private readonly badgeRepository: Repository<Badge>,
+    @InjectRepository(ProductBadge)
+    private readonly productBadgeRepository: Repository<ProductBadge>,
     private jwtService: JwtService,
   ) {}
 
@@ -63,7 +69,7 @@ export class ProductService {
     return await this.productRepository.findOne({
       where: { slug, isActive: true },
       relations: ['productRemnants'],
-    })
+    });
   }
 
   async update(
@@ -80,5 +86,27 @@ export class ProductService {
 
   remove(id: number) {
     return `This action removes the #${id} product`;
+  }
+
+  async addBadgeToProduct(
+    token: string | any[],
+    productId: number,
+    badgeId: number,
+  ): Promise<any> {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('Has no access', HttpStatus.FORBIDDEN);
+    }
+
+    const product = await this.productRepository.findOneBy({ id: productId });
+    const badge = await this.badgeRepository.findOneBy({ id: badgeId });
+
+    if (!product || !badge) {
+      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    }
+
+    const productBadge = new ProductBadge();
+    productBadge.product = product;
+    productBadge.badge = badge;
+    return await this.productBadgeRepository.save(productBadge);
   }
 }

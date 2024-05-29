@@ -12,8 +12,8 @@ export class AuthService {
     private userService: UserService,
   ) {}
 
-  async signIn(email: string, password: string): Promise<any> {
-    const user = await this.userService.getByEmail(email);
+  async signIn(phone: string, password: string): Promise<any> {
+    const user = await this.userService.getByPhone(phone);
     if (!user.password) throw new UnauthorizedException();
 
     const salt = this.configService.get('SALT');

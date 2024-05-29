@@ -44,4 +44,3 @@ export class Banner {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 }
-export default Banner;

@@ -47,4 +47,3 @@ export class City {
   updatedAt: Date;
 }
 
-export default City;

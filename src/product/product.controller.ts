@@ -12,7 +12,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import Product from './entities/product.entity';
+import { Product } from './entities/product.entity';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { AuthGuard } from '../auth/auth.guard';
@@ -77,5 +77,31 @@ export class ProductController {
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.productService.remove(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post(':id/add/badge/:badgeId')
+  async addBadgeToProduct(
+    @Req() request: Request,
+    @Param('id') id: number,
+    @Param('badgeId') badgeId: number,
+    @Res() res,
+  ): Promise<any> {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    try {
+      const productBadge = await this.productService.addBadgeToProduct(
+        token,
+        id,
+        badgeId,
+      );
+
+      if (!productBadge) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+
+      return res.json(productBadge);
+    } catch (error) {
+      return res.status(500).json({ message: 'Internal server error' });
+    }
   }
 }

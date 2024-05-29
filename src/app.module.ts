@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from '../db/data-source';
+import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { DiscountModule } from './discount/discount.module';
 import { ProductModule } from './product/product.module';
 import { ProductRemnantModule } from './productRemnants/productRemnant.module';
 import { ProductTypeModule } from './productTypes/productType.module';
@@ -16,6 +17,7 @@ import { DistrictModule } from './places/district/district.module';
 import { CategoriesModule } from './categories/categories.module';
 import { PageModule } from './page/page.module';
 import { BannerModule } from './banner/banner.module';
+import { BadgeModule } from './badge/badge.module';
 
 @Module({
   imports: [
@@ -25,7 +27,9 @@ import { BannerModule } from './banner/banner.module';
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
     AuthModule,
+    BadgeModule,
     BannerModule,
+    DiscountModule,
     PageModule,
     ProductModule,
     ProductTypeModule,

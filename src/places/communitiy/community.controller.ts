@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { CommunityService } from './community.service';
 import { Request } from 'express';
-import Community from './entities/community.entity';
+import { Community } from './entities/community.entity';
 
 @Controller('api/v1/communities')
 export class CommunityController {

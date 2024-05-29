@@ -1,22 +1,14 @@
-import {
-  ClassSerializerInterceptor,
-  Controller,
-  Get,
-  Param,
-  Req,
-  Res,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Get, Param, Req, Res } from '@nestjs/common';
 import { PageService } from './page.service';
 import { Request } from 'express';
+import { Page } from './entities/page.entiry';
 
 @Controller('api/v1/pages')
 export class PageController {
   constructor(private readonly pageService: PageService) {}
 
-  @UseInterceptors(ClassSerializerInterceptor)
   @Get()
-  async getPages(@Req() request: Request, @Res() res): Promise<any> {
+  async getPages(@Req() request: Request, @Res() res): Promise<Page[]> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
     try {
       const pages = await this.pageService.getPages(token);
@@ -32,7 +24,7 @@ export class PageController {
   }
 
   @Get(':slug')
-  async getPageBySlug(@Param('slug') slug: string, @Res() res): Promise<any> {
+  async getPageBySlug(@Param('slug') slug: string, @Res() res): Promise<Page> {
     try {
       const page = await this.pageService.getPageBySlug(slug);
 
