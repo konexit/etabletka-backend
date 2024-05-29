@@ -15,7 +15,10 @@ export class Category {
   @Column({ name: 'sync_id', unique: true })
   syncId: number;
 
-  @Column({ name: 'parent_id', nullable: false, default: 0 })
+  @Column({ name: 'sync_parent_id', nullable: true })
+  syncParentId: number;
+
+  @Column({ name: 'parent_id', nullable: true, default: 0 })
   parentId: number;
 
   @Column({ type: 'json', nullable: true })
@@ -54,6 +57,9 @@ export class Category {
   @Column({ name: 'cdn_icon', nullable: true })
   cdnIcon: string;
 
+  @Column({ name: 'cdn_data', type: 'json', nullable: true })
+  cdnData: JSON;
+
   @Column({ nullable: true })
   icon: string;
 
@@ -63,11 +69,20 @@ export class Category {
   @Column({ default: 0 })
   position: number;
 
+  @Column({ default: false })
+  root: boolean;
+
+  @Column({ default: 0 })
+  lft: number;
+
+  @Column({ default: 0 })
+  rgt: number;
+
   @Column({ default: true })
   active: boolean;
 
-  @Column({ name: 'show_menu', type: 'boolean', default: true })
-  showMenu: JSON;
+  @Column({ name: 'show_menu', default: true })
+  showMenu: boolean;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

@@ -2,13 +2,14 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
-  host: 'eTab-NestJS-postgres',
+  host: 'localhost',
   port: 5432,
-  username: 'test',
-  password: 'testtest',
-  database: 'eTab',
+  username: 'postgres',
+  password: '24101995',
+  database: 'etabletka',
   entities: ['dist/**/*.entity.js'],
   migrations: ['dist/db/migrations/*.js'],
+  synchronize: true
 };
 
 const dataSource = new DataSource(dataSourceOptions);
