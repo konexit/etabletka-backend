@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
@@ -16,12 +16,37 @@ export class CategoriesService {
     return 'This action adds a new category';
   }
 
-  findAll() {
-    return this.categoryRepository.find();
+  async findAll() {
+    return await this.categoryRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+  async findByRoot() {
+    return await this.categoryRepository.find({ where: { root: true } });
+  }
+
+  async findById(id: number) {
+    return await this.categoryRepository.findOneBy({ id });
+  }
+
+  async findByParentId(id: number): Promise<Category[]> {
+    const { lft, rgt } = await this.categoryRepository.findOne({
+      where: { id },
+      select: ['lft', 'rgt'],
+    });
+    return await this.categoryRepository.find({
+      where: {
+        lft: MoreThanOrEqual(lft),
+        rgt: LessThanOrEqual(rgt),
+      },
+    })
+  }
+
+  async findBySlug(slug: string) {
+    return await this.categoryRepository.findOneBy({ slug });
+  }
+
+  async findByPath(path: string) {
+    return await this.categoryRepository.findOneBy({ path });
   }
 
   update(id: number, updateCategoryDto: UpdateCategoryDto) {
