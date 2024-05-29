@@ -12,7 +12,7 @@ export class CommunityService {
     private jwtService: JwtService,
   ) {}
 
-  async getCommunities(token): Promise<Community[]> {
+  async getCommunities(token: string | any[]): Promise<Community[]> {
     if (!token || typeof token !== 'string') {
       throw new HttpException('Cities not found', HttpStatus.FORBIDDEN);
     }

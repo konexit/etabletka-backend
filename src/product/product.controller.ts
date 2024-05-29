@@ -19,7 +19,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Request } from 'express';
 
-@Controller('product')
+@Controller('api/v1/product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 

@@ -12,10 +12,11 @@ export class RegionService {
     private jwtService: JwtService,
   ) {}
 
-  async getRegions(token): Promise<any> {
+  async getRegions(token: string | any[]): Promise<any> {
     const regions = await this.regionRepository.find();
     if (regions) return regions;
 
     throw new HttpException('Regions not found', HttpStatus.NOT_FOUND);
   }
+
 }

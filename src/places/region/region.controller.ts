@@ -9,7 +9,7 @@ import {
 import { Request } from 'express';
 import { RegionService } from './region.service';
 
-@Controller('regions')
+@Controller('api/v1/regions')
 export class RegionController {
   constructor(private readonly regionService: RegionService) {}
 

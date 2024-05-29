@@ -10,7 +10,7 @@ import {
 import { ProductTypeService } from './productType.service';
 import { AuthGuard } from '../auth/auth.guard';
 
-@Controller('product-types')
+@Controller('api/v1/product-types')
 export class ProductTypeController {
   constructor(private readonly productTypeService: ProductTypeService) {}
 

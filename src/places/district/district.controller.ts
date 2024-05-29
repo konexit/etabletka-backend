@@ -9,7 +9,7 @@ import {
 import { Request } from 'express';
 import { DistrictService } from './district.service';
 
-@Controller('districts')
+@Controller('api/v1/districts')
 export class DistrictController {
   constructor(private readonly districtService: DistrictService) {}
 

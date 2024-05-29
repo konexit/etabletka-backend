@@ -12,7 +12,7 @@ export class CityService {
     private jwtService: JwtService,
   ) {}
 
-  async getCities(token): Promise<City[]> {
+  async getCities(token: string | any[]): Promise<City[]> {
     if (!token || typeof token !== 'string') {
       throw new HttpException('Cities not found', HttpStatus.FORBIDDEN);
     }

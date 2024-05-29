@@ -11,7 +11,7 @@ import { CityService } from './city.service';
 import { City } from './entities/city.entity';
 import { Request } from 'express';
 
-@Controller('cities')
+@Controller('api/v1/cities')
 export class CityController {
   constructor(private readonly cityService: CityService) {}
 

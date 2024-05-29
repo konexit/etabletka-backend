@@ -12,7 +12,7 @@ export class DistrictService {
     private jwtService: JwtService,
   ) {}
 
-  async getAllDistricts(token): Promise<any> {
+  async getAllDistricts(token: string | any[]): Promise<any> {
     if (!token || typeof token !== 'string') {
       throw new HttpException('No access', HttpStatus.FORBIDDEN);
     }

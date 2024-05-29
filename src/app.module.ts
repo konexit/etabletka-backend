@@ -14,6 +14,8 @@ import { CityModule } from './places/city/city.module';
 import { CommunityModule } from './places/communitiy/community.module';
 import { DistrictModule } from './places/district/district.module';
 import { CategoriesModule } from './categories/categories.module';
+import { PageModule } from './page/page.module';
+import { BannerModule } from './banner/banner.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { CategoriesModule } from './categories/categories.module';
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
     AuthModule,
+    BannerModule,
+    PageModule,
     ProductModule,
     ProductTypeModule,
     ProductRemnantModule,
