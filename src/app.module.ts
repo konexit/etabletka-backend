@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { DiscountModule } from './discount/discount.module';
 import { ProductModule } from './product/product.module';
 import { ProductRemnantModule } from './productRemnants/productRemnant.module';
+import { ProductBadgeModule } from './relations/productBadge/productBadge.module';
 import { ProductTypeModule } from './productTypes/productType.module';
 import { RegionModule } from './places/region/region.module';
 import { CityModule } from './places/city/city.module';
@@ -18,6 +19,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { PageModule } from './page/page.module';
 import { BannerModule } from './banner/banner.module';
 import { BadgeModule } from './badge/badge.module';
+import { StoreModule } from './store/store.module';
 
 @Module({
   imports: [
@@ -32,6 +34,7 @@ import { BadgeModule } from './badge/badge.module';
     DiscountModule,
     PageModule,
     ProductModule,
+    ProductBadgeModule,
     ProductTypeModule,
     ProductRemnantModule,
     CityModule,
@@ -40,6 +43,7 @@ import { BadgeModule } from './badge/badge.module';
     RegionModule,
     UserModule,
     CategoriesModule,
+    StoreModule,
   ],
   controllers: [AppController],
   providers: [AppService],

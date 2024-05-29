@@ -20,11 +20,11 @@ export class CategoriesService {
     return await this.categoryRepository.find();
   }
 
-  async findByRoot() {
+  async findByRoot(): Promise<Category[]> {
     return await this.categoryRepository.find({ where: { root: true } });
   }
 
-  async findById(id: number) {
+  async findById(id: number): Promise<Category> {
     return await this.categoryRepository.findOneBy({ id });
   }
 
@@ -38,14 +38,14 @@ export class CategoriesService {
         lft: MoreThanOrEqual(lft),
         rgt: LessThanOrEqual(rgt),
       },
-    })
+    });
   }
 
-  async findBySlug(slug: string) {
+  async findBySlug(slug: string): Promise<Category> {
     return await this.categoryRepository.findOneBy({ slug });
   }
 
-  async findByPath(path: string) {
+  async findByPath(path: string): Promise<Category> {
     return await this.categoryRepository.findOneBy({ path });
   }
 
