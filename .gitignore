@@ -5,6 +5,8 @@
 /docker/mysql-data/*
 /docker/postgres-data/*
 /db/migrations
+/db/data-source.*
+
 
 # Logs
 logs
