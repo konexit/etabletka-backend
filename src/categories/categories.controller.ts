@@ -7,13 +7,15 @@ import {
   Param,
   Delete,
   Query,
-  Res,
+  UseInterceptors,
+  ClassSerializerInterceptor
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Controller('api/v1/categories')
+@UseInterceptors(ClassSerializerInterceptor)
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
@@ -23,7 +25,13 @@ export class CategoriesController {
   }
 
   @Get()
-  async findAll() {
+  async findAll(@Query("format") format: string) {
+    if (format) {
+      switch (format) {
+        case "menu":
+          return await this.categoriesService.formatMenu();
+      }
+    }
     return await this.categoriesService.findAll();
   }
 
