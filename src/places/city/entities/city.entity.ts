@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 @Entity({
   name: 'cities',
@@ -19,19 +20,19 @@ export class City {
   @Column({ nullable: true })
   lng: string;
 
-  @Column({ name: 'country_id' })
+  @Column({ name: 'country_id', nullable: true })
   countryId: number;
 
-  @Column({ name: 'region_id' })
+  @Column({ name: 'region_id', nullable: true })
   regionId: number;
 
-  @Column({ name: 'district_id' })
+  @Column({ name: 'district_id', nullable: true })
   districtId: number;
 
-  @Column({ name: 'community_id' })
+  @Column({ name: 'community_id', nullable: true })
   communityId: number;
 
-  @Column({ name: 'prefix', type: 'json' })
+  @Column({ name: 'prefix', type: 'json', nullable: true })
   prefix: JSON;
 
   @Column({ name: 'name', type: 'json' })
@@ -45,5 +46,7 @@ export class City {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
-}
 
+  @Exclude()
+  storesCount: number;
+}

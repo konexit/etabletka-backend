@@ -1,8 +1,11 @@
 import {
+  Body,
   ClassSerializerInterceptor,
   Controller,
   Get,
   Param,
+  Post,
+  Query,
   Req,
   Res,
   UseInterceptors,
@@ -15,9 +18,8 @@ import { Request } from 'express';
 export class CityController {
   constructor(private readonly cityService: CityService) {}
 
-  @UseInterceptors(ClassSerializerInterceptor)
   @Get()
-  async findAll(@Req() request: Request, @Res() res): Promise<any> {
+  async findAll(@Req() request: Request, @Res() res: any): Promise<any> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
     try {
       const cities = await this.cityService.getCities(token);
@@ -33,7 +35,7 @@ export class CityController {
   }
 
   @Get(':id')
-  async getCityById(@Param('id') id: number, @Res() res): Promise<City> {
+  async getCityById(@Param('id') id: number, @Res() res: any): Promise<City> {
     try {
       const city = await this.cityService.getCityById(+id);
 
@@ -42,6 +44,20 @@ export class CityController {
       }
 
       return res.json(city);
+    } catch (error) {
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+  @Post('/stores')
+  async getCitiesWithStores(@Res() res): Promise<City[]> {
+    try {
+      const cities = await this.cityService.getCitiesWithStores();
+
+      if (!cities) {
+        return res.status(404).json({ message: 'City not found' });
+      }
+
+      return res.json(cities);
     } catch (error) {
       return res.status(500).json({ message: 'Internal server error' });
     }

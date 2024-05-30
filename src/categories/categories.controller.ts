@@ -8,7 +8,7 @@ import {
   Delete,
   Query,
   UseInterceptors,
-  ClassSerializerInterceptor
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -25,10 +25,10 @@ export class CategoriesController {
   }
 
   @Get()
-  async findAll(@Query("format") format: string) {
+  async findAll(@Query('format') format: string) {
     if (format) {
       switch (format) {
-        case "menu":
+        case 'menu':
           return await this.categoriesService.formatMenu();
       }
     }

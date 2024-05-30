@@ -15,7 +15,7 @@ export class CategoriesService {
     private categoryRepository: Repository<Category>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
-  ) { }
+  ) {}
 
   cacheMenuKey = 'menu';
   cacheMenuTTL = 60000;
@@ -27,9 +27,15 @@ export class CategoriesService {
   async formatMenu(depth: number = 3): Promise<FormatCategoryMenuDto[]> {
     const cacheCategoryMenu = await this.cacheManager.get(this.cacheMenuKey);
     if (cacheCategoryMenu) return <FormatCategoryMenuDto[]>cacheCategoryMenu;
-    const categories = await this.categoryRepository.find({ where: { active: true } });
+    const categories = await this.categoryRepository.find({
+      where: { active: true },
+    });
     const categoryMenu = this.buildMenuTree(categories, depth, 'uk');
-    await this.cacheManager.set(this.cacheMenuKey, categoryMenu, this.cacheMenuTTL);
+    await this.cacheManager.set(
+      this.cacheMenuKey,
+      categoryMenu,
+      this.cacheMenuTTL,
+    );
     return categoryMenu;
   }
 
@@ -38,7 +44,9 @@ export class CategoriesService {
   }
 
   async findByRoot(): Promise<Category[]> {
-    return await this.categoryRepository.find({ where: { root: true, active: true } });
+    return await this.categoryRepository.find({
+      where: { root: true, active: true },
+    });
   }
 
   async findById(id: number): Promise<Category> {
@@ -75,7 +83,11 @@ export class CategoriesService {
     return `This action removes a #${id} category`;
   }
 
-  private buildMenuTree(categories: Category[], depth: number, lang: string): FormatCategoryMenuDto[] {
+  private buildMenuTree(
+    categories: Category[],
+    depth: number,
+    lang: string,
+  ): FormatCategoryMenuDto[] {
     const idMap: Map<number, FormatCategoryMenuDto> = new Map();
     const rootNodes: FormatCategoryMenuDto[] = [];
 

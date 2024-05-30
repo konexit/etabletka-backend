@@ -13,4 +13,17 @@ export class StoreService {
   async getStores(): Promise<Store[]> {
     return await this.storeRepositary.find({});
   }
+
+  async getActiveStores(): Promise<Store[]> {
+    return await this.storeRepositary.findBy({
+      isActive: true,
+    });
+  }
+
+  async getStoresByCityId(cityId: number): Promise<Store[]> {
+    return await this.storeRepositary.findBy({
+      cityId,
+      isActive: true,
+    });
+  }
 }
