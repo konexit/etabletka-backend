@@ -15,7 +15,7 @@ export class CategoriesService {
     private categoryRepository: Repository<Category>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
-  ) {}
+  ) { }
 
   cacheMenuKey = 'menu';
   cacheMenuTTL = 60000;
@@ -29,6 +29,9 @@ export class CategoriesService {
     if (cacheCategoryMenu) return <FormatCategoryMenuDto[]>cacheCategoryMenu;
     const categories = await this.categoryRepository.find({
       where: { active: true },
+      order: {
+        position: 'ASC'
+      }
     });
     const categoryMenu = this.buildMenuTree(categories, depth, 'uk');
     await this.cacheManager.set(
@@ -64,6 +67,9 @@ export class CategoriesService {
         lft: MoreThanOrEqual(lft),
         rgt: LessThanOrEqual(rgt),
       },
+      order: {
+        position: 'ASC'
+      }
     });
   }
 
