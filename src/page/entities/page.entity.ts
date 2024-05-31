@@ -22,10 +22,10 @@ export class Page {
   @Column({ type: 'json' })
   title: JSON;
 
-  @Column({ type: 'json' })
+  @Column({ type: 'json', nullable: true })
   text: JSON;
 
-  @Column({ type: 'json' })
+  @Column({ type: 'json', nullable: true })
   variables: JSON;
 
   @Column({ name: 'seo_h1', type: 'json', nullable: true })

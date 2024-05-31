@@ -2,7 +2,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToOne,
   ManyToOne,
   JoinColumn,
   PrimaryGeneratedColumn,
@@ -69,14 +68,6 @@ export class Store {
 
   @Column({ name: 'store_brand_id', default: 1 })
   storeBrandId: number;
-
-  @OneToOne(() => Region, (region: Region) => region.store)
-  @JoinColumn({ name: 'region_id' })
-  region: Region;
-
-  @OneToOne(() => District, (district: District) => district.store)
-  @JoinColumn({ name: 'district_id' })
-  district: District;
 
   @ManyToOne(() => City, (city: City) => city.stores)
   @JoinColumn({ name: 'city_id' })

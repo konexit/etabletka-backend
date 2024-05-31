@@ -4,9 +4,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToOne,
 } from 'typeorm';
-import { Store } from '../../../store/entities/store.entity';
 
 @Entity({
   name: 'districts',
@@ -32,7 +30,4 @@ export class District {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
-
-  @OneToOne(() => Store, (store) => store.district, { nullable: true })
-  store?: Store;
 }

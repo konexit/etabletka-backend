@@ -3,9 +3,8 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn, OneToOne
+  UpdateDateColumn,
 } from 'typeorm';
-import { Store } from "../../../store/entities/store.entity";
 
 @Entity({
   name: 'regions',
@@ -37,7 +36,4 @@ export class Region {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
-
-  @OneToOne(() => Store, (store) => store.region, { nullable: true })
-  store?: Store;
 }
