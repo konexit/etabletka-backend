@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Req, Res } from '@nestjs/common';
 import { PageService } from './page.service';
 import { Request } from 'express';
-import { Page } from './entities/page.entiry';
+import { Page } from './entities/page.entity';
 
 @Controller('api/v1/pages')
 export class PageController {

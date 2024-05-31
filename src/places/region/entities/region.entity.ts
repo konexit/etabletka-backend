@@ -25,8 +25,8 @@ export class Region {
   @Column({ name: 'name', type: 'json' })
   name: JSON;
 
-  @Column({ name: 'short_name', type: 'json' })
-  shortName: JSON;
+  @Column({ name: 'short_name' })
+  shortName: string;
 
   @Column({ unique: true })
   slug: string;

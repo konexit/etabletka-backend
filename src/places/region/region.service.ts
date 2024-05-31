@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Region } from './entities/region.entitity';
+import { Region } from './entities/region.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 
