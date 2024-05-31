@@ -16,7 +16,7 @@ $ docker-compose up --build -d
 ## Docker rebuild
 ```bash
 $ docker-compose build --no-cache
-$ docker-compose up -d
+$ docker-compose up -d --build etab-nestjs-backend
 ```
 
 ### Generate migrations

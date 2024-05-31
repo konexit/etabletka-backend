@@ -1,20 +1,20 @@
 services:
-  next-backend:
+  etab-nestjs-backend:
     build:
       context: .
       dockerfile: ./docker/Dockerfile
-    container_name: eTab-NestJS-Backend
+    container_name: etab-nestjs-backend
     ports:
       - 3000:3000
     volumes:
       - .:/usr/src/app:rw
     depends_on:
-      - eTab-NestJS-postgres
+      - etab-nestjs-postgres
     networks:
       - web
 
-  eTab-NestJS-postgres:
-    container_name: eTab-NestJS-postgres
+  etab-nestjs-postgres:
+    container_name: etab-nestjs-postgres
     image: postgres:latest
     restart: always
     environment:
