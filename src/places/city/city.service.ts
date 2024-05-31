@@ -20,7 +20,7 @@ export class CityService {
   ) {}
 
   cacheCitiesKey = 'cities';
-  cacheCitiesTTL = 60000;
+  cacheCitiesTTL = 3600000; // 1Hour
 
   async getCities(token: string | any[]): Promise<City[]> {
     if (!token || typeof token !== 'string') {

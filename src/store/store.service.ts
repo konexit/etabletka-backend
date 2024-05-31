@@ -15,7 +15,7 @@ export class StoreService {
   ) {}
 
   cacheActiveStoresKey = 'activeStores';
-  cacheActiveStoresTTL = 60000;
+  cacheActiveStoresTTL = 3600000; // 1Hour
 
   async getStores(): Promise<Store[]> {
     return await this.storeRepositary.find({});
