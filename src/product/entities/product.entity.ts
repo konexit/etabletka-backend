@@ -110,20 +110,14 @@ export class Product {
   @Column({ name: 'is_prescription', default: false })
   isPrescription: boolean;
 
-  @Column({ name: 'product_type_id', default: false })
-  productTypeId: boolean;
-
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
-  updatedAt: Date;
+  @Column({ name: 'product_type_id', default: 1 })
+  productTypeId: number;
 
   @OneToMany(() => ProductRemnant, (productRemnant) => productRemnant.product)
   productRemnants: ProductRemnant[];
 
-  @OneToOne(() => ProductType, (productType) => productType.product) // Specify inverse side
-  @JoinColumn({ name: 'productTypeId' })
+  @OneToOne(() => ProductType, (productType) => productType.product)
+  @JoinColumn({ name: 'product_type_id' })
   productType: ProductType;
 
   @OneToMany(() => ProductBadge, (productBadge) => productBadge.product)
@@ -134,4 +128,10 @@ export class Product {
     (productDiscount) => productDiscount.product,
   )
   productDiscounts: ProductDiscount[];
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  updatedAt: Date;
 }
