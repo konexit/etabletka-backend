@@ -9,7 +9,7 @@ import { Cache } from 'cache-manager';
 export class StoreService {
   constructor(
     @InjectRepository(Store)
-    private storeRepositary: Repository<Store>,
+    private storeRepository: Repository<Store>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
   ) {}
@@ -18,7 +18,7 @@ export class StoreService {
   cacheActiveStoresTTL = 3600000; // 1Hour
 
   async getStores(): Promise<Store[]> {
-    return await this.storeRepositary.find({});
+    return await this.storeRepository.find({});
   }
 
   async getActiveStores(): Promise<any> {
@@ -29,8 +29,9 @@ export class StoreService {
       return cacheActiveStores;
     }
 
-    const stores = await this.storeRepositary.findBy({
-      isActive: true,
+    const stores = await this.storeRepository.find({
+      where: { isActive: true },
+      relations: ['city', 'region', 'district'],
     });
 
     await this.cacheManager.set(
@@ -43,7 +44,7 @@ export class StoreService {
   }
 
   async getStoresByCityId(cityId: number): Promise<Store[]> {
-    return await this.storeRepositary.findBy({
+    return await this.storeRepository.findBy({
       cityId,
       isActive: true,
     });

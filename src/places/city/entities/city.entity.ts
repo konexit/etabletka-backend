@@ -1,11 +1,13 @@
 import {
   Column,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { Store } from '../../../store/entities/store.entity';
 
 @Entity({
   name: 'cities',
@@ -49,4 +51,7 @@ export class City {
 
   @Exclude()
   storesCount: number;
+
+  @OneToMany(() => Store, store => store.city)
+  stores: Store[];
 }

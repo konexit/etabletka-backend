@@ -2,9 +2,15 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToOne,
+  ManyToOne,
+  JoinColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { City } from '../../places/city/entities/city.entity';
+import { District } from '../../places/district/entities/district.entity';
+import { Region } from '../../places/region/entities/region.entity';
 
 @Entity({
   name: 'stores',
@@ -63,6 +69,18 @@ export class Store {
 
   @Column({ name: 'store_brand_id', default: 1 })
   storeBrandId: number;
+
+  @OneToOne(() => Region, (region: Region) => region.store)
+  @JoinColumn({ name: 'region_id' })
+  region: Region;
+
+  @OneToOne(() => District, (district: District) => district.store)
+  @JoinColumn({ name: 'district_id' })
+  district: District;
+
+  @ManyToOne(() => City, (city: City) => city.stores)
+  @JoinColumn({ name: 'city_id' })
+  city: City;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Store } from '../../store/entities/store.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { In } from 'typeorm';
 
 @Injectable()
 export class CityService {
@@ -52,10 +53,10 @@ export class CityService {
     const cityIds = storeCounts.map((r) => r.cityId);
 
     if (cityIds) {
-      const citiesWithStores = await this.cityRepository
-        .createQueryBuilder('city')
-        .andWhereInIds(cityIds)
-        .getMany();
+      const citiesWithStores = await this.cityRepository.find({
+        where: { id: In(cityIds) },
+        relations: ['stores'],
+      });
 
       citiesWithStores.forEach((city) => {
         city.storesCount =
