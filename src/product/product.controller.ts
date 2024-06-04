@@ -25,12 +25,12 @@ export class ProductController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Post()
-  create(@Body() createProductDto: CreateProductDto): Promise<Product> {
-    return this.productService.create(createProductDto);
+  async create(@Body() createProductDto: CreateProductDto): Promise<Product> {
+    return await this.productService.create(createProductDto);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: number, @Res() res) {
+  async findOne(@Param('id') id: number, @Res() res: any) {
     try {
       const product = await this.productService.findProductById(+id);
 
@@ -45,7 +45,7 @@ export class ProductController {
   }
 
   @Post(':slug')
-  async getProductBySlug(@Param('slug') slug: string, @Res() res) {
+  async getProductBySlug(@Param('slug') slug: string, @Res() res: any) {
     try {
       const product = await this.productService.findProductBySlug(slug);
 
@@ -85,7 +85,7 @@ export class ProductController {
     @Req() request: Request,
     @Param('id') id: number,
     @Param('badgeId') badgeId: number,
-    @Res() res,
+    @Res() res: any,
   ): Promise<any> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
     try {

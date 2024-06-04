@@ -20,6 +20,7 @@ import { PageModule } from './page/page.module';
 import { BannerModule } from './banner/banner.module';
 import { BadgeModule } from './badge/badge.module';
 import { StoreModule } from './store/store.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { StoreModule } from './store/store.module';
     UserModule,
     CategoriesModule,
     StoreModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],

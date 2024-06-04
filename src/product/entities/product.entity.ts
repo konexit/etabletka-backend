@@ -101,7 +101,7 @@ export class Product {
   @Column({ name: 'active', default: false })
   isActive: boolean;
 
-  @Column({ name: 'hidden', default: true })
+  @Column({ name: 'hidden', default: false })
   isHidden: boolean;
 
   @Column({ name: 'in_stock', default: false })
