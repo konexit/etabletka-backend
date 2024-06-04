@@ -19,7 +19,7 @@ export class PageController {
 
       return res.json(pages);
     } catch (error) {
-      return res.status(500).json({ message: 'Internal server error' });
+      return res.status(500).json({ message: 'Internal server error', error: error });
     }
   }
 
@@ -34,7 +34,7 @@ export class PageController {
 
       return res.json(page);
     } catch (error) {
-      return res.status(500).json({ message: 'Internal server error' });
+      return res.status(500).json({ message: 'Internal server error', error: error });
     }
   }
 }

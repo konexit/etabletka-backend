@@ -21,6 +21,7 @@ export class CityService {
   ) {}
 
   cacheCitiesKey = 'cities';
+  cacheDefaultCityKey = 'defaultCity';
   cacheCitiesTTL = 3600000; // 1Hour
 
   async getCities(token: string | any[]): Promise<City[]> {
@@ -29,6 +30,24 @@ export class CityService {
     }
 
     return await this.cityRepository.find({});
+  }
+
+  async getDefaultCity(): Promise<any> {
+    const cacheDefaultCity = await this.cacheManager.get(
+      this.cacheDefaultCityKey,
+    );
+    if (cacheDefaultCity) {
+      return cacheDefaultCity;
+    }
+    const city = await this.cityRepository.findOneBy({ id: 29273 });
+
+    await this.cacheManager.set(
+      this.cacheDefaultCityKey,
+      city,
+      this.cacheCitiesTTL,
+    );
+
+    return city;
   }
 
   async getCityById(id: number): Promise<City | undefined> {

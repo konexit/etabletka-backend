@@ -31,7 +31,7 @@ export class CommunityController {
 
       return res.json(communities);
     } catch (error) {
-      return res.status(500).json({ message: 'Internal server error' });
+      return res.status(500).json({ message: 'Internal server error', error: error });
     }
   }
 
@@ -49,7 +49,7 @@ export class CommunityController {
 
       return res.json(community);
     } catch (error) {
-      return res.status(500).json({ message: 'Internal server error' });
+      return res.status(500).json({ message: 'Internal server error', error: error });
     }
   }
 }

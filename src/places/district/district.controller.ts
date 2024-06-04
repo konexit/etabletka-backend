@@ -26,7 +26,7 @@ export class DistrictController {
 
       return res.json(districts);
     } catch (error) {
-      return res.status(500).json({ message: 'Internal server error' });
+      return res.status(500).json({ message: 'Internal server error', error: error });
     }
   }
 }

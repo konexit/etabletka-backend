@@ -21,6 +21,7 @@ import { BannerModule } from './banner/banner.module';
 import { BadgeModule } from './badge/badge.module';
 import { StoreModule } from './store/store.module';
 import { OrderModule } from './order/order.module';
+import { MenuModule } from './menu/menu.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { OrderModule } from './order/order.module';
     CategoriesModule,
     StoreModule,
     OrderModule,
+    MenuModule,
   ],
   controllers: [AppController],
   providers: [AppService],
