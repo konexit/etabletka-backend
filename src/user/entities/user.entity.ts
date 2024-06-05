@@ -2,10 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { Role } from '../../role/entities/role.entity';
 
 @Entity({
   name: 'users',
@@ -14,7 +16,7 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true, length: 15})
+  @Column({ unique: true, length: 15 })
   phone: string;
 
   @Column({ nullable: true })
@@ -36,7 +38,7 @@ export class User {
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
-  @Column({ name: 'role_id', default: 1 })
+  @Column({ name: 'role_id', default: 2 })
   roleId: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
@@ -44,6 +46,9 @@ export class User {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
+
+  @ManyToOne(() => Role, (role) => role.users)
+  role: Role;
 
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);
