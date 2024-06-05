@@ -1,4 +1,10 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity({
   name: 'site_options',
@@ -34,10 +40,10 @@ export class SiteOption {
   @Column({ type: 'int' })
   position: number;
 
-  @Column({ length: 125 })
+  @Column({ length: 125, nullable: true })
   group: string;
 
-  @Column({ name: 'group_title', length: 125 })
+  @Column({ name: 'group_title', length: 125, nullable: true })
   groupTitle: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
