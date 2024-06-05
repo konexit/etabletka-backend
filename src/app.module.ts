@@ -22,6 +22,7 @@ import { BadgeModule } from './badge/badge.module';
 import { StoreModule } from './store/store.module';
 import { OrderModule } from './order/order.module';
 import { MenuModule } from './menu/menu.module';
+import { SiteOptionModule } from './siteOptions/siteOption.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { MenuModule } from './menu/menu.module';
     StoreModule,
     OrderModule,
     MenuModule,
+    SiteOptionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

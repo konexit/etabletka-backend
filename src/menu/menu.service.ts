@@ -16,8 +16,8 @@ export class MenuService {
     private jwtService: JwtService,
   ) {}
 
-  cacheAppMenuKey = 'appMenu';
-  cacheAppMenuTTL = 3600000; // 1Hour
+  cacheAppMenuKey: string = 'appMenu';
+  cacheAppMenuTTL: number = 3600000; // 1Hour
 
   async getMenu(): Promise<any> {
     const cacheMenu = await this.cacheManager.get(this.cacheAppMenuKey);
