@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -19,11 +20,11 @@ export class User {
   @Column({ unique: true, length: 15 })
   phone: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 50 })
   email: string;
 
-  @Exclude()
-  @Column()
+  @Exclude( )
+  @Column({ length: 250 })
   password: string;
 
   @Column({ name: 'first_name', length: 30 })
@@ -32,7 +33,7 @@ export class User {
   @Column({ name: 'last_name', length: 30 })
   lastName: string;
 
-  @Column({ name: 'date_of_birth', length: 30 })
+  @Column({ name: 'date_of_birth', length: 30, nullable: true })
   dateOfBirth: string;
 
   @Column({ name: 'is_active', default: true })
@@ -48,6 +49,7 @@ export class User {
   updatedAt: Date;
 
   @ManyToOne(() => Role, (role) => role.users)
+  @JoinColumn({ name: 'role_id', referencedColumnName: 'id' })
   role: Role;
 
   constructor(partial: Partial<User>) {

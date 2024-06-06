@@ -1,4 +1,11 @@
-import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  HttpCode,
+  HttpStatus,
+  Res,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import AuthDto from './dto/auth.dto';
 
@@ -8,7 +15,21 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  signIn(@Body() signInDto: AuthDto): Promise<any> {
-    return this.authService.signIn(signInDto.phone, signInDto.password);
+  async signIn(@Body() signInDto: AuthDto, @Res() res: any): Promise<any> {
+    try {
+      const token = await this.authService.signIn(
+        signInDto.phone,
+        signInDto.password,
+      );
+      if (!token) {
+        return res.status(403).json({ message: 'Phone or password incorrect' });
+      }
+
+      return res.json(token);
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ message: 'Internal server error', error: error });
+    }
   }
 }

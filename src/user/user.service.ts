@@ -22,7 +22,7 @@ export class UserService {
       .pbkdf2Sync(user.password, salt, 1000, 64, `sha512`)
       .toString(`hex`);
     await this.userRepository.save(user);
-    console.log('USER:', user);
+
     return user;
   }
 

@@ -23,7 +23,7 @@ import { StoreModule } from './store/store.module';
 import { OrderModule } from './order/order.module';
 import { MenuModule } from './menu/menu.module';
 import { SiteOptionModule } from './siteOptions/siteOption.module';
-import { RoleModule } from "./role/role.module";
+import { RoleModule } from './role/role.module';
 
 @Module({
   imports: [

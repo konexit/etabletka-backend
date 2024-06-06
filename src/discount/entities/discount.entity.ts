@@ -54,6 +54,9 @@ export class Discount {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(() => ProductDiscount, (productDiscount) => productDiscount.discount)
+  @OneToMany(
+    () => ProductDiscount,
+    (productDiscount) => productDiscount.discount,
+  )
   productDiscounts: ProductDiscount[];
 }
