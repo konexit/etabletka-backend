@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ClassSerializerInterceptor, HttpException, HttpStatus, Injectable, UseInterceptors } from "@nestjs/common";
 import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -21,9 +21,8 @@ export class UserService {
     user.password = crypto
       .pbkdf2Sync(user.password, salt, 1000, 64, `sha512`)
       .toString(`hex`);
-    await this.userRepository.save(user);
 
-    return user;
+    return this.userRepository.save(user);
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
@@ -75,8 +74,12 @@ export class UserService {
     return await this.userRepository.find();
   }
 
+
   async getUserById(id: number): Promise<User> {
-    return await this.userRepository.findOneBy({ id: id });
+    return await this.userRepository.findOne({
+      where: { id },
+      relations: ['role'],
+    });
   }
 
   remove(id: number) {

@@ -17,7 +17,7 @@ export class MenuController {
 
       return res.json(menu);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 }

@@ -10,8 +10,6 @@ import {
   Res,
 } from '@nestjs/common';
 
-import { Serialize } from '../serialize/serialize.interceptor';
-
 import { AuthGuard } from '../auth/auth.guard';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -22,7 +20,6 @@ import { User } from './entities/user.entity';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Serialize(User)
   @Post('/user/create')
   async create(
     @Body() createUserDto: CreateUserDto,
@@ -34,14 +31,13 @@ export class UserController {
         return res.status(404).json({ message: 'Can not create new user' });
       }
 
-      return res.json(user);
+      return res.status(200).json(user);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 
   @UseGuards(AuthGuard)
-  @Serialize(User)
   @Get('/users')
   async findAll(@Res() res: any): Promise<User[]> {
     try {
@@ -50,28 +46,27 @@ export class UserController {
         return res.status(404).json({ message: 'Can not get users' });
       }
 
-      return res.json(users);
+      return res.status(200).json(users);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 
-  @Serialize(User)
   @Get('/user/:id')
   async getUserById(@Param('id') id: number, @Res() res: any): Promise<User> {
     try {
       const user: User = await this.userService.getUserById(+id);
+
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
 
-      return res.json(user);
+      return res.status(200).json(user);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json({ error });
     }
   }
 
-  @Serialize(User)
   @UseGuards(AuthGuard)
   @Patch('/user/update/:id')
   update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {

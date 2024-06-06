@@ -26,7 +26,7 @@ export class DistrictController {
 
       return res.json(districts);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 }

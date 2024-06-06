@@ -19,7 +19,7 @@ export class CityController {
 
       return res.json(cities);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 
@@ -34,7 +34,7 @@ export class CityController {
 
       return res.json(city);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 
@@ -49,7 +49,7 @@ export class CityController {
 
       return res.json(city);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 
@@ -64,7 +64,7 @@ export class CityController {
 
       return res.json(cities);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 }

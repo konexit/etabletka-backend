@@ -31,7 +31,7 @@ export class CommunityController {
 
       return res.json(communities);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 
@@ -49,7 +49,7 @@ export class CommunityController {
 
       return res.json(community);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 }

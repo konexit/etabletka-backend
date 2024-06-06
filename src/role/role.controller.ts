@@ -18,7 +18,7 @@ export class RoleController {
 
       return res.json(roles);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 
@@ -33,7 +33,7 @@ export class RoleController {
 
       return res.json(role);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 }

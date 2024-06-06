@@ -17,7 +17,7 @@ export class StoreController {
 
       return res.json(activeStores);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 
@@ -35,7 +35,7 @@ export class StoreController {
 
       return res.json(stores);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 }

@@ -17,7 +17,7 @@ export class BannerController {
 
       return res.json(banners);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 
@@ -35,7 +35,7 @@ export class BannerController {
 
       return res.json(banner);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 }

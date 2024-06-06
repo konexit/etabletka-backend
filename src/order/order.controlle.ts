@@ -35,7 +35,7 @@ export class OrderController {
 
       return res.json(order);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 }

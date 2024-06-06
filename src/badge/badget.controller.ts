@@ -17,7 +17,7 @@ export class BadgeController {
 
       return res.json(pages);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 }

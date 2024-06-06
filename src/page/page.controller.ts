@@ -19,7 +19,7 @@ export class PageController {
 
       return res.json(pages);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 
@@ -34,7 +34,7 @@ export class PageController {
 
       return res.json(page);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 }

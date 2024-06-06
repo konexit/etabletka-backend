@@ -17,7 +17,7 @@ export class SiteOptionController {
 
       return res.json(siteOptions);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 }

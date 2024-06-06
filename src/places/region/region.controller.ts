@@ -26,7 +26,7 @@ export class RegionController {
 
       return res.json(regions);
     } catch (error) {
-      return res.status(error.status).json({ error: error });
+      return res.status(error.status).json(error);
     }
   }
 }
