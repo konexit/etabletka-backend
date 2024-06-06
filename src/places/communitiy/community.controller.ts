@@ -19,7 +19,7 @@ export class CommunityController {
   @Get()
   async getCommunities(
     @Req() request: Request,
-    @Res() res,
+    @Res() res: any,
   ): Promise<Community[]> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
     try {
@@ -31,7 +31,7 @@ export class CommunityController {
 
       return res.json(communities);
     } catch (error) {
-      return res.status(500).json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 
@@ -49,7 +49,7 @@ export class CommunityController {
 
       return res.json(community);
     } catch (error) {
-      return res.status(500).json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 }

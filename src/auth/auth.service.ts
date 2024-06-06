@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
@@ -14,6 +19,12 @@ export class AuthService {
 
   async signIn(phone: string, password: string): Promise<any> {
     const user = await this.userService.getByPhone(phone);
+    if (!user) {
+      throw new HttpException(
+        `This phone: ${phone} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     if (!user.password) throw new UnauthorizedException();
 
     const salt = this.configService.get('SALT');
@@ -21,17 +32,20 @@ export class AuthService {
       .pbkdf2Sync(password, salt, 1000, 64, `sha512`)
       .toString(`hex`);
 
-    const isMatch = password === user.password;
+    const isMatch: boolean = password === user.password;
     if (!isMatch) {
       throw new UnauthorizedException();
     }
-    const payload = {
-      phone: user.phone,
-      sub: user.id,
+
+    const payload: { id: number; roleId: number } = {
+      id: user.id,
       roleId: user.roleId,
     };
+
     return {
       token: await this.jwtService.signAsync(payload),
+      userId: user.id,
+      roleId: user.roleId,
     };
   }
 }

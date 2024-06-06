@@ -15,7 +15,7 @@ export class DistrictController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get()
-  async getAllDistricts(@Req() request: Request, @Res() res): Promise<any> {
+  async getAllDistricts(@Req() request: Request, @Res() res: any): Promise<any> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
     try {
       const districts = await this.districtService.getAllDistricts(token);
@@ -26,7 +26,7 @@ export class DistrictController {
 
       return res.json(districts);
     } catch (error) {
-      return res.status(500).json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 }

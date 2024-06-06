@@ -8,6 +8,9 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs';
 import { plainToInstance } from 'class-transformer';
 
+/**
+ * https://gist.github.com/ibayazit/dee57afc274297490e7265bcf4da63ab
+ */
 interface ClassConstructor {
   new (...args: any[]): {};
 }

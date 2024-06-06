@@ -19,9 +19,7 @@ export class CityController {
 
       return res.json(cities);
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 
@@ -36,9 +34,7 @@ export class CityController {
 
       return res.json(city);
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 
@@ -53,9 +49,7 @@ export class CityController {
 
       return res.json(city);
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 
@@ -70,9 +64,7 @@ export class CityController {
 
       return res.json(cities);
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 }

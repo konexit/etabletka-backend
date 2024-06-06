@@ -17,9 +17,7 @@ export class SiteOptionController {
 
       return res.json(siteOptions);
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 }

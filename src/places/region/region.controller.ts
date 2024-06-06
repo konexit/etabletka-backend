@@ -15,7 +15,7 @@ export class RegionController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get()
-  async findAll(@Req() request: Request, @Res() res) {
+  async findAll(@Req() request: Request, @Res() res: any) {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
     try {
       const regions = await this.regionService.getRegions(token);
@@ -26,7 +26,7 @@ export class RegionController {
 
       return res.json(regions);
     } catch (error) {
-      return res.status(500).json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 }

@@ -17,19 +17,16 @@ export class AuthController {
   @Post('login')
   async signIn(@Body() signInDto: AuthDto, @Res() res: any): Promise<any> {
     try {
-      const token = await this.authService.signIn(
+      const authRes = await this.authService.signIn(
         signInDto.phone,
         signInDto.password,
       );
-      if (!token) {
-        return res.status(403).json({ message: 'Phone or password incorrect' });
-      }
 
-      return res.json(token);
+      if (authRes?.token) res.header('Authorization', authRes?.token);
+
+      return res.json(authRes);
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 }

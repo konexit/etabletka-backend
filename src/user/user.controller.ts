@@ -36,9 +36,7 @@ export class UserController {
 
       return res.json(user);
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 
@@ -54,9 +52,7 @@ export class UserController {
 
       return res.json(users);
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 
@@ -66,14 +62,12 @@ export class UserController {
     try {
       const user: User = await this.userService.getUserById(+id);
       if (!user) {
-        return res.status(404).json({ message: 'Can not create new user' });
+        return res.status(404).json({ message: 'User not found' });
       }
 
       return res.json(user);
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 

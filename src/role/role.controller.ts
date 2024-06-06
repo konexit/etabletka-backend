@@ -18,9 +18,7 @@ export class RoleController {
 
       return res.json(roles);
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 
@@ -35,9 +33,7 @@ export class RoleController {
 
       return res.json(role);
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: 'Internal server error', error: error });
+      return res.status(error.status).json({ error: error });
     }
   }
 }
