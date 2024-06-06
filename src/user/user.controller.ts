@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   Res,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 
 import { AuthGuard } from '../auth/auth.guard';
@@ -20,51 +22,23 @@ import { User } from './entities/user.entity';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Post('/user/create')
-  async create(
-    @Body() createUserDto: CreateUserDto,
-    @Res() res: any,
-  ): Promise<User> {
-    try {
-      const user: User = await this.userService.create(createUserDto);
-      if (!user) {
-        return res.status(404).json({ message: 'Can not create new user' });
-      }
-
-      return res.status(200).json(user);
-    } catch (error) {
-      return res.status(error.status).json(error);
-    }
+  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
+    return await this.userService.create(createUserDto);
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(AuthGuard)
   @Get('/users')
-  async findAll(@Res() res: any): Promise<User[]> {
-    try {
-      const users = await this.userService.findAll();
-      if (!users) {
-        return res.status(404).json({ message: 'Can not get users' });
-      }
-
-      return res.status(200).json(users);
-    } catch (error) {
-      return res.status(error.status).json(error);
-    }
+  async findAll(): Promise<User[]> {
+    return await this.userService.findAll();
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get('/user/:id')
-  async getUserById(@Param('id') id: number, @Res() res: any): Promise<User> {
-    try {
-      const user: User = await this.userService.getUserById(+id);
-
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      return res.status(200).json(user);
-    } catch (error) {
-      return res.status(error.status).json({ error });
-    }
+  async getUserById(@Param('id') id: number): Promise<User> {
+    return await this.userService.getUserById(+id);
   }
 
   @UseGuards(AuthGuard)
