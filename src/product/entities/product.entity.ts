@@ -44,9 +44,6 @@ export class Product {
   @Column({ name: 'cdn_instruction', type: 'json', nullable: true })
   cdnInstruction: JSON;
 
-  @Column({ name: 'description', type: 'json', nullable: true })
-  description: JSON;
-
   @Column({ name: 'instruction_uk', unique: true })
   instructionUk: string;
 
@@ -79,12 +76,6 @@ export class Product {
 
   @Column({ name: 'seo_keywords_auto', default: true })
   seoKeywordsAuto: boolean;
-
-  @Column({ name: 'seo_text', type: 'json', nullable: true })
-  seoText: JSON;
-
-  @Column({ name: 'seo_text_auto', default: true })
-  seoTextAuto: boolean;
 
   @Column({ default: 0, type: 'float' })
   price: number;
