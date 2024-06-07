@@ -78,7 +78,11 @@ export class UserService {
     );
   }
 
-  async findAll() {
+  async findAll(token: string | any[]): Promise<User[]> {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('No access', HttpStatus.FORBIDDEN);
+    }
+
     const users = await this.userRepository.find();
 
     if (!users) {

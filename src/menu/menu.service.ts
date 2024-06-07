@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from '@nestjs/typeorm';
 import { Menu } from './entities/menu.entity';
 import { Repository } from 'typeorm';
@@ -29,6 +29,10 @@ export class MenuService {
       relations: ['menuItems'],
       where: { menuItems: { isActive: true } },
     });
+
+    if (!menu) {
+      throw new HttpException('Menu not found', HttpStatus.NOT_FOUND);
+    }
 
     await this.cacheManager.set(
       this.cacheAppMenuKey,

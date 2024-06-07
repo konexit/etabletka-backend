@@ -17,12 +17,24 @@ export class PageService {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }
 
-    return await this.pageRepository.find({});
+    const pages = await this.pageRepository.find({});
+
+    if (!pages) {
+      throw new HttpException('Pages not found', HttpStatus.NOT_FOUND);
+    }
+
+    return pages;
   }
 
   async getPageBySlug(slug: string): Promise<Page> {
-    return await this.pageRepository.findOneBy({
+    const page = await this.pageRepository.findOneBy({
       slug,
     });
+
+    if (!page) {
+      throw new HttpException('Page not found', HttpStatus.NOT_FOUND);
+    }
+
+    return page;
   }
 }

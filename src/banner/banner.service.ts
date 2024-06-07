@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Banner } from './entities/banner.entity';
 import { Repository } from 'typeorm';
@@ -13,12 +13,24 @@ export class BannerService {
   ) {}
 
   async getPublishedBanners(): Promise<Banner[] | undefined> {
-    return await this.bannerRepository.find({
+    const banners = await this.bannerRepository.find({
       where: { isPublished: true },
     });
+
+    if (!banners) {
+      throw new HttpException('Banners not found', HttpStatus.NOT_FOUND);
+    }
+
+    return banners;
   }
 
   async findBannerBySlug(slug: string): Promise<Banner> | undefined {
-    return this.bannerRepository.findOneBy({ slug });
+    const banner = await this.bannerRepository.findOneBy({ slug });
+
+    if (!banner) {
+      throw new HttpException('Banner not found', HttpStatus.NOT_FOUND);
+    }
+
+    return banner;
   }
 }

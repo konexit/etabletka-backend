@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Badge } from './entities/badge.entity';
 import { JwtService } from '@nestjs/jwt';
@@ -13,6 +13,12 @@ export class BadgeService {
   ) {}
 
   async getBadges(): Promise<Badge[]> {
-    return await this.badgeRepository.find({});
+    const badges = await this.badgeRepository.find({});
+
+    if (!badges) {
+      throw new HttpException('Badges not found', HttpStatus.NOT_FOUND);
+    }
+
+    return badges;
   }
 }

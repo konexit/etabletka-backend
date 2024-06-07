@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from '@nestjs/typeorm';
 import { City } from './entities/city.entity';
 import { Repository } from 'typeorm';
@@ -29,7 +29,13 @@ export class CityService {
       return [];
     }
 
-    return await this.cityRepository.find({});
+    const cities = await this.cityRepository.find({});
+
+    if (!cities) {
+      throw new HttpException('Cities not found', HttpStatus.NOT_FOUND);
+    }
+
+    return cities;
   }
 
   async getDefaultCity(): Promise<any> {
@@ -39,7 +45,12 @@ export class CityService {
     if (cacheDefaultCity) {
       return cacheDefaultCity;
     }
+
     const city = await this.cityRepository.findOneBy({ id: 29273 });
+
+    if (!city) {
+      throw new HttpException('City not found', HttpStatus.NOT_FOUND);
+    }
 
     await this.cacheManager.set(
       this.cacheDefaultCityKey,
@@ -51,7 +62,13 @@ export class CityService {
   }
 
   async getCityById(id: number): Promise<City | undefined> {
-    return await this.cityRepository.findOneBy({ id });
+    const city =  await this.cityRepository.findOneBy({ id });
+
+    if (!city) {
+      throw new HttpException('City not found', HttpStatus.NOT_FOUND);
+    }
+
+    return city;
   }
 
   async getCitiesWithStores(): Promise<any> {
@@ -81,6 +98,10 @@ export class CityService {
         city.storesCount =
           storeCounts.find((r) => r.cityId === city.id)?.storeCount || 0;
       });
+
+      if (!citiesWithStores) {
+        throw new HttpException('Cities not found', HttpStatus.NOT_FOUND);
+      }
 
       await this.cacheManager.set(
         this.cacheCitiesKey,

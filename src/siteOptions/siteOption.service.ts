@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SiteOption } from './entities/siteOption.entity';
 import { Repository } from 'typeorm';
@@ -30,6 +30,10 @@ export class SiteOptionService {
     const siteOptions = await this.siteOptionRepositary.find({
       where: { isActive: 1 },
     });
+
+    if (!siteOptions) {
+      throw new HttpException('Site options not found', HttpStatus.NOT_FOUND);
+    }
 
     await this.cacheManager.set(
       this.cacheSiteOptionsKey,

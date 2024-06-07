@@ -15,18 +15,7 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async signIn(@Body() signInDto: AuthDto, @Res() res: any): Promise<any> {
-    try {
-      const authRes = await this.authService.signIn(
-        signInDto.phone,
-        signInDto.password,
-      );
-
-      if (authRes?.token) res.header('Authorization', authRes?.token);
-
-      return res.json(authRes);
-    } catch (error) {
-      return res.status(error.status).json(error);
-    }
+  async signIn(@Body() signInDto: AuthDto): Promise<any> {
+    return await this.authService.signIn(signInDto.phone, signInDto.password);
   }
 }

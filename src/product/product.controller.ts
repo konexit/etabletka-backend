@@ -19,44 +19,26 @@ import { AuthGuard } from '../auth/auth.guard';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Request } from 'express';
 
-@Controller('api/v1/product')
+@Controller('api/v1')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @UseInterceptors(ClassSerializerInterceptor)
-  @Post()
+  @Post('product/create')
   async create(@Body() createProductDto: CreateProductDto): Promise<Product> {
     return await this.productService.create(createProductDto);
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: number, @Res() res: any) {
-    try {
-      const product = await this.productService.findProductById(+id);
-
-      if (!product) {
-        return res.status(404).json({ message: 'Product not found' });
-      }
-
-      return res.json(product);
-    } catch (error) {
-      return res.status(error.status).json(error);
-    }
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/product/:id')
+  async findOne(@Param('id') id: number) {
+    return await this.productService.findProductById(+id);
   }
 
-  @Post(':slug')
-  async getProductBySlug(@Param('slug') slug: string, @Res() res: any) {
-    try {
-      const product = await this.productService.findProductBySlug(slug);
-
-      if (!product) {
-        return res.status(404).json({ message: 'Product not found' });
-      }
-
-      return res.json(product);
-    } catch (error) {
-      return res.status(error.status).json(error);
-    }
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/product/slug/:slug')
+  async getProductBySlug(@Param('slug') slug: string) {
+    return await this.productService.findProductBySlug(slug);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)

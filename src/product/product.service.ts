@@ -59,17 +59,29 @@ export class ProductService {
   }
 
   async findProductById(id: number): Promise<Product> {
-    return await this.productRepository.findOne({
+    const product = await this.productRepository.findOne({
       where: { id, isActive: true },
       relations: ['productRemnants'],
     });
+
+    if (!product) {
+      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    }
+
+    return product;
   }
 
   async findProductBySlug(slug: string): Promise<Product> {
-    return await this.productRepository.findOne({
+    const product = await this.productRepository.findOne({
       where: { slug, isActive: true },
       relations: ['productRemnants'],
     });
+
+    if (!product) {
+      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    }
+
+    return product;
   }
 
   async update(
@@ -78,10 +90,10 @@ export class ProductService {
   ): Promise<Product> {
     await this.productRepository.update(id, updateProductDto);
     const product = await this.productRepository.findOneBy({ id: id });
-    if (product) {
-      return product;
+    if (!product) {
+      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
     }
-    throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    return product;
   }
 
   remove(id: number) {
@@ -100,8 +112,12 @@ export class ProductService {
     const product = await this.productRepository.findOneBy({ id: productId });
     const badge = await this.badgeRepository.findOneBy({ id: badgeId });
 
-    if (!product || !badge) {
+    if (!product) {
       throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (!badge) {
+      throw new HttpException('Badge not found', HttpStatus.NOT_FOUND);
     }
 
     const productBadge = new ProductBadge();

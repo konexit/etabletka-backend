@@ -5,17 +5,18 @@ import {
   Body,
   Patch,
   Param,
-  Res,
   Delete,
   UseInterceptors,
   ClassSerializerInterceptor,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ProductRemnant } from './entities/productRemnant.entity';
 import { ProductRemnantService } from './productRemnant.service';
 import CreateProductRemnantDto from './dto/create-product-remnant.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { UpdateProductDto } from '../product/dto/update-product.dto';
+import { Request } from 'express';
 
 @Controller('api/v1/product-remnants')
 export class ProductRemnantController {
@@ -31,8 +32,9 @@ export class ProductRemnantController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get()
-  findAll() {
-    return this.productRemnantService.findAll();
+  findAll(@Req() request: Request) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    return this.productRemnantService.findAll(token);
   }
 
   @Get(':id')
@@ -44,23 +46,11 @@ export class ProductRemnantController {
   async getProductRemnantsInStore(
     @Param('productId') productId: number,
     @Param('storeId') storeId: number,
-    @Res() res,
   ): Promise<any> {
-    try {
-      const productRemnants =
-        await this.productRemnantService.findProductRemnantsInStore(
-          productId,
-          storeId,
-        );
-      if (!productRemnants) {
-        return res.status(404).json({ message: 'Product remnants not found' });
-      }
-      return res.json(productRemnants);
-    } catch (error) {
-      return res
-        .status(500)
-        .json({ message: 'Internal remnants server error' });
-    }
+    return await this.productRemnantService.findProductRemnantsInStore(
+      productId,
+      storeId,
+    );
   }
 
   @UseGuards(AuthGuard)

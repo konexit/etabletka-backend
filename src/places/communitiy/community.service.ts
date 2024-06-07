@@ -16,13 +16,20 @@ export class CommunityService {
     if (!token || typeof token !== 'string') {
       throw new HttpException('Cities not found', HttpStatus.FORBIDDEN);
     }
-    const cities = await this.communityRepository.find();
-    if (cities) return cities;
 
-    throw new HttpException('Cities not found', HttpStatus.NOT_FOUND);
+    const communities = await this.communityRepository.find();
+    if (!communities) {
+      throw new HttpException('Communities not found', HttpStatus.NOT_FOUND);
+    }
+
+    return communities;
   }
 
   async getCommunityById(id: number): Promise<Community | undefined> {
-    return await this.communityRepository.findOneBy({ id });
+    const community = await this.communityRepository.findOneBy({ id });
+    if (!community) {
+      throw new HttpException('Communities not found', HttpStatus.NOT_FOUND);
+    }
+    return community;
   }
 }

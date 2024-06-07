@@ -16,18 +16,18 @@ export class ProductTypeController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get()
-  findAll() {
-    return this.productTypeService.findAll();
+  async findAll() {
+    return await this.productTypeService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.productTypeService.findOne(+id);
+  async findOne(@Param('id') id: number) {
+    return await this.productTypeService.findOne(+id);
   }
 
   @UseGuards(AuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.productTypeService.remove(id);
+  async remove(@Param('id') id: number) {
+    return await this.productTypeService.remove(id);
   }
 }

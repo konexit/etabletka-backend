@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
+import { Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { CityService } from './city.service';
 import { City } from './entities/city.entity';
 import { Request } from 'express';
@@ -8,63 +8,24 @@ export class CityController {
   constructor(private readonly cityService: CityService) {}
 
   @Get('/cities')
-  async findAll(@Req() request: Request, @Res() res: any): Promise<any> {
+  async findAll(@Req() request: Request): Promise<any> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
-    try {
-      const cities = await this.cityService.getCities(token);
 
-      if (!cities) {
-        return res.status(404).json({ message: 'Cities not found' });
-      }
-
-      return res.json(cities);
-    } catch (error) {
-      return res.status(error.status).json(error);
-    }
+    return await this.cityService.getCities(token);
   }
 
   @Get('/default-city')
-  async getDefaultCity(@Res() res: any): Promise<City> {
-    try {
-      const city = await this.cityService.getDefaultCity();
-
-      if (!city) {
-        return res.status(404).json({ message: 'City not found' });
-      }
-
-      return res.json(city);
-    } catch (error) {
-      return res.status(error.status).json(error);
-    }
+  async getDefaultCity(): Promise<City> {
+    return await this.cityService.getDefaultCity();
   }
 
   @Get('/city/:id')
-  async getCityById(@Param('id') id: number, @Res() res: any): Promise<City> {
-    try {
-      const city = await this.cityService.getCityById(+id);
-
-      if (!city) {
-        return res.status(404).json({ message: 'City not found' });
-      }
-
-      return res.json(city);
-    } catch (error) {
-      return res.status(error.status).json(error);
-    }
+  async getCityById(@Param('id') id: number): Promise<City> {
+    return await this.cityService.getCityById(+id);
   }
 
   @Post('/city/stores')
-  async getCitiesWithStores(@Res() res): Promise<City[]> {
-    try {
-      const cities = await this.cityService.getCitiesWithStores();
-
-      if (!cities) {
-        return res.status(404).json({ message: 'City not found' });
-      }
-
-      return res.json(cities);
-    } catch (error) {
-      return res.status(error.status).json(error);
-    }
+  async getCitiesWithStores(): Promise<City[]> {
+    return await this.cityService.getCitiesWithStores();
   }
 }

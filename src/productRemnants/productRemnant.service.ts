@@ -22,12 +22,15 @@ export class ProductRemnantService {
     const productRemnants = await this.productRemnantsRepository.findBy({
       productId: productId,
     });
-    if (productRemnants) return productRemnants;
 
-    throw new HttpException(
-      'Product with this syncId does not exist',
-      HttpStatus.NOT_FOUND,
-    );
+    if (!productRemnants) {
+      throw new HttpException(
+        'Product with this syncId does not exist',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return productRemnants;
   }
 
   async create(
@@ -41,21 +44,42 @@ export class ProductRemnantService {
     return productRemnant;
   }
 
-  async findAll() {
+  async findAll(token: string | any[]): Promise<ProductRemnant[]> {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('No access', HttpStatus.FORBIDDEN);
+    }
     return await this.productRemnantsRepository.find();
   }
 
   async findOne(id: number): Promise<ProductRemnant> {
-    return await this.productRemnantsRepository.findOneBy({ id: id });
+    const productRemnant = await this.productRemnantsRepository.findOneBy({ id: id });
+
+    if (!productRemnant) {
+      throw new HttpException(
+        'Product with this syncId does not exist',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return productRemnant;
   }
 
   async findProductRemnantsInStore(
     productId: number,
     storeId: number,
   ): Promise<ProductRemnant> {
-    return await this.productRemnantsRepository.findOne({
+    const productRemnants = await this.productRemnantsRepository.findOne({
       where: { productId: productId, storeId: storeId },
     });
+
+    if (!productRemnants) {
+      throw new HttpException(
+        'Product remnants not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return productRemnants;
   }
 
   async update(
@@ -66,10 +90,15 @@ export class ProductRemnantService {
     const productRemnant = await this.productRemnantsRepository.findOneBy({
       id: id,
     });
-    if (productRemnant) {
-      return productRemnant;
+
+    if (!productRemnant) {
+      throw new HttpException(
+        'Product remnant not found',
+        HttpStatus.NOT_FOUND,
+      );
     }
-    throw new HttpException('Product remnant not found', HttpStatus.NOT_FOUND);
+
+    return productRemnant;
   }
 
   remove(id: number) {

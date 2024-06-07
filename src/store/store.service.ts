@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Store } from './entities/store.entity';
 import { Repository } from 'typeorm';
@@ -17,8 +17,17 @@ export class StoreService {
   cacheActiveStoresKey = 'activeStores';
   cacheActiveStoresTTL = 3600000; // 1Hour
 
-  async getStores(): Promise<Store[]> {
-    return await this.storeRepository.find({});
+  async getStores(token: string | any[]): Promise<Store[]> {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('No access', HttpStatus.FORBIDDEN);
+    }
+
+    const stores = await this.storeRepository.find({});
+    if (!stores) {
+      throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
+    }
+
+    return stores;
   }
 
   async getActiveStores(): Promise<any> {
@@ -34,6 +43,10 @@ export class StoreService {
       relations: ['city', 'region', 'district'],
     });
 
+    if (!stores) {
+      throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
+    }
+
     await this.cacheManager.set(
       this.cacheActiveStoresKey,
       stores,
@@ -44,9 +57,14 @@ export class StoreService {
   }
 
   async getStoresByCityId(cityId: number): Promise<Store[]> {
-    return await this.storeRepository.findBy({
+    const store = await this.storeRepository.findBy({
       cityId,
       isActive: true,
     });
+
+    if (!store) {
+      throw new HttpException('Store not found', HttpStatus.NOT_FOUND);
+    }
+    return store;
   }
 }

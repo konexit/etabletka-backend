@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order } from './entities/order.entity';
 import { Repository } from 'typeorm';
@@ -22,12 +22,14 @@ export class OrderService {
     createOrderItem: CreateOrderItem[],
   ): Promise<Order> {
     const order = await this.orderRepository.save(newOrder);
-    console.log('ORDER', order);
-    if (order) {
-      for (const orderItem of createOrderItem) {
-        orderItem.orderId = order.id;
-        await this.orderItemRepository.save(createOrderItem);
-      }
+
+    if (!order) {
+      throw new HttpException('Can`t create order', HttpStatus.NOT_FOUND);
+    }
+
+    for (const orderItem of createOrderItem) {
+      orderItem.orderId = order.id;
+      await this.orderItemRepository.save(createOrderItem);
     }
 
     return order;

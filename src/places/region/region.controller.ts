@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Req,
-  Res,
   UseInterceptors,
 } from '@nestjs/common';
 import { Request } from 'express';
@@ -15,18 +14,9 @@ export class RegionController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get()
-  async findAll(@Req() request: Request, @Res() res: any) {
+  async findAll(@Req() request: Request) {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
-    try {
-      const regions = await this.regionService.getRegions(token);
 
-      if (!regions) {
-        return res.status(404).json({ message: 'Regions not found' });
-      }
-
-      return res.json(regions);
-    } catch (error) {
-      return res.status(error.status).json(error);
-    }
+    return await this.regionService.getRegions(token);
   }
 }

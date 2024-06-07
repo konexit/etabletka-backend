@@ -16,9 +16,12 @@ export class DistrictService {
     if (!token || typeof token !== 'string') {
       throw new HttpException('No access', HttpStatus.FORBIDDEN);
     }
-    const districts = await this.districtRepository.find();
-    if (districts) return districts;
 
-    throw new HttpException('Districts not found', HttpStatus.NOT_FOUND);
+    const districts = await this.districtRepository.find();
+    if (!districts) {
+      throw new HttpException('Districts not found', HttpStatus.NOT_FOUND);
+    }
+
+    return districts;
   }
 }

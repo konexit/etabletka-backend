@@ -1,9 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
@@ -25,7 +20,6 @@ export class AuthService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    if (!user.password) throw new UnauthorizedException();
 
     const salt = this.configService.get('SALT');
     password = crypto
@@ -34,7 +28,10 @@ export class AuthService {
 
     const isMatch: boolean = password === user.password;
     if (!isMatch) {
-      throw new UnauthorizedException();
+      throw new HttpException(
+        `The password: ${phone} miss match`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const payload: { id: number; roleId: number } = {
@@ -44,8 +41,6 @@ export class AuthService {
 
     return {
       token: await this.jwtService.signAsync(payload),
-      userId: user.id,
-      roleId: user.roleId,
     };
   }
 }

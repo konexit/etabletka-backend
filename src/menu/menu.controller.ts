@@ -1,4 +1,4 @@
-import { Controller, Get, Res } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { Menu } from './entities/menu.entity';
 import { MenuService } from './menu.service';
 
@@ -7,17 +7,7 @@ export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
   @Get()
-  async getMenu(@Res() res: any): Promise<Menu[]> {
-    try {
-      const menu = await this.menuService.getMenu();
-
-      if (!menu) {
-        return res.status(404).json({ message: 'Menu not found' });
-      }
-
-      return res.json(menu);
-    } catch (error) {
-      return res.status(error.status).json(error);
-    }
+  async getMenu(): Promise<Menu[]> {
+    return await this.menuService.getMenu();
   }
 }
