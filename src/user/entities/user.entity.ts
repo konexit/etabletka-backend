@@ -4,6 +4,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -32,9 +33,6 @@ export class User {
 
   @Column({ name: 'last_name', length: 30 })
   lastName: string;
-
-  @Column({ name: 'date_of_birth', length: 30, nullable: true })
-  dateOfBirth: string;
 
   @Column({ name: 'is_active', default: true })
   isActive: boolean;

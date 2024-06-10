@@ -24,6 +24,7 @@ import { OrderModule } from './order/order.module';
 import { MenuModule } from './menu/menu.module';
 import { SiteOptionModule } from './siteOptions/siteOption.module';
 import { RoleModule } from './role/role.module';
+import { UserProfileModule } from "./userProfile/userProfile.module";
 
 @Module({
   imports: [
@@ -45,8 +46,9 @@ import { RoleModule } from './role/role.module';
     CommunityModule,
     DistrictModule,
     RegionModule,
-    UserModule,
     RoleModule,
+    UserModule,
+    UserProfileModule,
     CategoriesModule,
     StoreModule,
     OrderModule,
