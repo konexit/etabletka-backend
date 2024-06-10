@@ -4,7 +4,6 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -28,14 +27,17 @@ export class User {
   @Column({ length: 250 })
   password: string;
 
-  @Column({ name: 'first_name', length: 30 })
+  @Column({ name: 'first_name', nullable: true, length: 50 })
   firstName: string;
 
-  @Column({ name: 'last_name', length: 30 })
+  @Column({ name: 'last_name', nullable: true, length: 50 })
   lastName: string;
 
-  @Column({ name: 'is_active', default: true })
+  @Column({ name: 'is_active', default: false })
   isActive: boolean;
+
+  @Column({ name: 'code', nullable: true, length: 10 })
+  code: string;
 
   @Column({ name: 'role_id', default: 2 })
   roleId: number;

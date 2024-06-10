@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
+import { SmsService } from '../services/sms.service';
 
 @Injectable()
 export class UserService {
@@ -13,6 +14,7 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private configService: ConfigService,
+    private smsService: SmsService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -28,6 +30,13 @@ export class UserService {
     user.password = crypto
       .pbkdf2Sync(user.password, salt, 1000, 64, `sha512`)
       .toString(`hex`);
+
+    user.code = this.generateRandomNumber(6);
+
+    await this.smsService.sendSMS(
+      [user.phone],
+      `Activation code: ${user.code}`,
+    );
 
     return this.userRepository.save(user);
   }
@@ -107,5 +116,11 @@ export class UserService {
 
   remove(id: number) {
     return `This action removes the #${id} user`;
+  }
+
+  generateRandomNumber(symbols: number) {
+    const randomNumber = Math.floor(Math.random() * 1000000);
+
+    return randomNumber.toString().padStart(symbols, '0');
   }
 }
