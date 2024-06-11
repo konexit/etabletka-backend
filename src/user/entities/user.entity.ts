@@ -36,6 +36,7 @@ export class User {
   @Column({ name: 'is_active', default: false })
   isActive: boolean;
 
+  @Exclude()
   @Column({ name: 'code', nullable: true, length: 10 })
   code: string;
 
