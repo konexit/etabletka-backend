@@ -18,7 +18,12 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const user = this.userRepository.create(createUserDto);
+    const userExist = await this.userRepository.findOneBy({
+      phone: createUserDto.phone,
+    });
+    if (userExist) return userExist;
+
+    const user = await this.userRepository.create(createUserDto);
     if (!user) {
       throw new HttpException(
         `Can create user with this data: ${createUserDto}`,
