@@ -74,6 +74,33 @@ export class UserService {
     );
   }
 
+  async activation(phone: string, code: string) {
+    const user = await this.userRepository.findOneBy({ phone: phone });
+    if (!user) {
+      throw new HttpException(
+        'User with this phone does not exist',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (user.isActive) {
+      user.code = null;
+      return await this.userRepository.save(user);
+    }
+
+    if (user.code !== code) {
+      throw new HttpException(
+        'User activation code miss match',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    user.code = null;
+    user.isActive = true;
+
+    return await this.userRepository.save(user);
+  }
+
   async getByEmail(email: string): Promise<User> {
     if (!email)
       throw new HttpException(

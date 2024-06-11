@@ -9,15 +9,16 @@ import {
   UseGuards,
   Res,
   UseInterceptors,
-  ClassSerializerInterceptor, Req
-} from "@nestjs/common";
+  ClassSerializerInterceptor,
+  Req,
+} from '@nestjs/common';
 
 import { AuthGuard } from '../auth/auth.guard';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { Request } from "express";
+import { Request } from 'express';
 
 @Controller('api/v1')
 export class UserController {
@@ -27,6 +28,12 @@ export class UserController {
   @Post('/user/create')
   async create(@Body() createUserDto: CreateUserDto): Promise<User> {
     return await this.userService.create(createUserDto);
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Post('/user/activation')
+  async activation(@Body() data: any): Promise<User> {
+    return await this.userService.activation(data.phone, data.code);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
