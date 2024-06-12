@@ -9,7 +9,6 @@ import { AuthModule } from './auth/auth.module';
 import { DiscountModule } from './discount/discount.module';
 import { ProductModule } from './product/product.module';
 import { ProductRemnantModule } from './productRemnants/productRemnant.module';
-import { ProductBadgeModule } from './relations/productBadge/productBadge.module';
 import { ProductTypeModule } from './productTypes/productType.module';
 import { RegionModule } from './places/region/region.module';
 import { CityModule } from './places/city/city.module';
@@ -39,7 +38,6 @@ import { UserProfileModule } from './userProfile/userProfile.module';
     DiscountModule,
     PageModule,
     ProductModule,
-    ProductBadgeModule,
     ProductTypeModule,
     ProductRemnantModule,
     CityModule,

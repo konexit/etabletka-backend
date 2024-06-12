@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 import { ProductRemnant } from '../../productRemnants/entities/productRemnant.entity';
 import { ProductType } from '../../productTypes/entities/productType.entity';
-import { ProductBadge } from '../../relations/productBadge/entities/productBadge.entity';
+import { Badge } from '../../badge/entities/badge.entity';
 import { Discount } from '../../discount/entities/discount.entity';
 
 @Entity({
@@ -119,8 +119,13 @@ export class Product {
   @JoinColumn({ name: 'product_type_id' })
   productType: ProductType;
 
-  @OneToMany(() => ProductBadge, (productBadge) => productBadge.product)
-  productBadges: ProductBadge[];
+  @ManyToMany(() => Badge, (badge) => badge.products)
+  @JoinTable({
+    name: 'product_badges',
+    joinColumn: { name: 'product_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'badge_id', referencedColumnName: 'id' },
+  })
+  badges: Badge[];
 
   @ManyToMany(() => Discount, (discount) => discount.products)
   @JoinTable({

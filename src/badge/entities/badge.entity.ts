@@ -4,9 +4,10 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
-import { ProductBadge } from '../../relations/productBadge/entities/productBadge.entity';
+import { Product } from '../../product/entities/product.entity';
 
 @Entity({
   name: 'badges',
@@ -30,6 +31,11 @@ export class Badge {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(() => ProductBadge, (productBadge) => productBadge.badge)
-  productBadges: ProductBadge[];
+  @ManyToMany(() => Product, (product) => product.badges)
+  @JoinTable({
+    name: 'product_badges',
+    joinColumn: { name: 'badge_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'product_id', referencedColumnName: 'id' },
+  })
+  products: Product[];
 }

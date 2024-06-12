@@ -9,7 +9,6 @@ import {
   Delete,
   UseInterceptors,
   Req,
-  Res,
   UseGuards,
 } from '@nestjs/common';
 import { Product } from './entities/product.entity';
@@ -62,28 +61,15 @@ export class ProductController {
   }
 
   @UseGuards(AuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
   @Post(':id/add/badge/:badgeId')
   async addBadgeToProduct(
     @Req() request: Request,
     @Param('id') id: number,
     @Param('badgeId') badgeId: number,
-    @Res() res: any,
   ): Promise<any> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
-    try {
-      const productBadge = await this.productService.addBadgeToProduct(
-        token,
-        id,
-        badgeId,
-      );
 
-      if (!productBadge) {
-        return res.status(404).json({ message: 'Product not found' });
-      }
-
-      return res.json(productBadge);
-    } catch (error) {
-      return res.status(error.status).json(error);
-    }
+    return await this.productService.addBadgeToProduct(token, id, badgeId);
   }
 }

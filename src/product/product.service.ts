@@ -4,7 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Badge } from '../badge/entities/badge.entity';
 import { Discount } from '../discount/entities/discount.entity';
-import { ProductBadge } from '../relations/productBadge/entities/productBadge.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -18,8 +17,6 @@ export class ProductService {
     private discountRepository: Repository<Discount>,
     @InjectRepository(Badge)
     private readonly badgeRepository: Repository<Badge>,
-    @InjectRepository(ProductBadge)
-    private readonly productBadgeRepository: Repository<ProductBadge>,
     private jwtService: JwtService,
   ) {}
 
@@ -105,28 +102,30 @@ export class ProductService {
 
   async addBadgeToProduct(
     token: string | any[],
-    productId: number,
+    id: number,
     badgeId: number,
   ): Promise<any> {
     if (!token || typeof token !== 'string') {
       throw new HttpException('Has no access', HttpStatus.FORBIDDEN);
     }
 
-    const product = await this.productRepository.findOneBy({ id: productId });
-    const badge = await this.badgeRepository.findOneBy({ id: badgeId });
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: ['discounts'],
+    });
 
     if (!product) {
       throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
     }
 
+    const badge = await this.badgeRepository.findOneBy({ id: badgeId });
+
     if (!badge) {
       throw new HttpException('Badge not found', HttpStatus.NOT_FOUND);
     }
 
-    const productBadge = new ProductBadge();
-    productBadge.product = product;
-    productBadge.badge = badge;
-    return await this.productBadgeRepository.save(productBadge);
+    product.badges.push(badge);
+    return await this.productRepository.save(product);
   }
 
   async addDiscountToProduct(id: number, discountId: number): Promise<Product> {
