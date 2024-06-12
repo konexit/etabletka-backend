@@ -1,19 +1,12 @@
-import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Product } from '../../../product/entities/product.entity';
-import { Discount } from '../../../discount/entities/discount.entity';
+import { Column, Entity } from 'typeorm';
 
 @Entity({
   name: 'product_discounts',
 })
 export class ProductDiscount {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @Column({ name: 'product_id' })
+  productId: number;
 
-  @ManyToOne(() => Product, (product) => product.productDiscounts)
-  @JoinColumn({ name: 'product_id' })
-  product: Product;
-
-  @ManyToOne(() => Discount, (discount) => discount.productDiscounts)
-  @JoinColumn({ name: 'discount_id' })
-  discount: Discount;
+  @Column({ name: 'discount_id' })
+  discountId: number;
 }

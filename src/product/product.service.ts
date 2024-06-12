@@ -3,6 +3,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Badge } from '../badge/entities/badge.entity';
+import { Discount } from '../discount/entities/discount.entity';
 import { ProductBadge } from '../relations/productBadge/entities/productBadge.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -13,6 +14,8 @@ export class ProductService {
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(Discount)
+    private discountRepository: Repository<Discount>,
     @InjectRepository(Badge)
     private readonly badgeRepository: Repository<Badge>,
     @InjectRepository(ProductBadge)
@@ -124,5 +127,27 @@ export class ProductService {
     productBadge.product = product;
     productBadge.badge = badge;
     return await this.productBadgeRepository.save(productBadge);
+  }
+
+  async addDiscountToProduct(id: number, discountId: number): Promise<Product> {
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: ['discounts'],
+    });
+
+    if (!product) {
+      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
+    }
+
+    const discount = await this.discountRepository.findOneBy({
+      id: discountId,
+    });
+
+    if (!discount) {
+      throw new HttpException('Discount not found', HttpStatus.NOT_FOUND);
+    }
+
+    product.discounts.push(discount);
+    return await this.productRepository.save(product);
   }
 }

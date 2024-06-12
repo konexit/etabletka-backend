@@ -7,11 +7,13 @@ import {
   OneToOne,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { ProductRemnant } from '../../productRemnants/entities/productRemnant.entity';
 import { ProductType } from '../../productTypes/entities/productType.entity';
 import { ProductBadge } from '../../relations/productBadge/entities/productBadge.entity';
-import { ProductDiscount } from '../../relations/productDiscount/entities/productDiscount.entity';
+import { Discount } from '../../discount/entities/discount.entity';
 
 @Entity({
   name: 'products',
@@ -104,6 +106,12 @@ export class Product {
   @Column({ name: 'product_type_id', default: 1 })
   productTypeId: number;
 
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  updatedAt: Date;
+
   @OneToMany(() => ProductRemnant, (productRemnant) => productRemnant.product)
   productRemnants: ProductRemnant[];
 
@@ -114,15 +122,11 @@ export class Product {
   @OneToMany(() => ProductBadge, (productBadge) => productBadge.product)
   productBadges: ProductBadge[];
 
-  @OneToMany(
-    () => ProductDiscount,
-    (productDiscount) => productDiscount.product,
-  )
-  productDiscounts: ProductDiscount[];
-
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
-  updatedAt: Date;
+  @ManyToMany(() => Discount, (discount) => discount.products)
+  @JoinTable({
+    name: 'product_discounts',
+    joinColumn: { name: 'product_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'discount_id', referencedColumnName: 'id' },
+  })
+  discounts: Discount[];
 }

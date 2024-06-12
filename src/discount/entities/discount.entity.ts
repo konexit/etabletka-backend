@@ -3,10 +3,11 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  OneToMany,
+  ManyToMany,
+  JoinTable,
   UpdateDateColumn,
 } from 'typeorm';
-import { ProductDiscount } from '../../relations/productDiscount/entities/productDiscount.entity';
+import { Product } from '../../product/entities/product.entity';
 
 @Entity({
   name: 'discounts',
@@ -54,9 +55,11 @@ export class Discount {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(
-    () => ProductDiscount,
-    (productDiscount) => productDiscount.discount,
-  )
-  productDiscounts: ProductDiscount[];
+  @ManyToMany(() => Product, (product) => product.discounts)
+  @JoinTable({
+    name: 'product_discounts',
+    joinColumn: { name: 'discount_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'product_id', referencedColumnName: 'id' },
+  })
+  products: Product[];
 }
