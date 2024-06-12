@@ -4,8 +4,11 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { Product } from '../../product/entities/product.entity';
 @Entity({
   name: 'categories',
 })
@@ -102,4 +105,12 @@ export class Category {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   @Exclude()
   updatedAt: Date;
+
+  @ManyToMany(() => Product, (products) => products.categories)
+  @JoinTable({
+    name: 'products_categories',
+    joinColumn: { name: 'category_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'product_id', referencedColumnName: 'id' },
+  })
+  products: Product[];
 }

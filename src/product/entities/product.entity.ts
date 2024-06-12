@@ -10,6 +10,7 @@ import {
   ManyToMany,
   JoinTable,
 } from 'typeorm';
+import { Category } from '../../categories/entities/category.entity';
 import { ProductRemnant } from '../../productRemnants/entities/productRemnant.entity';
 import { ProductType } from '../../productTypes/entities/productType.entity';
 import { Badge } from '../../badge/entities/badge.entity';
@@ -134,4 +135,12 @@ export class Product {
     inverseJoinColumn: { name: 'discount_id', referencedColumnName: 'id' },
   })
   discounts: Discount[];
+
+  @ManyToMany(() => Category, (categories) => categories.products)
+  @JoinTable({
+    name: 'products_categories',
+    joinColumn: { name: 'product_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' },
+  })
+  categories: Category[];
 }

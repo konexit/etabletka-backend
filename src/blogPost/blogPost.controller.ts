@@ -9,4 +9,8 @@ export class BlogPostController {
   async getPosts(): Promise<BlogPost[]> {
     return await this.blogPostService.getPosts();
   }
+
+  async getLatestPosts(): Promise<BlogPost[]> {
+    return await this.blogPostService.getLatestPosts();
+  }
 }
