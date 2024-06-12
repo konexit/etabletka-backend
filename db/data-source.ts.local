@@ -9,7 +9,6 @@ export const dataSourceOptions: DataSourceOptions = {
   database: 'eTab',
   entities: ['dist/**/*.entity.js'],
   migrations: ['dist/db/migrations/*.js'],
-
 };
 
 const dataSource = new DataSource(dataSourceOptions);

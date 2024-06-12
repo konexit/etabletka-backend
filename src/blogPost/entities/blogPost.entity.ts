@@ -9,7 +9,9 @@ import {
 } from 'typeorm';
 import { BlogCategory } from "../../blogCategoty/entities/blogCategory.entity";
 
-@Entity()
+@Entity({
+  name: 'blog_posts',
+})
 export class BlogPost {
   @PrimaryGeneratedColumn()
   id: number;
