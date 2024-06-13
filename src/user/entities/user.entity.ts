@@ -55,7 +55,6 @@ export class User {
   role: Role;
 
   @OneToOne(() => UserProfile)
-  @JoinColumn({ name: 'user_id' })
   userProfile: UserProfile;
 
   constructor(partial: Partial<User>) {

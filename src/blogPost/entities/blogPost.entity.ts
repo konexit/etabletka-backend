@@ -4,12 +4,12 @@ import {
   Entity,
   JoinColumn,
   JoinTable,
-  ManyToMany,
+  ManyToMany, ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+  UpdateDateColumn
+} from "typeorm";
 import { BlogCategory } from '../../blogCategoty/entities/blogCategory.entity';
 import { BlogComment } from '../../blogComment/entities/blogComment.entity';
 import { User } from '../../user/entities/user.entity';
@@ -72,11 +72,11 @@ export class BlogPost {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'author_id', referencedColumnName: 'id' })
   author: User;
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'censor_id', referencedColumnName: 'id' })
   censor: User;
 
