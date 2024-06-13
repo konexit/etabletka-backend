@@ -24,6 +24,7 @@ import { MenuModule } from './menu/menu.module';
 import { SiteOptionModule } from './siteOptions/siteOption.module';
 import { RoleModule } from './role/role.module';
 import { UserProfileModule } from './userProfile/userProfile.module';
+import { BrandsModule } from './brands/brands.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { UserProfileModule } from './userProfile/userProfile.module';
     OrderModule,
     MenuModule,
     SiteOptionModule,
+    BrandsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
