@@ -110,6 +110,9 @@ export class Product {
   @Column({ name: 'product_type_id', default: 1 })
   productTypeId: number;
 
+  @Column({ name: 'morion_code', default: 0 })
+  morionCode: number;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
