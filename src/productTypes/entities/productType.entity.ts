@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 import { Product } from '../../product/entities/product.entity';
 
 @Entity({
@@ -14,6 +15,10 @@ import { Product } from '../../product/entities/product.entity';
 export class ProductType {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ name: 'sync_id', nullable: true, unique: true })
+  @Exclude()
+  syncId: number;
 
   @Column({ length: 200, unique: true })
   name: string;
