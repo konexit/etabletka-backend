@@ -2,12 +2,15 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { BlogCategory } from '../../blogCategoty/entities/blogCategory.entity';
+import { BlogComment } from '../../blogComment/entities/blogComment.entity';
 
 @Entity({
   name: 'blog_posts',
@@ -40,6 +43,9 @@ export class BlogPost {
   @Column({ name: 'alt', type: 'json', nullable: true })
   alt: JSON;
 
+  @Column({ name: 'cdn_data', type: 'json', nullable: true })
+  cdnData: JSON;
+
   @Column({ name: 'seo_h1', type: 'json', nullable: true })
   seoH1: JSON;
 
@@ -58,17 +64,15 @@ export class BlogPost {
   @Column({ name: 'published', default: false })
   isPublished: boolean;
 
-  @Column({ name: 'views_count', default: 0 })
-  viewsCount: number;
-
-  @Column({ name: 'comments_count', default: 0 })
-  commentsCount: number;
-
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
+
+  @OneToMany(() => BlogComment, (blogComment) => blogComment.blogPost)
+  @JoinColumn({ name: 'id', referencedColumnName: 'post_id' })
+  blogComments: BlogComment[];
 
   @ManyToMany(() => BlogCategory, (blogCategory) => blogCategory.posts)
   @JoinTable({

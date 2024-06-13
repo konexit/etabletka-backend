@@ -47,10 +47,6 @@ export class BlogPostService {
 
     queryBuilder
       .where('post.published = :published', { published: true })
-      .leftJoinAndSelect('post.categories', 'category')
-      .leftJoinAndSelect('post.author', 'author')
-      .leftJoinAndSelect('post.cdnMedia', 'cdnMedia')
-      .leftJoinAndSelect('post.reviews', 'reviews')
       .select('post')
       .addSelect('COUNT(reviews.id)', 'reviewCount')
       .groupBy('post.id')

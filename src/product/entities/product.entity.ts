@@ -44,6 +44,9 @@ export class Product {
   @Column({ unique: true })
   slug: string;
 
+  @Column({ name: 'cdn_data', type: 'json', nullable: true })
+  cdnData: JSON;
+
   @Column({ name: 'cdn_instruction', type: 'json', nullable: true })
   cdnInstruction: JSON;
 
