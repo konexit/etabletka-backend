@@ -43,14 +43,19 @@ export class BlogPostService {
   }
 
   async getLatestPosts(): Promise<BlogPost[]> {
-    const queryBuilder = this.blogPostRepository.createQueryBuilder('post');
+    const queryBuilder = this.blogPostRepository.createQueryBuilder('blogPost');
 
     queryBuilder
-      .where('post.published = :published', { published: true })
-      .select('post')
-      .addSelect('COUNT(reviews.id)', 'reviewCount')
-      .groupBy('post.id')
-      .orderBy('post.publishedAt', 'DESC')
+      .select('blogPost.title', 'title')
+      .addSelect('COUNT(comment.id)', 'commentCount')
+      .addSelect('blogPost.publishedAt', 'publishedAt')
+      .addSelect('COUNT(comment.id)', 'commentCount')
+      .addSelect('user.firstName', 'firstName')
+      .addSelect('user.lastName', 'lastName')
+      .leftJoinAndSelect('blogPost.comments', 'comment')
+      .leftJoinAndSelect('blogPost.user', 'user')
+      .groupBy('blogPost.id')
+      .orderBy('blogPost.publishedAt', 'DESC')
       .limit(3);
 
     return await queryBuilder.getMany();

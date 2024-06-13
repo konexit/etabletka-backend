@@ -5,8 +5,8 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn
-} from "typeorm";
+  UpdateDateColumn,
+} from 'typeorm';
 import { BlogPost } from '../../blogPost/entities/blogPost.entity';
 
 @Entity('blog-comments')
