@@ -25,6 +25,9 @@ import { SiteOptionModule } from './siteOptions/siteOption.module';
 import { RoleModule } from './role/role.module';
 import { UserProfileModule } from './userProfile/userProfile.module';
 import { BrandsModule } from './brands/brands.module';
+import { BlogCategoryModule } from './blogCategoty/blogCategory.module';
+import { BlogPostModule } from './blogPost/blogPost.module';
+import { BlogCommentModule } from './blogComment/blogComment.module';
 
 @Module({
   imports: [
@@ -54,6 +57,9 @@ import { BrandsModule } from './brands/brands.module';
     MenuModule,
     SiteOptionModule,
     BrandsModule,
+    BlogCategoryModule,
+    BlogPostModule,
+    BlogCommentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

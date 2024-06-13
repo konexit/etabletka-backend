@@ -4,12 +4,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { BlogPost } from '../../blogPost/entities/blogPost.entity';
+import { User } from '../../user/entities/user.entity';
 
-@Entity('blog-comments')
+@Entity('blog_comments')
 export class BlogComment {
   @PrimaryGeneratedColumn()
   id: number;
@@ -31,6 +33,10 @@ export class BlogComment {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
+
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  author: User;
 
   @ManyToOne(() => BlogPost, (blogPost) => blogPost.blogComments)
   @JoinColumn({ name: 'post_id', referencedColumnName: 'id' })

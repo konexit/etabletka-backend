@@ -6,11 +6,13 @@ import {
   JoinTable,
   ManyToMany,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { BlogCategory } from '../../blogCategoty/entities/blogCategory.entity';
 import { BlogComment } from '../../blogComment/entities/blogComment.entity';
+import { User } from '../../user/entities/user.entity';
 
 @Entity({
   name: 'blog_posts',
@@ -69,6 +71,14 @@ export class BlogPost {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
+
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'author_id', referencedColumnName: 'id' })
+  author: User;
+
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'censor_id', referencedColumnName: 'id' })
+  censor: User;
 
   @OneToMany(() => BlogComment, (blogComment) => blogComment.blogPost)
   @JoinColumn({ name: 'id', referencedColumnName: 'post_id' })

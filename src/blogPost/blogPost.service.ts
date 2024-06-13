@@ -43,20 +43,24 @@ export class BlogPostService {
   }
 
   async getLatestPosts(): Promise<BlogPost[]> {
-    const queryBuilder = this.blogPostRepository.createQueryBuilder('blogPost');
+    const queryBuilder = this.blogPostRepository.createQueryBuilder('post');
 
     queryBuilder
-      .select('blogPost.title', 'title')
-      .addSelect('COUNT(comment.id)', 'commentCount')
-      .addSelect('blogPost.publishedAt', 'publishedAt')
-      .addSelect('COUNT(comment.id)', 'commentCount')
-      .addSelect('user.firstName', 'firstName')
-      .addSelect('user.lastName', 'lastName')
-      .leftJoinAndSelect('blogPost.comments', 'comment')
-      .leftJoinAndSelect('blogPost.user', 'user')
-      .groupBy('blogPost.id')
-      .orderBy('blogPost.publishedAt', 'DESC')
+      .select('post.title')
+      .addSelect('post.publishedAt')
+      .addSelect('post.cdnData')
+      .addSelect('categories.slug')
+      .addSelect('categories.title', 'categoryTitle')
+      .addSelect('COUNT(blogComments.id) | 0', 'commentCount')
+      .leftJoin('post.categories', 'categories')
+      .leftJoin('post.blogComments', 'blogComments')
+      .leftJoin('post.author', 'author')
+      .groupBy('post.id')
+      .orderBy('post.publishedAt', 'DESC')
       .limit(3);
+
+    const sql = queryBuilder.getQuery();
+    console.log(sql);
 
     return await queryBuilder.getMany();
   }

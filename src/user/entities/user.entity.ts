@@ -3,12 +3,13 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne,
+  ManyToOne, OneToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+  UpdateDateColumn
+} from "typeorm";
 import { Exclude } from 'class-transformer';
 import { Role } from '../../role/entities/role.entity';
+import { UserProfile } from "../../userProfile/entities/userProlile.entity";
 
 @Entity({
   name: 'users',
@@ -52,6 +53,10 @@ export class User {
   @ManyToOne(() => Role, (role) => role.users)
   @JoinColumn({ name: 'role_id', referencedColumnName: 'id' })
   role: Role;
+
+  @OneToOne(() => UserProfile)
+  @JoinColumn({ name: 'user_id' })
+  userProfile: UserProfile;
 
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);
