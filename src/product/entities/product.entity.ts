@@ -50,13 +50,13 @@ export class Product {
   @Column({ name: 'cdn_instruction', type: 'json', nullable: true })
   cdnInstruction: JSON;
 
-  @Column({ name: 'instruction_uk', unique: true })
+  @Column({ name: 'instruction_uk', nullable: true })
   instructionUk: string;
 
-  @Column({ name: 'instruction_ru', unique: true })
+  @Column({ name: 'instruction_ru', nullable: true })
   instructionRu: string;
 
-  @Column({ name: 'instruction_en', unique: true })
+  @Column({ name: 'instruction_en', nullable: true })
   instructionEn: string;
 
   @Column({ name: 'seo_h1', type: 'json', nullable: true })
