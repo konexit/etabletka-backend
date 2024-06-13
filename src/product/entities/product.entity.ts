@@ -4,7 +4,7 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
   OneToMany,
-  OneToOne,
+  ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
   ManyToMany,
@@ -122,7 +122,7 @@ export class Product {
   @OneToMany(() => ProductRemnant, (productRemnant) => productRemnant.product)
   productRemnants: ProductRemnant[];
 
-  @OneToOne(() => ProductType, (productType) => productType.product)
+  @ManyToOne(() => ProductType, (productType) => productType.product)
   @JoinColumn({ name: 'product_type_id' })
   productType: ProductType;
 
