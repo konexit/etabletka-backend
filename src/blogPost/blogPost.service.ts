@@ -47,8 +47,11 @@ export class BlogPostService {
 
     queryBuilder
       .select('post.title')
+      .addSelect('post.id')
+      .addSelect('post.alt')
       .addSelect('post.publishedAt')
       .addSelect('post.cdnData')
+      .addSelect('post.slug')
       .addSelect('COUNT(blogComments.id) | 0', 'commentCount')
       .addSelect('author.firstName')
       .addSelect('author.lastName')
@@ -58,12 +61,13 @@ export class BlogPostService {
       .leftJoin('post.categories', 'categories')
       .leftJoin('post.blogComments', 'blogComments')
       .leftJoin('post.author', 'author')
-      .where('')
+      .where('post.published = :published', { published: true })
       .groupBy('post.id')
-      .addGroupBy("author.id")
-      .addGroupBy("categories.id")
+      .addGroupBy('author.id')
+      .addGroupBy('categories.id')
       .orderBy('post.publishedAt', 'DESC')
-      .limit(3);
+      .offset(0)
+      .limit(4);
 
     // const sql = queryBuilder.getQuery();
     // console.log(sql);

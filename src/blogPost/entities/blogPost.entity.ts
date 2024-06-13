@@ -27,7 +27,7 @@ export class BlogPost {
   @Column({ name: 'censor_id' })
   censorId: number;
 
-  @Column({ name: 'published_at', type: 'timestamp' })
+  @Column({ name: 'published_at', type: 'date' })
   publishedAt: Date;
 
   @Column({ name: 'title', type: 'json' })
