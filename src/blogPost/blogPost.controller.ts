@@ -12,14 +12,20 @@ import { BlogPost } from './entities/blogPost.entity';
 export class BlogPostController {
   constructor(private readonly blogPostService: BlogPostService) {}
 
+  @Get('/blog/main')
+  async getLatestPosts(): Promise<BlogPost[]> {
+    return await this.blogPostService.getLatestPosts();
+  }
+
+
   @Get('/blog')
   async getPosts(): Promise<BlogPost[]> {
     return await this.blogPostService.getPosts();
   }
 
-  @Get('/blog/main')
-  async getLatestPosts(): Promise<BlogPost[]> {
-    return await this.blogPostService.getLatestPosts();
+  @Get('/blog/:category')
+  async getCategoryPosts(@Param('category') category: string): Promise<BlogPost[]> {
+    return await this.blogPostService.getCategoryPosts(category);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)

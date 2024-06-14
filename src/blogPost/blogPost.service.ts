@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BlogPost } from './entities/blogPost.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { BlogCategory } from '../blogCategoty/entities/blogCategory.entity';
 
 @Injectable()
@@ -32,8 +32,37 @@ export class BlogPostService {
 
   async getPosts(): Promise<BlogPost[]> {
     const posts = await this.blogPostRepository.find({
-      relations: ['categories', 'blogComments']
+      relations: ['categories', 'blogComments'],
     });
+    if (!posts) {
+      throw new HttpException(
+        'Posts categories not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return posts;
+  }
+
+  async getCategoryPosts(slug): Promise<BlogPost[]> {
+    const category = await this.blogCategoryRepository.findOne({
+      where: { slug },
+      relations: ['posts'],
+    });
+
+    if (!category) {
+      throw new HttpException(
+        'Posts categories not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const postIds = category?.posts.map((p: BlogPost) => p.id);
+    const posts = await this.blogPostRepository.find({
+      where: { id: In(postIds) },
+      relations: ['categories', 'blogComments'],
+    });
+
     if (!posts) {
       throw new HttpException(
         'Posts categories not found',
