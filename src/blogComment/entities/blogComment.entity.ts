@@ -22,6 +22,9 @@ export class BlogComment {
   @Column({ name: 'user_id' })
   userId: number;
 
+  @Column({ name: 'parent_id', nullable: true })
+  parentId: number;
+
   @Column({ type: 'text' })
   comment: string;
 

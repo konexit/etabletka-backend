@@ -74,4 +74,16 @@ export class BlogPostService {
 
     return await queryBuilder.getMany();
   }
+
+  async getPost(category, slug): Promise<BlogPost> {
+    const post = this.blogPostRepository.findOne({
+      where: { slug },
+      relations: ['categories', 'author', 'censor', 'blogComments'],
+    });
+    if (!post) {
+      throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+    }
+
+    return post;
+  }
 }

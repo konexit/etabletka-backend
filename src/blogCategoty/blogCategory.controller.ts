@@ -1,4 +1,4 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get } from '@nestjs/common';
 import { BlogCategoryService } from './blogCategory.service';
 import { BlogCategory } from './entities/blogCategory.entity';
 
