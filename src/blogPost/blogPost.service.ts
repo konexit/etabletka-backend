@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { BlogPost } from './entities/blogPost.entity';
 import { In, Repository } from 'typeorm';
 import { BlogCategory } from '../blogCategoty/entities/blogCategory.entity';
+import { PaginationDto } from '../common/dto/paginationDto';
 
 @Injectable()
 export class BlogPostService {
@@ -30,18 +31,30 @@ export class BlogPostService {
     await this.blogPostRepository.save(post);
   }
 
-  async getPosts(): Promise<BlogPost[]> {
-    const posts = await this.blogPostRepository.find({
-      relations: ['categories', 'blogComments'],
-    });
-    if (!posts) {
-      throw new HttpException(
-        'Posts categories not found',
-        HttpStatus.NOT_FOUND,
-      );
-    }
+  async getPosts(
+    pagination: PaginationDto = {},
+  ): Promise<{ posts: BlogPost[]; total: number }> {
+    const { take = 16, skip = 0 } = pagination;
 
-    return posts;
+    const queryBuilder = this.blogPostRepository.createQueryBuilder('post');
+    const total = await queryBuilder.getCount();
+
+    const posts = await queryBuilder
+      .select('post')
+      .addSelect('author.firstName')
+      .addSelect('author.lastName')
+      .addSelect('categories.id')
+      .addSelect('categories.slug')
+      .addSelect('categories.title')
+      .leftJoin('post.categories', 'categories')
+      .leftJoin('post.blogComments', 'blogComments')
+      .leftJoin('post.author', 'author')
+      .orderBy('post.publishedAt', 'DESC')
+      .take(take)
+      .skip(skip)
+      .getMany();
+
+    return { posts, total };
   }
 
   async getCategoryPosts(slug): Promise<BlogPost[]> {
