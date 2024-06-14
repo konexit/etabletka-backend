@@ -12,6 +12,7 @@ import { BlogPost } from './entities/blogPost.entity';
 export class BlogPostController {
   constructor(private readonly blogPostService: BlogPostService) {}
 
+  @Get('/blog')
   async getPosts(): Promise<BlogPost[]> {
     return await this.blogPostService.getPosts();
   }

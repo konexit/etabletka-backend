@@ -31,7 +31,9 @@ export class BlogPostService {
   }
 
   async getPosts(): Promise<BlogPost[]> {
-    const posts = await this.blogPostRepository.find();
+    const posts = await this.blogPostRepository.find({
+      relations: ['categories', 'blogComments']
+    });
     if (!posts) {
       throw new HttpException(
         'Posts categories not found',
