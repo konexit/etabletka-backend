@@ -16,6 +16,7 @@ import { CommunityModule } from './places/communitiy/community.module';
 import { DistrictModule } from './places/district/district.module';
 import { CategoriesModule } from './categories/categories.module';
 import { PageModule } from './page/page.module';
+import { FaqItemModule } from './page/faqItem/faqItem.module';
 import { BannerModule } from './banner/banner.module';
 import { BadgeModule } from './badge/badge.module';
 import { StoreModule } from './store/store.module';
@@ -40,6 +41,7 @@ import { BlogCommentModule } from './blogComment/blogComment.module';
     BadgeModule,
     BannerModule,
     DiscountModule,
+    FaqItemModule,
     PageModule,
     ProductModule,
     ProductTypeModule,

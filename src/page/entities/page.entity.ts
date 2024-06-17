@@ -31,6 +31,9 @@ export class Page {
   @Column({ name: 'cdn_data', type: 'json', nullable: true })
   cdnData: JSON;
 
+  @Column({ name: 'menu_index', type: 'smallint', default: 0 })
+  menuIndex: number;
+
   @Column({ name: 'seo_h1', type: 'json', nullable: true })
   seoH1: JSON;
 

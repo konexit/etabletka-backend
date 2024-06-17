@@ -18,7 +18,7 @@ export class PageService {
     // }
 
     const pages = await this.pageRepository.find({
-      where: { isPublished: true }
+      where: { isPublished: true },
     });
 
     if (!pages) {
