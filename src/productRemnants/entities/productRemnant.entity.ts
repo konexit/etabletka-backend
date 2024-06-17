@@ -28,7 +28,7 @@ export class ProductRemnant {
   @Column({ name: 'store_id', default: 0 })
   storeId: number;
 
-  @Column({ name: 'quantity', default: 0 })
+  @Column({ type: 'decimal', precision: 1000, scale: 3, default: 0 })
   quantity: number;
 
   @Column({ name: 'active', default: true })
