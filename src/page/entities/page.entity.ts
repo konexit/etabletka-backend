@@ -28,6 +28,9 @@ export class Page {
   @Column({ type: 'json', nullable: true })
   variables: JSON;
 
+  @Column({ name: 'cdn_data', type: 'json', nullable: true })
+  cdnData: JSON;
+
   @Column({ name: 'seo_h1', type: 'json', nullable: true })
   seoH1: JSON;
 

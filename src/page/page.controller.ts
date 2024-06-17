@@ -3,18 +3,18 @@ import { PageService } from './page.service';
 import { Request } from 'express';
 import { Page } from './entities/page.entity';
 
-@Controller('api/v1/pages')
+@Controller('api/v1')
 export class PageController {
   constructor(private readonly pageService: PageService) {}
 
-  @Get()
+  @Get('/pages')
   async getPages(@Req() request: Request): Promise<Page[]> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
 
     return await this.pageService.getPages(token);
   }
 
-  @Get(':slug')
+  @Get('/page/:slug')
   async getPageBySlug(@Param('slug') slug: string): Promise<Page> {
     return await this.pageService.getPageBySlug(slug);
   }

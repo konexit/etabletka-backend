@@ -13,11 +13,13 @@ export class PageService {
   ) {}
 
   async getPages(token: string | any[]): Promise<any> {
-    if (!token || typeof token !== 'string') {
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-    }
+    // if (!token || typeof token !== 'string') {
+    //   throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    // }
 
-    const pages = await this.pageRepository.find({});
+    const pages = await this.pageRepository.find({
+      where: { isPublished: true }
+    });
 
     if (!pages) {
       throw new HttpException('Pages not found', HttpStatus.NOT_FOUND);
