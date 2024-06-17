@@ -35,7 +35,7 @@ export class BlogPostService {
     pagination: PaginationDto = {},
   ): Promise<{ posts: BlogPost[]; total: number }> {
     const { take = 16, skip = 0 } = pagination;
-
+    console.log(take, skip)
     const queryBuilder = this.blogPostRepository.createQueryBuilder('post');
     const total = await queryBuilder.getCount();
 

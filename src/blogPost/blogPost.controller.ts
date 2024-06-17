@@ -1,10 +1,11 @@
 import {
-  Query,
+  Body,
   ClassSerializerInterceptor,
   Controller,
   HttpException,
   HttpStatus,
   Get,
+  Post,
   Param,
   UseInterceptors,
 } from '@nestjs/common';
@@ -21,12 +22,12 @@ export class BlogPostController {
     return await this.blogPostService.getLatestPosts();
   }
 
-  @Get('/blog')
+  @Post('/blog')
   async getPosts(
-    @Query() params?: any,
+    @Body('pagination') pagination?: PaginationDto,
   ): Promise<{ posts: BlogPost[]; total: number }> {
+    console.log(pagination);
     try {
-      const pagination: PaginationDto = params?.pagination;
       return await this.blogPostService.getPosts(pagination);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST); // Handle errors gracefully
