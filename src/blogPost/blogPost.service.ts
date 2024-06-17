@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BlogPost } from './entities/blogPost.entity';
-import { In, Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { BlogCategory } from '../blogCategoty/entities/blogCategory.entity';
 import { PaginationDto } from '../common/dto/paginationDto';
 
@@ -13,6 +13,30 @@ export class BlogPostService {
     @InjectRepository(BlogCategory)
     private readonly blogCategoryRepository: Repository<BlogCategory>,
   ) {}
+
+  public async fetchData(
+    queryBuilder: SelectQueryBuilder<BlogPost>,
+    take: number,
+    skip: number,
+    ids?: Array<number>,
+  ) {
+    const query = queryBuilder
+      .select('post')
+      .addSelect('author.firstName')
+      .addSelect('author.lastName')
+      .addSelect('categories.id')
+      .addSelect('categories.slug')
+      .addSelect('categories.title')
+      .leftJoin('post.categories', 'categories')
+      .leftJoin('post.blogComments', 'blogComments')
+      .leftJoin('post.author', 'author');
+
+    if (ids) query.where('post.id IN (:...ids)', { ids: ids });
+
+    query.orderBy('post.publishedAt', 'DESC').take(take).skip(skip);
+
+    return query.getMany();
+  }
 
   async create(): Promise<BlogPost> {
     return await this.blogPostRepository.create();
@@ -35,29 +59,21 @@ export class BlogPostService {
     pagination: PaginationDto = {},
   ): Promise<{ posts: BlogPost[]; total: number }> {
     const { take = 16, skip = 0 } = pagination;
-    console.log(take, skip)
+
     const queryBuilder = this.blogPostRepository.createQueryBuilder('post');
     const total = await queryBuilder.getCount();
 
-    const posts = await queryBuilder
-      .select('post')
-      .addSelect('author.firstName')
-      .addSelect('author.lastName')
-      .addSelect('categories.id')
-      .addSelect('categories.slug')
-      .addSelect('categories.title')
-      .leftJoin('post.categories', 'categories')
-      .leftJoin('post.blogComments', 'blogComments')
-      .leftJoin('post.author', 'author')
-      .orderBy('post.publishedAt', 'DESC')
-      .take(take)
-      .skip(skip)
-      .getMany();
+    const posts = await this.fetchData(queryBuilder, take, skip);
 
     return { posts, total };
   }
 
-  async getCategoryPosts(slug): Promise<BlogPost[]> {
+  async getCategoryPosts(
+    slug,
+    pagination,
+  ): Promise<{ posts: BlogPost[]; total: number }> {
+    const { take = 16, skip = 0 } = pagination;
+
     const category = await this.blogCategoryRepository.findOne({
       where: { slug },
       relations: ['posts'],
@@ -71,19 +87,15 @@ export class BlogPostService {
     }
 
     const postIds = category?.posts.map((p: BlogPost) => p.id);
-    const posts = await this.blogPostRepository.find({
-      where: { id: In(postIds) },
-      relations: ['categories', 'blogComments'],
-    });
+    const queryBuilder: SelectQueryBuilder<BlogPost> =
+      this.blogPostRepository.createQueryBuilder('post');
+    const total = await queryBuilder
+      .where('post.id IN (:...ids)', { ids: postIds })
+      .getCount();
 
-    if (!posts) {
-      throw new HttpException(
-        'Posts categories not found',
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    const posts = await this.fetchData(queryBuilder, take, skip, postIds);
 
-    return posts;
+    return { posts, total };
   }
 
   async getLatestPosts(): Promise<BlogPost[]> {

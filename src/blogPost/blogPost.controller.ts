@@ -26,19 +26,23 @@ export class BlogPostController {
   async getPosts(
     @Body('pagination') pagination?: PaginationDto,
   ): Promise<{ posts: BlogPost[]; total: number }> {
-    console.log(pagination);
     try {
       return await this.blogPostService.getPosts(pagination);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST); // Handle errors gracefully
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
-  @Get('/blog/:category')
+  @Post('/blog/:category')
   async getCategoryPosts(
     @Param('category') category: string,
-  ): Promise<BlogPost[]> {
-    return await this.blogPostService.getCategoryPosts(category);
+    @Body('pagination') pagination?: PaginationDto,
+  ): Promise<{ posts: BlogPost[]; total: number }> {
+    try {
+      return await this.blogPostService.getCategoryPosts(category, pagination);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
