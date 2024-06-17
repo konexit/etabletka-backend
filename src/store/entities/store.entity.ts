@@ -63,6 +63,9 @@ export class Store {
   @Column({ name: 'active', default: false })
   isActive: boolean;
 
+  @Column({ name: 'online', default: false })
+  isOnline: boolean;
+
   @Column({ name: 'sell_type', nullable: true, length: 125 })
   sellType: string;
 
