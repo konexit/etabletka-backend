@@ -31,7 +31,7 @@ export class ProductRemnant {
   @Column({ name: 'quantity', default: 0 })
   quantity: number;
 
-  @Column({ name: 'active', default: false })
+  @Column({ name: 'active', default: true })
   isActive: boolean;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
