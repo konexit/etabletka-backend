@@ -23,7 +23,7 @@ export class FaqItem {
   @Column({ name: 'answer', type: 'json', nullable: true })
   answer: JSON;
 
-  @Column({ name: 'published', default: false })
+  @Column({ name: 'published', default: true })
   isPublished: boolean;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
