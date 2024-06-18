@@ -123,7 +123,7 @@ export class BlogPostService {
       .addGroupBy('categories.id')
       .orderBy('post.publishedAt', 'DESC')
       .offset(0)
-      .limit(4);
+      .limit(3);
 
     // const sql = queryBuilder.getQuery();
     // console.log(sql);
