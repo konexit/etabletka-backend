@@ -17,7 +17,7 @@ export class BlogCategoryService {
     private cacheManager: Cache,
   ) {}
 
-  cacheBlogCategories = 'blogCategories';
+  cacheBlogCategoriesKey = 'blogCategories';
   cacheBlogCategoriesTTL = 14400000; // 4 Hour
 
   async create(): Promise<BlogCategory> {
@@ -36,7 +36,7 @@ export class BlogCategoryService {
 
   async getBlogCategories(): Promise<any> {
     const cacheCategories = await this.cacheManager.get(
-      this.cacheBlogCategories,
+      this.cacheBlogCategoriesKey,
     );
     if (cacheCategories) {
       return cacheCategories;
@@ -51,7 +51,7 @@ export class BlogCategoryService {
     }
 
     await this.cacheManager.set(
-      this.cacheBlogCategories,
+      this.cacheBlogCategoriesKey,
       blogCategories,
       this.cacheBlogCategoriesTTL,
     );
