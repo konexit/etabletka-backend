@@ -14,6 +14,11 @@ export class PageController {
     return await this.pageService.getPages(token);
   }
 
+  @Get('pages/menu/:index')
+  async getPagesByMenuIndex(@Param('index') index: number): Promise<Page[]> {
+    return await this.pageService.getPagesByMenuIndex(index);
+  }
+
   @Get('/page/:slug')
   async getPageBySlug(@Param('slug') slug: string): Promise<Page> {
     return await this.pageService.getPageBySlug(slug);

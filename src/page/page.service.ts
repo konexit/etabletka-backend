@@ -28,6 +28,22 @@ export class PageService {
     return pages;
   }
 
+  async getPagesByMenuIndex(index): Promise<Page[]> {
+    const queryBuilder = this.pageRepository.createQueryBuilder('page');
+    const pages = await queryBuilder
+      .select('page.id')
+      .addSelect('page.slug')
+      .addSelect('page.title')
+      .where('page.menuIndex = :index', { index })
+      .getMany();
+
+    if (!pages) {
+      throw new HttpException('Pages not found', HttpStatus.NOT_FOUND);
+    }
+
+    return pages;
+  }
+
   async getPageBySlug(slug: string): Promise<Page> {
     const page = await this.pageRepository.findOneBy({
       slug,
