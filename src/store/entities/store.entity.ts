@@ -72,13 +72,21 @@ export class Store {
   @Column({ name: 'store_brand_id', default: 1 })
   storeBrandId: number;
 
-  @ManyToOne(() => City, (city: City) => city.stores)
-  @JoinColumn({ name: 'city_id' })
-  city: City;
-
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
+
+  @ManyToOne(() => City, (city: City) => city.stores)
+  @JoinColumn({ name: 'city_id' })
+  city: City;
+
+  @ManyToOne(() => District, (district: District) => district.stores)
+  @JoinColumn({ name: 'district_id' })
+  district: District;
+
+  @ManyToOne(() => Region, (region: Region) => region.stores)
+  @JoinColumn({ name: 'region_id' })
+  region: Region;
 }

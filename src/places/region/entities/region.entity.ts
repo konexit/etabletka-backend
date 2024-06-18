@@ -4,7 +4,9 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { Store } from '../../../store/entities/store.entity';
 
 @Entity({
   name: 'regions',
@@ -36,4 +38,7 @@ export class Region {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
+
+  @OneToMany(() => Store, (store) => store.city)
+  stores: Store[];
 }

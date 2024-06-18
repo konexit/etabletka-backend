@@ -21,10 +21,6 @@ export class ProductRemnant {
   @Column({ name: 'product_id' })
   productId: number;
 
-  @ManyToOne(() => Product, (product) => product.productRemnants)
-  @JoinColumn({ name: 'product_id' })
-  product: Product;
-
   @Column({ name: 'store_id', default: 0 })
   storeId: number;
 
@@ -39,4 +35,8 @@ export class ProductRemnant {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
+
+  @ManyToOne(() => Product, (product) => product.productRemnants)
+  @JoinColumn({ name: 'product_id' })
+  product: Product;
 }
