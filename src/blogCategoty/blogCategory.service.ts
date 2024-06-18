@@ -1,8 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BlogCategory } from './entities/blogCategory.entity';
 import { Repository } from 'typeorm';
 import { BlogPost } from '../blogPost/entities/blogPost.entity';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class BlogCategoryService {
@@ -11,7 +13,12 @@ export class BlogCategoryService {
     private readonly blogCategoryRepository: Repository<BlogCategory>,
     @InjectRepository(BlogPost)
     private readonly blogPostRepository: Repository<BlogPost>,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {}
+
+  cacheBlogCategories = 'blogCategories';
+  cacheBlogCategoriesTTL = 14400000; // 4 Hour
 
   async create(): Promise<BlogCategory> {
     return await this.blogCategoryRepository.create();
@@ -27,7 +34,14 @@ export class BlogCategoryService {
     await this.blogCategoryRepository.save(category);
   }
 
-  async getBlogCategories(): Promise<BlogCategory[]> {
+  async getBlogCategories(): Promise<any> {
+    const cacheCategories = await this.cacheManager.get(
+      this.cacheBlogCategories,
+    );
+    if (cacheCategories) {
+      return cacheCategories;
+    }
+
     const blogCategories = await this.blogCategoryRepository.find();
     if (!blogCategories) {
       throw new HttpException(
@@ -35,6 +49,12 @@ export class BlogCategoryService {
         HttpStatus.NOT_FOUND,
       );
     }
+
+    await this.cacheManager.set(
+      this.cacheBlogCategories,
+      blogCategories,
+      this.cacheBlogCategoriesTTL,
+    );
 
     return blogCategories;
   }

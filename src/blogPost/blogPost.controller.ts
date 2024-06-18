@@ -17,7 +17,7 @@ import { PaginationDto } from '../common/dto/paginationDto';
 export class BlogPostController {
   constructor(private readonly blogPostService: BlogPostService) {}
 
-  @Get('/blog/main')
+  @Get('/blog-main')
   async getLatestPosts(): Promise<BlogPost[]> {
     return await this.blogPostService.getLatestPosts();
   }
