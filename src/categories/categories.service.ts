@@ -105,6 +105,7 @@ export class CategoriesService {
       formatCategoryMenuDto.name = category.name[lang];
       formatCategoryMenuDto.path = category.path;
       formatCategoryMenuDto.alt = category.alt;
+      formatCategoryMenuDto.root = category.root;
       formatCategoryMenuDto.cdnIcon = category.cdnIcon;
       formatCategoryMenuDto.children = [];
       idMap.set(category.id, formatCategoryMenuDto);
