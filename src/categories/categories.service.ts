@@ -15,7 +15,7 @@ export class CategoriesService {
     private categoryRepository: Repository<Category>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
-  ) { }
+  ) {}
 
   cacheMenuKey = 'menu';
   cacheMenuTTL = 60000;
@@ -30,8 +30,9 @@ export class CategoriesService {
     const categories = await this.categoryRepository.find({
       where: { active: true },
       order: {
-        position: 'ASC'
-      }
+        position: 'ASC',
+      },
+      relations: ['products'],
     });
     const categoryMenu = this.buildMenuTree(categories, depth, 'uk');
     await this.cacheManager.set(
@@ -68,8 +69,8 @@ export class CategoriesService {
         rgt: LessThanOrEqual(rgt),
       },
       order: {
-        position: 'ASC'
-      }
+        position: 'ASC',
+      },
     });
   }
 
@@ -107,6 +108,7 @@ export class CategoriesService {
       formatCategoryMenuDto.alt = category.alt;
       formatCategoryMenuDto.cdnIcon = category.cdnIcon;
       formatCategoryMenuDto.children = [];
+      formatCategoryMenuDto.hasProducts = category?.products.length > 0;
       idMap.set(category.id, formatCategoryMenuDto);
     }
 
