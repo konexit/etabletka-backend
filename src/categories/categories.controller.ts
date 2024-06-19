@@ -14,17 +14,17 @@ import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
-@Controller('api/v1/categories')
+@Controller('api/v1')
 @UseInterceptors(ClassSerializerInterceptor)
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  @Post()
+  @Post('/categories')
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.create(createCategoryDto);
   }
 
-  @Get()
+  @Get('/categories')
   async findAll(@Query('format') format: string) {
     if (format) {
       switch (format) {
@@ -35,7 +35,7 @@ export class CategoriesController {
     return await this.categoriesService.findAll();
   }
 
-  @Get('filter')
+  @Get('/categories/filter')
   async findByFilter(
     @Query('root') root: boolean,
     @Query('parent_id') parentId: number,
@@ -51,7 +51,12 @@ export class CategoriesController {
     return [];
   }
 
-  @Patch(':id')
+  @Get('/category/:id/products')
+  async getProductsByCategoryId(@Param('id') id: number): Promise<any> {
+    return await this.categoriesService.getProductsByCategoryId(+id);
+  }
+
+  @Patch('/categories/:id')
   update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
@@ -59,7 +64,7 @@ export class CategoriesController {
     return this.categoriesService.update(+id, updateCategoryDto);
   }
 
-  @Delete(':id')
+  @Delete('/categories/:id')
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(+id);
   }

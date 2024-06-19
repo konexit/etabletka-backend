@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -73,12 +73,39 @@ export class CategoriesService {
     });
   }
 
-  async findBySlug(slug: string): Promise<Category> {
+  async findBySlug(slug: string): Promise<any> {
     return await this.categoryRepository.findOneBy({ slug, active: true });
   }
 
-  async findByPath(path: string): Promise<Category> {
-    return await this.categoryRepository.findOneBy({ path, active: true });
+  async findByPath(path: string): Promise<any> {
+    const category = await this.categoryRepository.findOneBy({
+      path,
+      active: true,
+    });
+
+    if (!category) {
+      throw new HttpException('Category not found', HttpStatus.BAD_REQUEST);
+    }
+
+    const categories = await this.findByParentId(category.id);
+    if (!categories) {
+      throw new HttpException('Category not found', HttpStatus.BAD_REQUEST);
+    }
+
+    return await this.buildMenuTree(categories, 3, 'uk');
+  }
+
+  async getProductsByCategoryId(id): Promise<Category> {
+    const category = await this.categoryRepository.findOne({
+      where: { id },
+      relations: ['products'],
+    });
+
+    if (!category) {
+      throw new HttpException('Category not found', HttpStatus.BAD_REQUEST);
+    }
+
+    return category;
   }
 
   update(id: number, updateCategoryDto: UpdateCategoryDto) {
@@ -107,6 +134,7 @@ export class CategoriesService {
       formatCategoryMenuDto.alt = category.alt;
       formatCategoryMenuDto.root = category.root;
       formatCategoryMenuDto.cdnIcon = category.cdnIcon;
+      formatCategoryMenuDto.cdnData = category.cdnData;
       formatCategoryMenuDto.children = [];
       idMap.set(category.id, formatCategoryMenuDto);
     }
