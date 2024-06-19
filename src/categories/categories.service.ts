@@ -92,7 +92,12 @@ export class CategoriesService {
       throw new HttpException('Category not found', HttpStatus.BAD_REQUEST);
     }
 
-    return await this.buildMenuTree(categories, 3, 'uk');
+    const tree = await this.buildMenuTree(categories, 3, 'uk');
+    if (tree.length !== 0) {
+      return tree;
+    }
+
+    return category;
   }
 
   async getProductsByCategoryId(id): Promise<Category> {
@@ -131,6 +136,7 @@ export class CategoriesService {
       formatCategoryMenuDto.depth = 1;
       formatCategoryMenuDto.name = category.name[lang];
       formatCategoryMenuDto.path = category.path;
+      formatCategoryMenuDto.slug = category.slug;
       formatCategoryMenuDto.alt = category.alt;
       formatCategoryMenuDto.root = category.root;
       formatCategoryMenuDto.cdnIcon = category.cdnIcon;
