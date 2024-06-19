@@ -32,7 +32,6 @@ export class CategoriesService {
       order: {
         position: 'ASC',
       },
-      relations: ['products'],
     });
     const categoryMenu = this.buildMenuTree(categories, depth, 'uk');
     await this.cacheManager.set(
@@ -108,7 +107,6 @@ export class CategoriesService {
       formatCategoryMenuDto.alt = category.alt;
       formatCategoryMenuDto.cdnIcon = category.cdnIcon;
       formatCategoryMenuDto.children = [];
-      formatCategoryMenuDto.hasProducts = category?.products.length > 0;
       idMap.set(category.id, formatCategoryMenuDto);
     }
 

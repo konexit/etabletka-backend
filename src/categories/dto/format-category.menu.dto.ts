@@ -9,5 +9,4 @@ export class FormatCategoryMenuDto {
   cdnIcon: string;
   alt: JSON;
   children: FormatCategoryMenuDto[];
-  hasProducts: boolean;
 }
