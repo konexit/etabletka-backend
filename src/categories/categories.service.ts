@@ -24,6 +24,14 @@ export class CategoriesService {
     return 'This action adds a new category';
   }
 
+  update(id: number, updateCategoryDto: UpdateCategoryDto) {
+    return `This action updates a #${id} category`;
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} category`;
+  }
+
   async formatMenu(depth: number = 3): Promise<FormatCategoryMenuDto[]> {
     const cacheCategoryMenu = await this.cacheManager.get(this.cacheMenuKey);
     if (cacheCategoryMenu) return <FormatCategoryMenuDto[]>cacheCategoryMenu;
@@ -92,39 +100,20 @@ export class CategoriesService {
       throw new HttpException('Category not found', HttpStatus.BAD_REQUEST);
     }
 
-    const tree = await this.buildMenuTree(categories, 3, 'uk');
+    const tree = await this.buildMenuTree(categories, 3, 'uk', category);
     if (tree.length !== 0) {
+      console.log('tree', tree);
       return tree;
     }
 
     return category;
   }
 
-  async getProductsByCategoryId(id): Promise<Category> {
-    const category = await this.categoryRepository.findOne({
-      where: { id },
-      relations: ['products'],
-    });
-
-    if (!category) {
-      throw new HttpException('Category not found', HttpStatus.BAD_REQUEST);
-    }
-
-    return category;
-  }
-
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} category`;
-  }
-
   private buildMenuTree(
     categories: Category[],
     depth: number,
     lang: string,
+    fromCategory: Category = null,
   ): FormatCategoryMenuDto[] {
     const idMap: Map<number, FormatCategoryMenuDto> = new Map();
     const rootNodes: FormatCategoryMenuDto[] = [];
@@ -136,9 +125,7 @@ export class CategoriesService {
       formatCategoryMenuDto.depth = 1;
       formatCategoryMenuDto.name = category.name[lang];
       formatCategoryMenuDto.path = category.path;
-      formatCategoryMenuDto.slug = category.slug;
       formatCategoryMenuDto.alt = category.alt;
-      formatCategoryMenuDto.root = category.root;
       formatCategoryMenuDto.cdnIcon = category.cdnIcon;
       formatCategoryMenuDto.cdnData = category.cdnData;
       formatCategoryMenuDto.children = [];
@@ -148,6 +135,9 @@ export class CategoriesService {
     for (let i = 0; i < categories.length; i++) {
       const category = categories[i];
       const node = idMap.get(category.id);
+      if (fromCategory && category.id === fromCategory.id) {
+        category.parentId = null;
+      }
       if (category.parentId) {
         const parentNode = idMap.get(category.parentId);
         if (parentNode) {

@@ -7,6 +7,7 @@ import { Discount } from '../discount/entities/discount.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtService } from '@nestjs/jwt';
+import { Category } from "../categories/entities/category.entity";
 
 @Injectable()
 export class ProductService {
@@ -34,6 +35,22 @@ export class ProductService {
       'Product with this syncId does not exist',
       HttpStatus.NOT_FOUND,
     );
+  }
+
+  async getProductsByCategoryId(categoryId): Promise<Product[]> {
+    const products = await this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.categories', 'category')
+      .leftJoinAndSelect('product.discounts', 'discount')
+      .leftJoinAndSelect('product.badges', 'badges')
+      .where('category.id = :categoryId', { categoryId })
+      .getMany();
+
+    if (!products) {
+      throw new HttpException('Category not found', HttpStatus.BAD_REQUEST);
+    }
+
+    return products;
   }
 
   async create(createProductDto: CreateProductDto): Promise<Product> {

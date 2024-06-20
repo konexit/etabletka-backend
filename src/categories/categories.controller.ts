@@ -51,11 +51,6 @@ export class CategoriesController {
     return [];
   }
 
-  @Get('/category/:id/products')
-  async getProductsByCategoryId(@Param('id') id: number): Promise<any> {
-    return await this.categoriesService.getProductsByCategoryId(+id);
-  }
-
   @Patch('/categories/:id')
   update(
     @Param('id') id: string,

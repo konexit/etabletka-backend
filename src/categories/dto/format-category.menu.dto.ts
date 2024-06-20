@@ -6,7 +6,6 @@ export class FormatCategoryMenuDto {
   id: number;
   name: string;
   path: string;
-  slug: string;
   cdnIcon: string;
   cdnData: JSON;
   alt: JSON;
