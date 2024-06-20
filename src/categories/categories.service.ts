@@ -102,7 +102,6 @@ export class CategoriesService {
 
     const tree = await this.buildMenuTree(categories, 3, 'uk', category);
     if (tree.length !== 0) {
-      console.log('tree', tree);
       return tree;
     }
 
@@ -135,7 +134,11 @@ export class CategoriesService {
     for (let i = 0; i < categories.length; i++) {
       const category = categories[i];
       const node = idMap.get(category.id);
-      if (fromCategory && category.id === fromCategory.id) {
+      if (
+        fromCategory &&
+        !fromCategory.root &&
+        category.id === fromCategory.id
+      ) {
         category.parentId = null;
       }
       if (category.parentId) {
