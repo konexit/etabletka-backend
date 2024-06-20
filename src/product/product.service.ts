@@ -7,7 +7,6 @@ import { Discount } from '../discount/entities/discount.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtService } from '@nestjs/jwt';
-import { Category } from "../categories/entities/category.entity";
 
 @Injectable()
 export class ProductService {
@@ -73,6 +72,15 @@ export class ProductService {
       });
     }
     return await this.productRepository.find({});
+  }
+
+  async findAllSales() {
+    const queryBuilder = this.productRepository.createQueryBuilder('product');
+
+    queryBuilder.leftJoinAndSelect('product.discounts', 'discount');
+    queryBuilder.where('discount.id IS NOT NULL');
+
+    return await queryBuilder.getMany();
   }
 
   async findProductById(id: number): Promise<Product> {
