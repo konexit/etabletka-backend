@@ -27,6 +27,9 @@ export class Category {
   @Column({ name: 'parent_id', nullable: true, default: 0 })
   parentId: number;
 
+  @Column({ name: 'product_count', default: 0 })
+  productCount: number;
+
   @Column({ type: 'json', nullable: true })
   name: JSON;
 
