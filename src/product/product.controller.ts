@@ -35,6 +35,12 @@ export class ProductController {
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/category/:id/products')
+  async getProductsByCategoryId(@Param('id') id: number): Promise<any> {
+    return await this.productService.getProductsByCategoryId(+id);
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get('/product/slug/:slug')
   async getProductBySlug(@Param('slug') slug: string) {
     return await this.productService.findProductBySlug(slug);

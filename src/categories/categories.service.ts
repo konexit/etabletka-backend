@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -22,6 +22,14 @@ export class CategoriesService {
 
   create(createCategoryDto: CreateCategoryDto) {
     return 'This action adds a new category';
+  }
+
+  update(id: number, updateCategoryDto: UpdateCategoryDto) {
+    return `This action updates a #${id} category`;
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} category`;
   }
 
   async formatMenu(depth: number = 3): Promise<FormatCategoryMenuDto[]> {
@@ -73,26 +81,38 @@ export class CategoriesService {
     });
   }
 
-  async findBySlug(slug: string): Promise<Category> {
+  async findBySlug(slug: string): Promise<any> {
     return await this.categoryRepository.findOneBy({ slug, active: true });
   }
 
-  async findByPath(path: string): Promise<Category> {
-    return await this.categoryRepository.findOneBy({ path, active: true });
-  }
+  async findByPath(path: string): Promise<any> {
+    const category = await this.categoryRepository.findOneBy({
+      path,
+      active: true,
+    });
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
-  }
+    if (!category) {
+      throw new HttpException('Category not found', HttpStatus.BAD_REQUEST);
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+    const categories = await this.findByParentId(category.id);
+    if (!categories) {
+      throw new HttpException('Category not found', HttpStatus.BAD_REQUEST);
+    }
+
+    const tree = await this.buildMenuTree(categories, 3, 'uk', category);
+    if (tree.length !== 0) {
+      return tree;
+    }
+
+    return category;
   }
 
   private buildMenuTree(
     categories: Category[],
     depth: number,
     lang: string,
+    fromCategory: Category = null,
   ): FormatCategoryMenuDto[] {
     const idMap: Map<number, FormatCategoryMenuDto> = new Map();
     const rootNodes: FormatCategoryMenuDto[] = [];
@@ -105,8 +125,8 @@ export class CategoriesService {
       formatCategoryMenuDto.name = category.name[lang];
       formatCategoryMenuDto.path = category.path;
       formatCategoryMenuDto.alt = category.alt;
-      formatCategoryMenuDto.root = category.root;
       formatCategoryMenuDto.cdnIcon = category.cdnIcon;
+      formatCategoryMenuDto.cdnData = category.cdnData;
       formatCategoryMenuDto.children = [];
       idMap.set(category.id, formatCategoryMenuDto);
     }
@@ -114,6 +134,13 @@ export class CategoriesService {
     for (let i = 0; i < categories.length; i++) {
       const category = categories[i];
       const node = idMap.get(category.id);
+      if (
+        fromCategory &&
+        !fromCategory.root &&
+        category.id === fromCategory.id
+      ) {
+        category.parentId = null;
+      }
       if (category.parentId) {
         const parentNode = idMap.get(category.parentId);
         if (parentNode) {
