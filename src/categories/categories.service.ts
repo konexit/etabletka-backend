@@ -123,22 +123,7 @@ export class CategoriesService {
       },
     });
 
-    for (let i = 0; i < categories.length; i++) {
-      const cat = categories[i];
-      const formatCategoryMenuDto = new FormatCategoryMenuDto();
-      formatCategoryMenuDto.id = cat.id;
-      formatCategoryMenuDto.depth = 1;
-      formatCategoryMenuDto.name = cat.name[lang];
-      formatCategoryMenuDto.path = cat.path;
-      formatCategoryMenuDto.cdnIcon = cat.cdnIcon;
-      formatCategoryMenuDto.cdnData = cat.cdnData;
-      formatCategoryMenuDto.alt = cat.alt;
-      formatCategoryMenuDto.root = cat.root;
-      formatCategoryMenuDto.lft = cat.lft;
-      formatCategoryMenuDto.rgt = cat.rgt;
-      formatCategoryMenuDto.children = [];
-      idMap.set(cat.id, formatCategoryMenuDto);
-    }
+    this.formatModel(categories, idMap, lang);
 
     return { formatCategory, idMap };
   }
@@ -152,21 +137,7 @@ export class CategoriesService {
     const idMap: Map<number, FormatCategoryMenuDto> = new Map();
     const rootNodes: FormatCategoryMenuDto[] = [];
 
-    for (let i = 0; i < categories.length; i++) {
-      const category = categories[i];
-      const formatCategoryMenuDto = new FormatCategoryMenuDto();
-      formatCategoryMenuDto.id = category.id;
-      formatCategoryMenuDto.depth = 1;
-      formatCategoryMenuDto.name = category.name[lang];
-      formatCategoryMenuDto.path = category.path;
-      formatCategoryMenuDto.alt = category.alt;
-      formatCategoryMenuDto.cdnIcon = category.cdnIcon;
-      formatCategoryMenuDto.cdnData = category.cdnData;
-      formatCategoryMenuDto.lft = category.lft;
-      formatCategoryMenuDto.rgt = category.rgt;
-      formatCategoryMenuDto.children = [];
-      idMap.set(category.id, formatCategoryMenuDto);
-    }
+    this.formatModel(categories, idMap, lang);
 
     for (let i = 0; i < categories.length; i++) {
       const category = categories[i];
@@ -191,5 +162,23 @@ export class CategoriesService {
     }
 
     return rootNodes;
+  }
+
+  private formatModel(categories, idMap, lang) {
+    for (let i = 0; i < categories.length; i++) {
+      const category = categories[i];
+      const formatCategoryMenuDto = new FormatCategoryMenuDto();
+      formatCategoryMenuDto.id = category.id;
+      formatCategoryMenuDto.depth = 1;
+      formatCategoryMenuDto.name = category.name[lang];
+      formatCategoryMenuDto.path = category.path;
+      formatCategoryMenuDto.alt = category.alt;
+      formatCategoryMenuDto.cdnIcon = category.cdnIcon;
+      formatCategoryMenuDto.cdnData = category.cdnData;
+      formatCategoryMenuDto.lft = category.lft;
+      formatCategoryMenuDto.rgt = category.rgt;
+      formatCategoryMenuDto.children = [];
+      idMap.set(category.id, formatCategoryMenuDto);
+    }
   }
 }
