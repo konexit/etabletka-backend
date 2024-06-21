@@ -47,21 +47,27 @@ export class ProductController {
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
-  @Get()
+  @Get('/products')
   async findAll(@Req() request: Request) {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
     return this.productService.findAll(token);
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/sale-products')
+  async findAllSales() {
+    return this.productService.findAllSales();
+  }
+
   @UseGuards(AuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
-  @Patch(':id')
+  @Patch('/product/:id')
   update(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto) {
     return this.productService.update(id, updateProductDto);
   }
 
   @UseGuards(AuthGuard)
-  @Delete(':id')
+  @Delete('/product/:id')
   remove(@Param('id') id: number) {
     return this.productService.remove(id);
   }

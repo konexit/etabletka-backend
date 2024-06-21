@@ -86,11 +86,9 @@ export class Category {
   root: boolean;
 
   @Column({ default: 0 })
-  @Exclude()
   lft: number;
 
   @Column({ default: 0 })
-  @Exclude()
   rgt: number;
 
   @Column({ default: true })

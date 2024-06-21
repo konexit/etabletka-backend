@@ -1,6 +1,6 @@
 import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
+import { Repository, MoreThanOrEqual, LessThanOrEqual, Not } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
@@ -85,7 +85,14 @@ export class CategoriesService {
     return await this.categoryRepository.findOneBy({ slug, active: true });
   }
 
-  async findByPath(path: string): Promise<any> {
+  async findByPath(
+    path: string,
+    lang: string = 'uk',
+  ): Promise<{
+    formatCategory: FormatCategoryMenuDto;
+    idMap: Map<number, FormatCategoryMenuDto>;
+  }> {
+    const idMap: Map<number, FormatCategoryMenuDto> = new Map();
     const category = await this.categoryRepository.findOneBy({
       path,
       active: true,
@@ -95,17 +102,45 @@ export class CategoriesService {
       throw new HttpException('Category not found', HttpStatus.BAD_REQUEST);
     }
 
-    const categories = await this.findByParentId(category.id);
-    if (!categories) {
-      throw new HttpException('Category not found', HttpStatus.BAD_REQUEST);
+    const formatCategory = new FormatCategoryMenuDto();
+    formatCategory.id = category.id;
+    formatCategory.depth = 1;
+    formatCategory.name = category.name[lang];
+    formatCategory.path = category.path;
+    formatCategory.cdnIcon = category.cdnIcon;
+    formatCategory.cdnData = category.cdnData;
+    formatCategory.alt = category.alt;
+    formatCategory.root = category.root;
+    formatCategory.lft = category.lft;
+    formatCategory.rgt = category.rgt;
+
+    const categories = await this.categoryRepository.find({
+      where: {
+        lft: MoreThanOrEqual(category.lft),
+        rgt: LessThanOrEqual(category.rgt),
+        active: true,
+        id: Not(category.id),
+      },
+    });
+
+    for (let i = 0; i < categories.length; i++) {
+      const cat = categories[i];
+      const formatCategoryMenuDto = new FormatCategoryMenuDto();
+      formatCategoryMenuDto.id = cat.id;
+      formatCategoryMenuDto.depth = 1;
+      formatCategoryMenuDto.name = cat.name[lang];
+      formatCategoryMenuDto.path = cat.path;
+      formatCategoryMenuDto.cdnIcon = cat.cdnIcon;
+      formatCategoryMenuDto.cdnData = cat.cdnData;
+      formatCategoryMenuDto.alt = cat.alt;
+      formatCategoryMenuDto.root = cat.root;
+      formatCategoryMenuDto.lft = cat.lft;
+      formatCategoryMenuDto.rgt = cat.rgt;
+      formatCategoryMenuDto.children = [];
+      idMap.set(cat.id, formatCategoryMenuDto);
     }
 
-    const tree = await this.buildMenuTree(categories, 3, 'uk', category);
-    if (tree.length !== 0) {
-      return tree;
-    }
-
-    return category;
+    return { formatCategory, idMap };
   }
 
   private buildMenuTree(
@@ -127,6 +162,8 @@ export class CategoriesService {
       formatCategoryMenuDto.alt = category.alt;
       formatCategoryMenuDto.cdnIcon = category.cdnIcon;
       formatCategoryMenuDto.cdnData = category.cdnData;
+      formatCategoryMenuDto.lft = category.lft;
+      formatCategoryMenuDto.rgt = category.rgt;
       formatCategoryMenuDto.children = [];
       idMap.set(category.id, formatCategoryMenuDto);
     }
