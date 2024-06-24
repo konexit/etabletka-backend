@@ -17,7 +17,8 @@ export class PageService {
   ) {}
 
   cachePagesKey = 'pages';
-  cacheMenuPagesKey = 'menuPages';
+  cacheMenuPagesKeyOne = 'menuPagesOne';
+  cacheMenuPagesKeyTwo = 'menuPagesTwo';
   cachePageTTL = 14400000; // 4 Hour
 
   async getPages(token: string | any[]): Promise<any> {
@@ -44,9 +45,18 @@ export class PageService {
   }
 
   async getPagesByMenuIndex(index): Promise<any> {
-    const cachePages = await this.cacheManager.get(this.cacheMenuPagesKey);
-    if (cachePages) {
-      return cachePages;
+    if (index === 1) {
+      const cachePages = await this.cacheManager.get(this.cacheMenuPagesKeyOne);
+      if (cachePages) {
+        return cachePages;
+      }
+    }
+
+    if (index === 2) {
+      const cachePages = await this.cacheManager.get(this.cacheMenuPagesKeyTwo);
+      if (cachePages) {
+        return cachePages;
+      }
     }
 
     const queryBuilder = this.pageRepository.createQueryBuilder('page');
@@ -61,11 +71,19 @@ export class PageService {
       throw new HttpException('Pages not found', HttpStatus.NOT_FOUND);
     }
 
-    await this.cacheManager.set(
-      this.cacheMenuPagesKey,
-      pages,
-      this.cachePageTTL,
-    );
+    if (index === 1)
+      await this.cacheManager.set(
+        this.cacheMenuPagesKeyOne,
+        pages,
+        this.cachePageTTL,
+      );
+
+    if (index === 2)
+      await this.cacheManager.set(
+        this.cacheMenuPagesKeyTwo,
+        pages,
+        this.cachePageTTL,
+      );
 
     return pages;
   }
