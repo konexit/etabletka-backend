@@ -99,7 +99,13 @@ export class ProductService {
   async findProductBySlug(slug: string): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { slug, isActive: true },
-      relations: ['productRemnants'],
+      relations: [
+        'productRemnants',
+        'productType',
+        'categories',
+        'discounts',
+        'badges',
+      ],
     });
 
     if (!product) {
