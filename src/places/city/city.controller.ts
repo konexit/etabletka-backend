@@ -24,7 +24,7 @@ export class CityController {
     return await this.cityService.getCityById(+id);
   }
 
-  @Post('/city/stores')
+  @Post('/cities/stores')
   async getCitiesWithStores(): Promise<City[]> {
     return await this.cityService.getCitiesWithStores();
   }

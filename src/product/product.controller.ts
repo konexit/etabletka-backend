@@ -74,7 +74,7 @@ export class ProductController {
 
   @UseGuards(AuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
-  @Post(':id/add/badge/:badgeId')
+  @Post('/product/:id/add/badge/:badgeId')
   async addBadgeToProduct(
     @Req() request: Request,
     @Param('id') id: number,
