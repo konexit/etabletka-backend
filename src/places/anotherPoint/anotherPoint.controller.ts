@@ -6,12 +6,12 @@ import { AnotherPoint } from './entities/anotherPoint.entity';
 export class AnotherPointController {
   constructor(private readonly anotherPointService: AnotherPointService) {}
 
-  @Get('/another-points')
+  @Get('/markers/another-points')
   async getAnotherPoints(): Promise<AnotherPoint[]> {
     return await this.anotherPointService.getAnotherPoints();
   }
 
-  @Get('/another-point/:id')
+  @Get('/markers/another-point/:id')
   async getAnotherPointById(@Param('id') id: number): Promise<AnotherPoint> {
     return await this.anotherPointService.getAnotherPointById(+id);
   }
