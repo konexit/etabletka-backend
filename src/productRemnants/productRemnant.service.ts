@@ -105,7 +105,6 @@ export class ProductRemnantService {
     }
 
     const storeIds = stores.map((item) => item.id);
-    console.log(storeIds);
 
     const productRemnants = await this.productRemnantsRepository.find({
       where: {
