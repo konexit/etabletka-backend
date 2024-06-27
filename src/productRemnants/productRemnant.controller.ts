@@ -18,7 +18,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { UpdateProductDto } from '../product/dto/update-product.dto';
 import { Request } from 'express';
 
-@Controller('api/v1/product-remnants')
+@Controller('api/v1/remnants')
 export class ProductRemnantController {
   constructor(private readonly productRemnantService: ProductRemnantService) {}
 
@@ -42,7 +42,7 @@ export class ProductRemnantController {
     return this.productRemnantService.findOne(+id);
   }
 
-  @Get(':productId/:storeId')
+  @Get('/product/:productId/store/:storeId')
   async getProductRemnantsInStore(
     @Param('productId') productId: number,
     @Param('storeId') storeId: number,
@@ -50,6 +50,17 @@ export class ProductRemnantController {
     return await this.productRemnantService.findProductRemnantsInStore(
       productId,
       storeId,
+    );
+  }
+
+  @Get('/product/:productId/city/:cityId')
+  async getProductRemnantsInCity(
+    @Param('productId') productId: number,
+    @Param('cityId') cityId: number,
+  ): Promise<any> {
+    return await this.productRemnantService.findProductRemnantsInCity(
+      productId,
+      cityId,
     );
   }
 
