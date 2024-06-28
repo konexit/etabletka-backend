@@ -86,9 +86,6 @@ export class Product {
   @Column({ default: 0, type: 'float' })
   price: number;
 
-  @Column({ name: 'discount_price', default: 0 })
-  discountPrice: number;
-
   @Column({ name: 'reviews_count', default: 0 })
   reviewsCount: number;
 
