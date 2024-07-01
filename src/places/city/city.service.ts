@@ -71,7 +71,7 @@ export class CityService {
     return city;
   }
 
-  async getCitiesWithStores(): Promise<any> {
+  async getCitiesWithStores(lang: string = 'uk'): Promise<any> {
     const cacheCitiesWithStores = await this.cacheManager.get(
       this.cacheCitiesKey,
     );
@@ -95,6 +95,7 @@ export class CityService {
       });
 
       citiesWithStores.forEach((city) => {
+        city.name = city.name[lang];
         city.storesCount =
           storeCounts.find((r) => r.cityId === city.id)?.storeCount || 0;
       });
