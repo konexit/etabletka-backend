@@ -6,10 +6,12 @@ import {
   JoinColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { City } from '../../places/city/entities/city.entity';
 import { District } from '../../places/district/entities/district.entity';
 import { Region } from '../../places/region/entities/region.entity';
+import { ProductRemnant } from '../../productRemnants/entities/productRemnant.entity';
 
 @Entity({
   name: 'stores',
@@ -77,6 +79,9 @@ export class Store {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
+
+  @OneToMany(() => ProductRemnant, (productRemnant) => productRemnant.product)
+  productRemnants: ProductRemnant[];
 
   @ManyToOne(() => City, (city: City) => city.stores)
   @JoinColumn({ name: 'city_id' })
