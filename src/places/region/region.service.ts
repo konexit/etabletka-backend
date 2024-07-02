@@ -13,10 +13,10 @@ export class RegionService {
   ) {}
 
   async getRegions(token: string | any[]): Promise<any> {
-    if (!token || typeof token !== 'string') {
-      throw new HttpException('No access', HttpStatus.FORBIDDEN);
-    }
-    const regions = await this.regionRepository.find();
+    // if (!token || typeof token !== 'string') {
+    //   throw new HttpException('No access', HttpStatus.FORBIDDEN);
+    // }
+    const regions = await this.regionRepository.find({});
     if (!regions) {
       throw new HttpException('Regions not found', HttpStatus.NOT_FOUND);
     }
