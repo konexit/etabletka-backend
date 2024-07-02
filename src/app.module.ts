@@ -10,6 +10,7 @@ import { DiscountModule } from './discount/discount.module';
 import { ProductModule } from './product/product.module';
 import { ProductRemnantModule } from './productRemnants/productRemnant.module';
 import { ProductTypeModule } from './productTypes/productType.module';
+import { AnotherPointModule } from './places/anotherPoint/anotherPoint.module';
 import { RegionModule } from './places/region/region.module';
 import { CityModule } from './places/city/city.module';
 import { CommunityModule } from './places/communitiy/community.module';
@@ -47,6 +48,7 @@ import { BlogCommentModule } from './blogComment/blogComment.module';
     ProductTypeModule,
     ProductRemnantModule,
     CityModule,
+    AnotherPointModule,
     CommunityModule,
     DistrictModule,
     RegionModule,
