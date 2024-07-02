@@ -80,7 +80,7 @@ export class Store {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(() => ProductRemnant, (productRemnant) => productRemnant.product)
+  @OneToMany(() => ProductRemnant, (productRemnant) => productRemnant.store)
   productRemnants: ProductRemnant[];
 
   @ManyToOne(() => City, (city: City) => city.stores)

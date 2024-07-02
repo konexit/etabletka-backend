@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Product } from '../../product/entities/product.entity';
+import { Store } from '../../store/entities/store.entity';
 
 @Entity({
   name: 'product_remnants',
@@ -39,4 +40,8 @@ export class ProductRemnant {
   @ManyToOne(() => Product, (product) => product.productRemnants)
   @JoinColumn({ name: 'product_id' })
   product: Product;
+
+  @ManyToOne(() => Store, (store: Store) => store.productRemnants)
+  @JoinColumn({ name: 'store_id' })
+  store: Store;
 }

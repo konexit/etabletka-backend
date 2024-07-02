@@ -101,7 +101,7 @@ export class ProductService {
       where: { slug, isActive: true },
       relations: [
         'productRemnants',
-        'productRemnants.stores',
+        'productRemnants.store',
         'productType',
         'categories',
         'discounts',
