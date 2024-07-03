@@ -30,7 +30,7 @@ export class StoreService {
     return stores;
   }
 
-  async getActiveStores(): Promise<any> {
+  async getActiveStores(lang: string = 'uk'): Promise<any> {
     const cacheActiveStores = await this.cacheManager.get(
       this.cacheActiveStoresKey,
     );
@@ -38,7 +38,7 @@ export class StoreService {
       return cacheActiveStores;
     }
 
-    const stores = await this.storeRepository.find({
+    const stores: Store[] = await this.storeRepository.find({
       where: { isActive: true },
       relations: ['city', 'region', 'district'],
     });
@@ -47,6 +47,9 @@ export class StoreService {
       throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
     }
 
+    for (const store of stores) {
+      store.name = store.name[lang];
+    }
     await this.cacheManager.set(
       this.cacheActiveStoresKey,
       stores,
