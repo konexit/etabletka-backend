@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { City } from './entities/city.entity';
 import { Repository } from 'typeorm';
@@ -64,7 +64,7 @@ export class CityService {
   }
 
   async getCityById(id: number): Promise<City | undefined> {
-    const city =  await this.cityRepository.findOneBy({ id });
+    const city = await this.cityRepository.findOneBy({ id });
 
     if (!city) {
       throw new HttpException('City not found', HttpStatus.NOT_FOUND);
@@ -100,6 +100,11 @@ export class CityService {
         city.name = city.name[lang];
         city.storesCount =
           storeCounts.find((r) => r.cityId === city.id)?.storeCount || 0;
+        if (city.stores) {
+          for (const store of city.stores) {
+            store.name = store.name[lang];
+          }
+        }
       });
 
       if (!citiesWithStores) {
