@@ -38,7 +38,7 @@ export class CityService {
     return cities;
   }
 
-  async getDefaultCity(): Promise<any> {
+  async getDefaultCity(lang: string = 'uk'): Promise<any> {
     const cacheDefaultCity = await this.cacheManager.get(
       this.cacheDefaultCityKey,
     );
@@ -51,6 +51,8 @@ export class CityService {
     if (!city) {
       throw new HttpException('City not found', HttpStatus.NOT_FOUND);
     }
+
+    city.name = city.name[lang];
 
     await this.cacheManager.set(
       this.cacheDefaultCityKey,
