@@ -46,6 +46,7 @@ export class ProductService {
     }
 
     product.name = product?.name[lang];
+    product.shortName = product?.shortName[lang];
     return product;
   }
 
@@ -66,6 +67,7 @@ export class ProductService {
     }
     for (const product of products) {
       product.name = product?.name[lang];
+      product.shortName = product?.shortName[lang];
     }
     return products;
   }
@@ -84,6 +86,7 @@ export class ProductService {
       });
       for (const product of products) {
         product.name = product?.name[lang];
+        product.shortName = product?.shortName[lang];
       }
       return products;
     }
@@ -115,6 +118,7 @@ export class ProductService {
     const products = await queryBuilder.getMany();
     for (const product of products) {
       product.name = product?.name[lang];
+      product.shortName = product?.shortName[lang];
     }
 
     await this.cacheManager.set(
@@ -126,7 +130,7 @@ export class ProductService {
     return products;
   }
 
-  async findProductById(id: number): Promise<Product> {
+  async findProductById(id: number, lang: string = 'uk'): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id, isActive: true },
       relations: ['productRemnants'],
@@ -135,7 +139,8 @@ export class ProductService {
     if (!product) {
       throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
     }
-
+    product.name = product?.name[lang];
+    product.shortName = product?.shortName[lang];
     return product;
   }
 
@@ -157,6 +162,7 @@ export class ProductService {
     }
 
     product.name = product?.name[lang];
+    product.shortName = product?.shortName[lang];
 
     return product;
   }
@@ -170,6 +176,7 @@ export class ProductService {
     if (!product) {
       throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
     }
+
     return product;
   }
 
