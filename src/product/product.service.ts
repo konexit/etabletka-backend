@@ -261,14 +261,15 @@ export class ProductService {
     discountType: number,
     discountValue: number,
   ): number {
-    if (discountType === 0) {
-      return productPrice - (productPrice * discountValue) / 100;
-    }
+    if (productPrice > 0) {
+      if (discountType === 0) {
+        return productPrice - (productPrice * discountValue) / 100;
+      }
 
-    if (discountType === 1) {
-      return productPrice - discountValue;
+      if (discountType === 1) {
+        return productPrice - discountValue;
+      }
     }
-
     return 0;
   }
 }
