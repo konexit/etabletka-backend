@@ -119,6 +119,16 @@ export class ProductService {
     for (const product of products) {
       product.name = product?.name[lang];
       product.shortName = product?.shortName[lang];
+      /*** Calculate discountPrice ***/
+      if (product.discounts) {
+        for (const discount of product.discounts) {
+          discount.discountPrice = this.calculateDiscountPrice(
+            product.price,
+            discount.type,
+            discount.value,
+          );
+        }
+      }
     }
 
     await this.cacheManager.set(
@@ -163,6 +173,17 @@ export class ProductService {
 
     product.name = product?.name[lang];
     product.shortName = product?.shortName[lang];
+
+    /*** Calculate discountPrice ***/
+    if (product.discounts) {
+      for (const discount of product.discounts) {
+        discount.discountPrice = this.calculateDiscountPrice(
+          product.price,
+          discount.type,
+          discount.value,
+        );
+      }
+    }
 
     return product;
   }
@@ -232,5 +253,21 @@ export class ProductService {
 
     product.discounts.push(discount);
     return await this.productRepository.save(product);
+  }
+
+  calculateDiscountPrice(
+    productPrice: number,
+    discountType: number,
+    discountValue: number,
+  ): number {
+    if (discountType === 0) {
+      return productPrice - (productPrice * discountValue) / 100;
+    }
+
+    if (discountType === 1) {
+      return productPrice - discountValue;
+    }
+
+    return 0;
   }
 }

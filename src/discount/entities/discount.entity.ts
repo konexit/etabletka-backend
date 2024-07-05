@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Product } from '../../product/entities/product.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity({
   name: 'discounts',
@@ -54,6 +55,9 @@ export class Discount {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
+
+  @Exclude()
+  discountPrice: number;
 
   @ManyToMany(() => Product, (product) => product.discounts)
   @JoinTable({
