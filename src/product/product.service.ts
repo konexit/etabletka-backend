@@ -119,6 +119,7 @@ export class ProductService {
     for (const product of products) {
       product.name = product?.name[lang];
       product.shortName = product?.shortName[lang];
+
       /*** Calculate discountPrice ***/
       if (product.discounts) {
         for (const discount of product.discounts) {
