@@ -59,6 +59,7 @@ export class ProductService {
       .leftJoinAndSelect('product.categories', 'category')
       .leftJoinAndSelect('product.discounts', 'discount')
       .leftJoinAndSelect('product.badges', 'badges')
+      .leftJoinAndSelect('product.productRemnants', 'productRemnants')
       .where('category.id = :categoryId', { categoryId })
       .getMany();
 
@@ -155,8 +156,6 @@ export class ProductService {
       'product.productRemnants',
       'productRemnants',
     );
-    queryBuilder.where('discount.id IS NOT NULL');
-    queryBuilder.andWhere('discount.isActive = :isActive', { isActive: true });
     queryBuilder.andWhere('productRemnants.isActive = :isActive', {
       isActive: true,
     });
@@ -205,8 +204,7 @@ export class ProductService {
       where: {
         slug,
         isActive: true,
-        discounts: { isActive: true },
-        productRemnants: { isActive: true },
+        // productRemnants: { isActive: true },
       },
       relations: [
         'productRemnants',
