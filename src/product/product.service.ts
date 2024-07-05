@@ -141,6 +141,21 @@ export class ProductService {
     return products;
   }
 
+  async findPopular() {
+    //TODO: Make it from orders
+    const queryBuilder = this.productRepository.createQueryBuilder('product');
+
+    queryBuilder.leftJoinAndSelect('product.discounts', 'discount');
+    queryBuilder.leftJoinAndSelect(
+      'product.productRemnants',
+      'productRemnants',
+    );
+    queryBuilder.where('discount.id IS NOT NULL');
+    queryBuilder.andWhere('product.syncId IN(:...ids)', { ids: [52462, 40670, 518, 57758, 2724, 40556, 50006] });
+
+    const products = await queryBuilder.getMany();
+  }
+
   async findProductById(id: number, lang: string = 'uk'): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id, isActive: true },

@@ -59,6 +59,12 @@ export class ProductController {
     return this.productService.findAllSales();
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/popular-products')
+  async findPopular() {
+    return this.productService.findPopular();
+  }
+
   @UseGuards(AuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @Patch('/product/:id')
