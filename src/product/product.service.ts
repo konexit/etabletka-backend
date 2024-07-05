@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
@@ -7,6 +7,8 @@ import { Discount } from '../discount/entities/discount.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtService } from '@nestjs/jwt';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class ProductService {
@@ -17,10 +19,18 @@ export class ProductService {
     private discountRepository: Repository<Discount>,
     @InjectRepository(Badge)
     private readonly badgeRepository: Repository<Badge>,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
     private jwtService: JwtService,
   ) {}
 
-  async getProductBySyncId(syncId: number): Promise<Product> {
+  cacheSalesProductsKey = 'salesProducts';
+  cacheProductsTTL = 7200000; // 2Hour
+
+  async getProductBySyncId(
+    syncId: number,
+    lang: string = 'uk',
+  ): Promise<Product> {
     if (!syncId)
       throw new HttpException(
         'The syncId is not define',
@@ -28,15 +38,21 @@ export class ProductService {
       );
 
     const product = await this.productRepository.findOneBy({ syncId: syncId });
-    if (product) return product;
+    if (!product) {
+      throw new HttpException(
+        'Product with this syncId does not exist',
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
-    throw new HttpException(
-      'Product with this syncId does not exist',
-      HttpStatus.NOT_FOUND,
-    );
+    product.name = product?.name[lang];
+    return product;
   }
 
-  async getProductsByCategoryId(categoryId): Promise<Product[]> {
+  async getProductsByCategoryId(
+    categoryId,
+    lang: string = 'uk',
+  ): Promise<Product[]> {
     const products = await this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.categories', 'category')
@@ -48,7 +64,9 @@ export class ProductService {
     if (!products) {
       throw new HttpException('Category not found', HttpStatus.BAD_REQUEST);
     }
-
+    for (const product of products) {
+      product.name = product?.name[lang];
+    }
     return products;
   }
 
@@ -59,11 +77,15 @@ export class ProductService {
     return product;
   }
 
-  async findAll(token: string | any[]) {
+  async findAll(token: string | any[], lang: string = 'uk') {
     if (!token || typeof token !== 'string') {
-      return await this.productRepository.find({
+      const products = await this.productRepository.find({
         where: { isActive: true },
       });
+      for (const product of products) {
+        product.name = product?.name[lang];
+      }
+      return products;
     }
     const payload = await this.jwtService.decode(token);
     if (payload.roleId === 1) {
@@ -74,8 +96,13 @@ export class ProductService {
     return await this.productRepository.find({});
   }
 
-  async findAllSales() {
-    //TODO: add cache for this !!!
+  async findAllSales(lang: string = 'uk'): Promise<any> {
+    const cacheSalesProducts = await this.cacheManager.get(
+      this.cacheSalesProductsKey,
+    );
+    if (cacheSalesProducts) {
+      return cacheSalesProducts;
+    }
     const queryBuilder = this.productRepository.createQueryBuilder('product');
 
     queryBuilder.leftJoinAndSelect('product.discounts', 'discount');
@@ -85,7 +112,18 @@ export class ProductService {
     );
     queryBuilder.where('discount.id IS NOT NULL');
 
-    return await queryBuilder.getMany();
+    const products = await queryBuilder.getMany();
+    for (const product of products) {
+      product.name = product?.name[lang];
+    }
+
+    await this.cacheManager.set(
+      this.cacheSalesProductsKey,
+      products,
+      this.cacheProductsTTL,
+    );
+
+    return products;
   }
 
   async findProductById(id: number): Promise<Product> {
@@ -101,7 +139,7 @@ export class ProductService {
     return product;
   }
 
-  async findProductBySlug(slug: string): Promise<Product> {
+  async findProductBySlug(slug: string, lang: string = 'uk'): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { slug, isActive: true },
       relations: [
@@ -117,6 +155,8 @@ export class ProductService {
     if (!product) {
       throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
     }
+
+    product.name = product?.name[lang];
 
     return product;
   }
