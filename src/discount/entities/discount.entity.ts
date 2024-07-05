@@ -56,9 +56,6 @@ export class Discount {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @Exclude()
-  discountPrice: number;
-
   @ManyToMany(() => Product, (product) => product.discounts)
   @JoinTable({
     name: 'product_discounts',
