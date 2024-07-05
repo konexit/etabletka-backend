@@ -176,6 +176,7 @@ export class ProductService {
             product.price,
             discount.type,
             discount.value,
+            discount.isActive,
           );
         }
       }
@@ -230,6 +231,7 @@ export class ProductService {
           product.price,
           discount.type,
           discount.value,
+          discount.isActive,
         );
       }
     }
@@ -308,8 +310,9 @@ export class ProductService {
     productPrice: number,
     discountType: number,
     discountValue: number,
+    discountActive: boolean,
   ): number {
-    if (productPrice > 0) {
+    if (productPrice > 0 && discountActive) {
       if (discountType === 0) {
         return productPrice - (productPrice * discountValue) / 100;
       }
