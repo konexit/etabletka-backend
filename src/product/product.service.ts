@@ -113,7 +113,11 @@ export class ProductService {
       'product.productRemnants',
       'productRemnants',
     );
+    queryBuilder.andWhere('productRemnants.isActive = :isActive', {
+      isActive: true,
+    });
     queryBuilder.where('discount.id IS NOT NULL');
+    queryBuilder.andWhere('discount.isActive = :isActive', { isActive: true });
 
     const products = await queryBuilder.getMany();
     for (const product of products) {
@@ -141,7 +145,7 @@ export class ProductService {
     return products;
   }
 
-  async findPopular() {
+  async findPopular(lang: string = 'uk') {
     //TODO: Make it from orders
     const queryBuilder = this.productRepository.createQueryBuilder('product');
 
@@ -151,9 +155,33 @@ export class ProductService {
       'productRemnants',
     );
     queryBuilder.where('discount.id IS NOT NULL');
-    queryBuilder.andWhere('product.syncId IN(:...ids)', { ids: [52462, 40670, 518, 57758, 2724, 40556, 50006] });
+    queryBuilder.andWhere('discount.isActive = :isActive', { isActive: true });
+    queryBuilder.andWhere('productRemnants.isActive = :isActive', {
+      isActive: true,
+    });
+    queryBuilder.andWhere('product.syncId IN(:...ids)', {
+      ids: [52462, 40670, 518, 57758, 2724, 40556, 50006],
+    });
 
     const products = await queryBuilder.getMany();
+
+    for (const product of products) {
+      product.name = product?.name[lang];
+      product.shortName = product?.shortName[lang];
+
+      /*** Calculate discountPrice ***/
+      if (product.discounts) {
+        for (const discount of product.discounts) {
+          discount.discountPrice = this.calculateDiscountPrice(
+            product.price,
+            discount.type,
+            discount.value,
+          );
+        }
+      }
+    }
+
+    return products;
   }
 
   async findProductById(id: number, lang: string = 'uk'): Promise<Product> {
@@ -172,7 +200,12 @@ export class ProductService {
 
   async findProductBySlug(slug: string, lang: string = 'uk'): Promise<Product> {
     const product = await this.productRepository.findOne({
-      where: { slug, isActive: true },
+      where: {
+        slug,
+        isActive: true,
+        discounts: { isActive: true },
+        productRemnants: { isActive: true },
+      },
       relations: [
         'productRemnants',
         'productRemnants.store',
