@@ -75,10 +75,14 @@ export class ProductService {
   }
 
   async findAllSales() {
+    //TODO: add cache for this !!!
     const queryBuilder = this.productRepository.createQueryBuilder('product');
 
     queryBuilder.leftJoinAndSelect('product.discounts', 'discount');
-    queryBuilder.leftJoinAndSelect('product.productRemnants', 'productRemnants');
+    queryBuilder.leftJoinAndSelect(
+      'product.productRemnants',
+      'productRemnants',
+    );
     queryBuilder.where('discount.id IS NOT NULL');
 
     return await queryBuilder.getMany();
