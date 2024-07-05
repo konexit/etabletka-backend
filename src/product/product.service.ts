@@ -131,6 +131,7 @@ export class ProductService {
             product.price,
             discount.type,
             discount.value,
+            discount.isActive,
           );
         }
       }
