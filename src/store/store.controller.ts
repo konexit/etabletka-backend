@@ -13,8 +13,8 @@ export class StoreController {
     @Req() request: Request,
     @Body('pagination') pagination?: PaginationDto,
   ): Promise<Store[]> {
-    console.log('request', request);
     const token = request.headers.authorization?.split(' ')[1] ?? [];
+    console.log('request token', token);
     return await this.storeService.getActiveStores(token, pagination);
   }
 

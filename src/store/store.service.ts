@@ -46,7 +46,7 @@ export class StoreService {
 
       const stores: Store[] = await this.storeRepository.find({
         where: { isActive: true },
-        relations: ['city', 'region', 'district'],
+        relations: ['city', 'region', 'district', 'storeBrand'],
       });
 
       if (!stores) {
@@ -71,6 +71,10 @@ export class StoreService {
 
       const stores: Store[] = await queryBuilder
         .select('store')
+        .addSelect('city')
+        .addSelect('region')
+        .addSelect('district')
+        .addSelect('storeBrand')
         .leftJoin('store.city', 'city')
         .leftJoin('store.region', 'region')
         .leftJoin('store.district', 'district')
