@@ -17,7 +17,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 @Controller('api/v1')
 @UseInterceptors(ClassSerializerInterceptor)
 export class CategoriesController {
-  constructor(private readonly categoriesService: CategoriesService) {}
+  constructor(private readonly categoriesService: CategoriesService) { }
 
   @Post('/categories')
   create(@Body() createCategoryDto: CreateCategoryDto) {
@@ -30,6 +30,8 @@ export class CategoriesController {
       switch (format) {
         case 'menu':
           return await this.categoriesService.formatMenu();
+        case 'menu-root':
+          return await this.categoriesService.formatMenuRoot();
       }
     }
     return await this.categoriesService.findAll();

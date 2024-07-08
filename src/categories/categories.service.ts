@@ -50,6 +50,26 @@ export class CategoriesService {
     return categoryMenu;
   }
 
+  async formatMenuRoot(lang: string = 'uk'): Promise<FormatCategoryMenuDto[]> {
+    const resultMenu: FormatCategoryMenuDto[] = [];
+    const rootCategories: Category[] = await this.findByRoot();
+    for (let i = 0; i < rootCategories.length; i++) {
+      const formatCategory = new FormatCategoryMenuDto();
+      formatCategory.id = rootCategories[i].id;
+      formatCategory.name = rootCategories[i].name[lang];
+      formatCategory.path = rootCategories[i].path;
+      formatCategory.cdnIcon = rootCategories[i].cdnIcon;
+      formatCategory.cdnData = rootCategories[i].cdnData;
+      formatCategory.alt = rootCategories[i].alt;
+      formatCategory.root = rootCategories[i].root;
+      formatCategory.lft = rootCategories[i].lft;
+      formatCategory.rgt = rootCategories[i].rgt;
+      formatCategory.children = [];
+      resultMenu.push(formatCategory);
+    }
+    return resultMenu;
+  }
+
   async findAll() {
     return await this.categoryRepository.find();
   }
