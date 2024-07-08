@@ -15,7 +15,7 @@ export class CategoriesService {
     private categoryRepository: Repository<Category>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
-  ) {}
+  ) { }
 
   cacheMenuKey = 'menu';
   cacheMenuTTL = 60000;
@@ -77,6 +77,9 @@ export class CategoriesService {
   async findByRoot(): Promise<Category[]> {
     return await this.categoryRepository.find({
       where: { root: true, active: true },
+      order: {
+        position: 'ASC',
+      },
     });
   }
 
