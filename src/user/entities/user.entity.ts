@@ -3,13 +3,14 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne, OneToOne,
+  ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn
-} from "typeorm";
+  UpdateDateColumn,
+} from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { Role } from '../../role/entities/role.entity';
-import { UserProfile } from "../../userProfile/entities/userProlile.entity";
+import { UserProfile } from '../../userProfile/entities/userProlile.entity';
 
 @Entity({
   name: 'users',

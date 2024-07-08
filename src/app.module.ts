@@ -30,6 +30,7 @@ import { BrandsModule } from './brands/brands.module';
 import { BlogCategoryModule } from './blogCategoty/blogCategory.module';
 import { BlogPostModule } from './blogPost/blogPost.module';
 import { BlogCommentModule } from './blogComment/blogComment.module';
+import { StoreBrandModule } from './storeBrand/store-brand.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { BlogCommentModule } from './blogComment/blogComment.module';
     UserModule,
     UserProfileModule,
     CategoriesModule,
+    StoreBrandModule,
     StoreModule,
     OrderModule,
     MenuModule,

@@ -12,6 +12,7 @@ import { City } from '../../places/city/entities/city.entity';
 import { District } from '../../places/district/entities/district.entity';
 import { Region } from '../../places/region/entities/region.entity';
 import { ProductRemnant } from '../../productRemnants/entities/productRemnant.entity';
+import { StoreBrand } from "../../storeBrand/entities/store-brand.entity";
 
 @Entity({
   name: 'stores',
@@ -94,4 +95,8 @@ export class Store {
   @ManyToOne(() => Region, (region: Region) => region.stores)
   @JoinColumn({ name: 'region_id' })
   region: Region;
+
+  @ManyToOne(() => StoreBrand, (storeBrand: StoreBrand) => storeBrand.stores)
+  @JoinColumn({ name: 'store_brand_id' })
+  storeBrand: StoreBrand;
 }

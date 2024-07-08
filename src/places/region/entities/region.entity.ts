@@ -39,6 +39,6 @@ export class Region {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(() => Store, (store) => store.city)
+  @OneToMany(() => Store, (store) => store.region)
   stores: Store[];
 }

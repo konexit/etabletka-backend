@@ -4,6 +4,7 @@ import { Store } from './entities/store.entity';
 import { Repository } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { PaginationDto } from '../common/dto/paginationDto';
 
 @Injectable()
 export class StoreService {
@@ -30,33 +31,62 @@ export class StoreService {
     return stores;
   }
 
-  async getActiveStores(lang: string = 'uk'): Promise<any> {
-    const cacheActiveStores = await this.cacheManager.get(
-      this.cacheActiveStoresKey,
-    );
-    if (cacheActiveStores) {
-      return cacheActiveStores;
+  async getActiveStores(
+    token: string | any[],
+    pagination: PaginationDto = {},
+    lang: string = 'uk',
+  ): Promise<any> {
+    if (!token || typeof token !== 'string') {
+      const cacheActiveStores = await this.cacheManager.get(
+        this.cacheActiveStoresKey,
+      );
+      if (cacheActiveStores) {
+        return cacheActiveStores;
+      }
+
+      const stores: Store[] = await this.storeRepository.find({
+        where: { isActive: true },
+        relations: ['city', 'region', 'district'],
+      });
+
+      if (!stores) {
+        throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
+      }
+
+      for (const store of stores) {
+        store.name = store.name[lang];
+      }
+      await this.cacheManager.set(
+        this.cacheActiveStoresKey,
+        stores,
+        this.cacheActiveStoresTTL,
+      );
+
+      return stores;
+    } else {
+      const { take = 16, skip = 0 } = pagination;
+
+      const queryBuilder = this.storeRepository.createQueryBuilder('store');
+      const total = await queryBuilder.getCount();
+
+      const stores: Store[] = await queryBuilder
+        .select('store')
+        .leftJoin('store.city', 'city')
+        .leftJoin('store.region', 'region')
+        .leftJoin('store.district', 'district')
+        .leftJoin('store.storeBrand', 'storeBrand')
+        .take(take)
+        .skip(skip)
+        .getMany();
+
+      if (!stores) {
+        throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
+      }
+
+      return { stores, total };
     }
 
-    const stores: Store[] = await this.storeRepository.find({
-      where: { isActive: true },
-      relations: ['city', 'region', 'district'],
-    });
-
-    if (!stores) {
-      throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
-    }
-
-    for (const store of stores) {
-      store.name = store.name[lang];
-    }
-    await this.cacheManager.set(
-      this.cacheActiveStoresKey,
-      stores,
-      this.cacheActiveStoresTTL,
-    );
-
-    return stores;
+    return [];
   }
 
   async getStoresByCityId(cityId: number): Promise<Store[]> {

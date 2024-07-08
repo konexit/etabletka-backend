@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   UseGuards,
-  Res,
   UseInterceptors,
   ClassSerializerInterceptor,
   Req,
