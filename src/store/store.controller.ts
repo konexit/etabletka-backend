@@ -13,8 +13,6 @@ export class StoreController {
     @Query('pagination') pagination?: any,
   ): Promise<Store[]> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
-    console.log('request token', token);
-    console.log('request pagination', pagination);
     return await this.storeService.getActiveStores(token, pagination);
   }
 
