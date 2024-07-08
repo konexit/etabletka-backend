@@ -52,6 +52,6 @@ export class City {
   @Exclude()
   storesCount: number;
 
-  @OneToMany(() => Store, store => store.city)
+  @OneToMany(() => Store, (store) => store.city)
   stores: Store[];
 }
