@@ -79,15 +79,18 @@ export class StoreService {
         .leftJoin('store.region', 'region')
         .leftJoin('store.district', 'district')
         .leftJoin('store.storeBrand', 'storeBrand')
-        .take(take)
-        .skip(skip)
+        .take(+take)
+        .skip(+skip)
         .getMany();
 
       if (!stores) {
         throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
       }
 
-      return { stores, total };
+      return {
+        stores,
+        pagination: { total, take, skip },
+      };
     }
 
     return [];

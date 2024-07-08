@@ -1,8 +1,7 @@
-import { Body, Controller, Get, Param, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Query, Req } from "@nestjs/common";
 import { StoreService } from './store.service';
 import { Store } from './entities/store.entity';
 import { Request } from 'express';
-import { PaginationDto } from '../common/dto/paginationDto';
 
 @Controller('api/v1')
 export class StoreController {
@@ -11,10 +10,11 @@ export class StoreController {
   @Get('/stores/all')
   async getActiveStores(
     @Req() request: Request,
-    @Body('pagination') pagination?: PaginationDto,
+    @Query('pagination') pagination?: any,
   ): Promise<Store[]> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
     console.log('request token', token);
+    console.log('request pagination', pagination);
     return await this.storeService.getActiveStores(token, pagination);
   }
 
