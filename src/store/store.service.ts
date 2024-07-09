@@ -18,22 +18,25 @@ export class StoreService {
   cacheActiveStoresKey = 'activeStores';
   cacheActiveStoresTTL = 3600000; // 1Hour
 
-  async getStores(token: string | any[]): Promise<Store[]> {
+  async setStoreStatus(token: string | any[], id: number): Promise<Store> {
     if (!token || typeof token !== 'string') {
       throw new HttpException('No access', HttpStatus.FORBIDDEN);
     }
 
-    const stores = await this.storeRepository.find({});
-    if (!stores) {
+    const store = await this.storeRepository.findOneBy({ id });
+    if (!store) {
       throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
     }
 
-    return stores;
+    store.isActive = !store.isActive;
+
+    return this.storeRepository.save(store);
   }
 
   async getActiveStores(
     token: string | any[],
     pagination: PaginationDto = {},
+    orderBy: any = {},
     lang: string = 'uk',
   ): Promise<any> {
     if (!token || typeof token !== 'string') {
@@ -66,22 +69,36 @@ export class StoreService {
     } else {
       const { take = 16, skip = 0 } = pagination;
 
-      const queryBuilder = this.storeRepository.createQueryBuilder('store');
+      const queryBuilder = this.storeRepository.createQueryBuilder('stores');
       const total = await queryBuilder.getCount();
 
-      const stores: Store[] = await queryBuilder
-        .select('store')
+      queryBuilder
+        .select('stores')
+        .addSelect(`stores.name->'${lang}'`, 'langName')
         .addSelect('city')
         .addSelect('region')
         .addSelect('district')
         .addSelect('storeBrand')
-        .leftJoin('store.city', 'city')
-        .leftJoin('store.region', 'region')
-        .leftJoin('store.district', 'district')
-        .leftJoin('store.storeBrand', 'storeBrand')
-        .take(+take)
-        .skip(+skip)
-        .getMany();
+        .leftJoin('stores.city', 'city')
+        .leftJoin('stores.region', 'region')
+        .leftJoin('stores.district', 'district')
+        .leftJoin('stores.storeBrand', 'storeBrand');
+
+      if (orderBy) {
+        if (orderBy?.orderName) {
+          // TODO: need find method how to orderBy JSON field
+          // queryBuilder.orderBy(`stores.name->'${lang}'`, orderBy?.orderName);
+        }
+
+        if (orderBy?.isActive)
+          queryBuilder.orderBy('stores.isActive', orderBy?.isActive);
+      }
+
+      queryBuilder.take(+take).skip(+skip);
+
+      // console.log('SQL', queryBuilder.getQuery());
+
+      const stores: Store[] = await queryBuilder.getMany();
 
       if (!stores) {
         throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);

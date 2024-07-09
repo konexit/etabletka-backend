@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Req } from "@nestjs/common";
+import { Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { StoreService } from './store.service';
 import { Store } from './entities/store.entity';
 import { Request } from 'express';
@@ -7,13 +7,20 @@ import { Request } from 'express';
 export class StoreController {
   constructor(private readonly storeService: StoreService) {}
 
+  @Post('/store/:id/status')
+  async setStoreStatus(@Param('id') id: number, @Req() request: Request): Promise<Store> {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    return await this.storeService.setStoreStatus(token, +id);
+  }
+
   @Get('/stores/all')
   async getActiveStores(
     @Req() request: Request,
     @Query('pagination') pagination?: any,
+    @Query('orderBy') orderBy?: any,
   ): Promise<Store[]> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
-    return await this.storeService.getActiveStores(token, pagination);
+    return await this.storeService.getActiveStores(token, pagination, orderBy);
   }
 
   @Get('/stores/city/:cityId')
