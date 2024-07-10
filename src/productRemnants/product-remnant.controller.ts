@@ -11,8 +11,8 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
-import { ProductRemnant } from './entities/productRemnant.entity';
-import { ProductRemnantService } from './productRemnant.service';
+import { ProductRemnant } from './entities/product-remnant.entity';
+import { ProductRemnantService } from './product-remnant.service';
 import CreateProductRemnantDto from './dto/create-product-remnant.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { UpdateProductDto } from '../product/dto/update-product.dto';

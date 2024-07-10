@@ -11,7 +11,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Category } from '../../categories/entities/category.entity';
-import { ProductRemnant } from '../../productRemnants/entities/productRemnant.entity';
+import { ProductRemnant } from '../../productRemnants/entities/product-remnant.entity';
 import { ProductType } from '../../productTypes/entities/productType.entity';
 import { Badge } from '../../badge/entities/badge.entity';
 import { Discount } from '../../discount/entities/discount.entity';

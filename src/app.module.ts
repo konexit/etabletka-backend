@@ -8,7 +8,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { DiscountModule } from './discount/discount.module';
 import { ProductModule } from './product/product.module';
-import { ProductRemnantModule } from './productRemnants/productRemnant.module';
+import { ProductRemnantModule } from './productRemnants/product-remnant.module';
 import { ProductTypeModule } from './productTypes/productType.module';
 import { AnotherPointModule } from './places/anotherPoint/anotherPoint.module';
 import { RegionModule } from './places/region/region.module';

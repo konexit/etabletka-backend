@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { ProductRemnant } from './entities/productRemnant.entity';
+import { ProductRemnant } from './entities/product-remnant.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import CreateProductRemnantDto from './dto/create-product-remnant.dto';

@@ -11,7 +11,7 @@ import {
 import { City } from '../../places/city/entities/city.entity';
 import { District } from '../../places/district/entities/district.entity';
 import { Region } from '../../places/region/entities/region.entity';
-import { ProductRemnant } from '../../productRemnants/entities/productRemnant.entity';
+import { ProductRemnant } from '../../productRemnants/entities/product-remnant.entity';
 import { StoreBrand } from "../../storeBrand/entities/store-brand.entity";
 
 @Entity({
