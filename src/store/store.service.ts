@@ -151,4 +151,16 @@ export class StoreService {
     }
     return store;
   }
+
+  async getStoreById(id: number, lang: string = 'uk'): Promise<Store> {
+    const store = await this.storeRepository.findOneBy({
+      id,
+    });
+
+    if (!store) {
+      throw new HttpException('Store not found', HttpStatus.NOT_FOUND);
+    }
+    store.name = store.name[lang];
+    return store;
+  }
 }
