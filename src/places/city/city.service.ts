@@ -24,7 +24,7 @@ export class CityService {
   cacheDefaultCityKey = 'defaultCity';
   cacheCitiesTTL = 3600000; // 1Hour
 
-  async getCities(token: string | any[]): Promise<City[]> {
+  async getCities(token: string | any[], lang: string = 'uk'): Promise<City[]> {
     if (!token || typeof token !== 'string') {
       return [];
     }
@@ -33,6 +33,11 @@ export class CityService {
 
     if (!cities) {
       throw new HttpException('Cities not found', HttpStatus.NOT_FOUND);
+    }
+
+    for (const city of cities) {
+      city.name = city.name[lang];
+      city.prefix = city.prefix[lang];
     }
 
     return cities;
@@ -53,6 +58,7 @@ export class CityService {
     }
 
     city.name = city.name[lang];
+    city.prefix = city.prefix[lang];
 
     await this.cacheManager.set(
       this.cacheDefaultCityKey,
@@ -63,12 +69,18 @@ export class CityService {
     return city;
   }
 
-  async getCityById(id: number): Promise<City | undefined> {
+  async getCityById(
+    id: number,
+    lang: string = 'uk',
+  ): Promise<City | undefined> {
     const city = await this.cityRepository.findOneBy({ id });
 
     if (!city) {
       throw new HttpException('City not found', HttpStatus.NOT_FOUND);
     }
+
+    city.name = city.name[lang];
+    city.prefix = city.prefix[lang];
 
     return city;
   }
@@ -98,6 +110,8 @@ export class CityService {
 
       citiesWithStores.forEach((city) => {
         city.name = city.name[lang];
+        city.prefix = city.prefix[lang];
+
         city.storesCount =
           storeCounts.find((r) => r.cityId === city.id)?.storeCount || 0;
         if (city.stores) {
