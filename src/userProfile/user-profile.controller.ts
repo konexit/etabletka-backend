@@ -1,6 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { UserProfileService } from './userProfile.service';
-import { UserProfile } from './entities/userProlile.entity';
+import { UserProfileService } from './user-profile.service';
+import { UserProfile } from './entities/user-prolile.entity';
 
 @Controller('/api/v1')
 export class UserProfileController {

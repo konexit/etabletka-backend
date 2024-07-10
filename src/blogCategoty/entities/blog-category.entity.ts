@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { BlogPost } from '../../blogPost/entities/blogPost.entity';
+import { BlogPost } from '../../blogPost/entities/blog-post.entity';
 
 @Entity({
   name: 'blog_categories',

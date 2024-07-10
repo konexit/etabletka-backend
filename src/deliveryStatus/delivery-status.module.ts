@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DeliveryStatus } from './entities/deliveryStatus.entity';
-import { DeliveryStatusController } from './deliveryStatus.controller';
-import { DeliveryStatusService } from './deliveryStatus.service';
+import { DeliveryStatus } from './entities/delivery-status.entity';
+import { DeliveryStatusController } from './delivery-status.controller';
+import { DeliveryStatusService } from './delivery-status.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([DeliveryStatus])],

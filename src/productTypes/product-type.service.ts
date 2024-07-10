@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProductType } from './entities/productType.entity';
+import { ProductType } from './entities/product-type.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 

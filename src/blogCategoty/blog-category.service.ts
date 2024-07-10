@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BlogCategory } from './entities/blogCategory.entity';
+import { BlogCategory } from './entities/blog-category.entity';
 import { Repository } from 'typeorm';
-import { BlogPost } from '../blogPost/entities/blogPost.entity';
+import { BlogPost } from '../blogPost/entities/blog-post.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 

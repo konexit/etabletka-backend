@@ -8,7 +8,7 @@ import {
 import { OrderService } from './order.service';
 import { Order } from './entities/order.entity';
 import { CreateOrder } from './dto/createOrder.dto';
-import { CreateOrderItem } from '../orderItem/dto/createOrderItem.dto';
+import { CreateOrderItem } from '../orderItem/dto/create-order-item.dto';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/v1/order')

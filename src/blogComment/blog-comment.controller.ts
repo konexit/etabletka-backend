@@ -1,6 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { BlogCommentService } from './blogComment.service';
-import { BlogComment } from './entities/blogComment.entity';
+import { BlogCommentService } from './blog-comment.service';
+import { BlogComment } from './entities/blog-comment.entity';
 
 @Controller('api/v1')
 export class BlogCommentController {

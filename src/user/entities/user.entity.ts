@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { Role } from '../../role/entities/role.entity';
-import { UserProfile } from '../../userProfile/entities/userProlile.entity';
+import { UserProfile } from '../../userProfile/entities/user-prolile.entity';
 
 @Entity({
   name: 'users',

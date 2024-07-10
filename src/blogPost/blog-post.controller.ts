@@ -9,8 +9,8 @@ import {
   Param,
   UseInterceptors,
 } from '@nestjs/common';
-import { BlogPostService } from './blogPost.service';
-import { BlogPost } from './entities/blogPost.entity';
+import { BlogPostService } from './blog-post.service';
+import { BlogPost } from './entities/blog-post.entity';
 import { PaginationDto } from '../common/dto/paginationDto';
 
 @Controller('api/v1')

@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
-import { SiteOptionService } from './siteOption.service';
-import { SiteOption } from './entities/siteOption.entity';
+import { SiteOptionService } from './site-option.service';
+import { SiteOption } from './entities/site-option.entity';
 
 @Controller('api/v1/site-options')
 export class SiteOptionController {

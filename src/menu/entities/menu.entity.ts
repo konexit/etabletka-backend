@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { MenuItem } from '../../menuItem/entities/menuItem.entity';
+import { MenuItem } from '../../menuItem/entities/menu-item.entity';
 
 @Entity({
   name: 'menus',

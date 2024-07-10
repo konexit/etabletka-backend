@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { FaqItemService } from './faqItem.service';
+import { FaqItemService } from './faq-item.service';
 
 @Controller('api/v1')
 export class FaqItemController {

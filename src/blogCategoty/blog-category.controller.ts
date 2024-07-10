@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
-import { BlogCategoryService } from './blogCategory.service';
-import { BlogCategory } from './entities/blogCategory.entity';
+import { BlogCategoryService } from './blog-category.service';
+import { BlogCategory } from './entities/blog-category.entity';
 
 @Controller('api/v1')
 export class BlogCategoryController {

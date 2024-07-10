@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
-import { DeliveryStatusService } from './deliveryStatus.service';
-import { DeliveryStatus } from './entities/deliveryStatus.entity';
+import { DeliveryStatusService } from './delivery-status.service';
+import { DeliveryStatus } from './entities/delivery-status.entity';
 
 @Controller('api/v1')
 export class DeliveryStatusController {

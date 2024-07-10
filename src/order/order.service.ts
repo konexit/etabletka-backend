@@ -4,8 +4,8 @@ import { Order } from './entities/order.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { CreateOrder } from './dto/createOrder.dto';
-import { CreateOrderItem } from '../orderItem/dto/createOrderItem.dto';
-import { OrderItem } from '../orderItem/entities/orderItem.entity';
+import { CreateOrderItem } from '../orderItem/dto/create-order-item.dto';
+import { OrderItem } from '../orderItem/entities/order-item.entity';
 
 @Injectable()
 export class OrderService {

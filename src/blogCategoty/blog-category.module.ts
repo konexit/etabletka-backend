@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BlogCategory } from './entities/blogCategory.entity';
-import { BlogCategoryController } from './blogCategory.controller';
-import { BlogCategoryService } from './blogCategory.service';
-import { BlogPost } from '../blogPost/entities/blogPost.entity';
+import { BlogCategory } from './entities/blog-category.entity';
+import { BlogCategoryController } from './blog-category.controller';
+import { BlogCategoryService } from './blog-category.service';
+import { BlogPost } from '../blogPost/entities/blog-post.entity';
 import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({

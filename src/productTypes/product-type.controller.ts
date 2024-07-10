@@ -7,7 +7,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ProductTypeService } from './productType.service';
+import { ProductTypeService } from './product-type.service';
 import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('api/v1/product-types')

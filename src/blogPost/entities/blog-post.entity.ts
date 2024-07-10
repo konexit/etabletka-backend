@@ -10,8 +10,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn
 } from "typeorm";
-import { BlogCategory } from '../../blogCategoty/entities/blogCategory.entity';
-import { BlogComment } from '../../blogComment/entities/blogComment.entity';
+import { BlogCategory } from '../../blogCategoty/entities/blog-category.entity';
+import { BlogComment } from '../../blogComment/entities/blog-comment.entity';
 import { User } from '../../user/entities/user.entity';
 
 @Entity({

@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BlogPost } from './entities/blogPost.entity';
-import { BlogCategory } from '../blogCategoty/entities/blogCategory.entity';
-import { BlogPostController } from './blogPost.controller';
-import { BlogPostService } from './blogPost.service';
+import { BlogPost } from './entities/blog-post.entity';
+import { BlogCategory } from '../blogCategoty/entities/blog-category.entity';
+import { BlogPostController } from './blog-post.controller';
+import { BlogPostService } from './blog-post.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([BlogPost, BlogCategory])],
