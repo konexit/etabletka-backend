@@ -18,9 +18,15 @@ export class StoreController {
     @Req() request: Request,
     @Query('pagination') pagination?: any,
     @Query('orderBy') orderBy?: any,
+    @Query('where') where?: any,
   ): Promise<Store[]> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
-    return await this.storeService.getActiveStores(token, pagination, orderBy);
+    return await this.storeService.getActiveStores(
+      token,
+      pagination,
+      orderBy,
+      where,
+    );
   }
 
   @Get('/stores/city/:cityId')

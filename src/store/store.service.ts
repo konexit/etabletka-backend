@@ -37,6 +37,7 @@ export class StoreService {
     token: string | any[],
     pagination: PaginationDto = {},
     orderBy: any = {},
+    where: any = {},
     lang: string = 'uk',
   ): Promise<any> {
     if (!token || typeof token !== 'string') {
@@ -70,11 +71,10 @@ export class StoreService {
       const { take = 16, skip = 0 } = pagination;
 
       const queryBuilder = this.storeRepository.createQueryBuilder('stores');
-      const total = await queryBuilder.getCount();
 
       queryBuilder
         .select('stores')
-        .addSelect(`stores.name->'${lang}'`, 'langName')
+        .addSelect(`(stores.name->'${lang}')::varchar`, 'langname')
         .addSelect('city')
         .addSelect('region')
         .addSelect('district')
@@ -82,12 +82,37 @@ export class StoreService {
         .leftJoin('stores.city', 'city')
         .leftJoin('stores.region', 'region')
         .leftJoin('stores.district', 'district')
-        .leftJoin('stores.storeBrand', 'storeBrand');
+        .leftJoin('stores.storeBrand', 'storeBrand')
+        .where('stores.id is not null');
 
+      /** Where statements **/
+      if (where) {
+        if (where.brandId) {
+          queryBuilder.andWhere('stores.storeBrandId = :brandId', {
+            brandId: where.brandId,
+          });
+        }
+        if (where.regionId) {
+          queryBuilder.andWhere('stores.regionId = :regionId', {
+            regionId: where.regionId,
+          });
+        }
+        if (where.isActive) {
+          queryBuilder.andWhere('stores.isActive = :isActive', {
+            isActive: where.isActive,
+          });
+        }
+        if (where.sellType) {
+          queryBuilder.andWhere('stores.sellType = :sellType', {
+            sellType: where.sellType,
+          });
+        }
+      }
+
+      /** Order by statements **/
       if (orderBy) {
         if (orderBy?.orderName) {
-          // TODO: need find method how to orderBy JSON field
-          // queryBuilder.orderBy(`stores.name->'${lang}'`, orderBy?.orderName);
+          queryBuilder.orderBy(`langname`, orderBy?.orderName);
         }
 
         if (orderBy?.isActive)
@@ -103,6 +128,8 @@ export class StoreService {
       if (!stores) {
         throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
       }
+
+      const total = await queryBuilder.getCount();
 
       return {
         stores,
