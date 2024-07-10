@@ -31,6 +31,7 @@ import { BlogCategoryModule } from './blogCategoty/blog-category.module';
 import { BlogPostModule } from './blogPost/blog-post.module';
 import { BlogCommentModule } from './blogComment/blog-comment.module';
 import { StoreBrandModule } from './storeBrand/store-brand.module';
+import { SellTypeModule } from './sellType/sell-type.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { StoreBrandModule } from './storeBrand/store-brand.module';
     BlogCategoryModule,
     BlogPostModule,
     BlogCommentModule,
+    SellTypeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

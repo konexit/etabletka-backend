@@ -9,17 +9,17 @@ import {
 import { Store } from '../../store/entities/store.entity';
 
 @Entity({
-  name: 'store_brands',
+  name: 'sell_types',
 })
-export class StoreBrand {
+export class SellType {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ unique: true })
   name: string;
 
-  @Column({ name: 'cdn_data', type: 'json', nullable: true })
-  cdnData: JSON;
+  @Column({ unique: true })
+  code: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
@@ -27,6 +27,6 @@ export class StoreBrand {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(() => Store, (store) => store.sellType)
+  @OneToMany(() => Store, (store) => store.storeBrand)
   stores: Store[];
 }

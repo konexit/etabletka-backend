@@ -26,7 +26,7 @@ export class UserService {
     const user = await this.userRepository.create(createUserDto);
     if (!user) {
       throw new HttpException(
-        `Can create user with this data: ${createUserDto}`,
+        `Can't create user with this data: ${createUserDto}`,
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -50,10 +50,14 @@ export class UserService {
     await this.userRepository.update(id, updateUserDto);
     const user = await this.userRepository.findOneBy({ id: id });
 
-    if (user) {
-      return user;
+    if (!user) {
+      throw new HttpException(
+        `Can't update user with data: ${updateUserDto}`,
+        HttpStatus.NOT_FOUND,
+      );
     }
-    throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+
+    return user;
   }
 
   async getByPhone(phone: string): Promise<User> {
@@ -146,8 +150,8 @@ export class UserService {
     return user;
   }
 
-  remove(id: number) {
-    return `This action removes the #${id} user`;
+  async remove(id: number) {
+    return this.userRepository.delete(id);
   }
 
   generateRandomNumber(symbols: number) {

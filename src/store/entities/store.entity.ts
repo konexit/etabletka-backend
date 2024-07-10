@@ -12,7 +12,8 @@ import { City } from '../../places/city/entities/city.entity';
 import { District } from '../../places/district/entities/district.entity';
 import { Region } from '../../places/region/entities/region.entity';
 import { ProductRemnant } from '../../productRemnants/entities/product-remnant.entity';
-import { StoreBrand } from "../../storeBrand/entities/store-brand.entity";
+import { StoreBrand } from '../../storeBrand/entities/store-brand.entity';
+import { SellType } from '../../sellType/entities/sell-type.entity';
 
 @Entity({
   name: 'stores',
@@ -69,8 +70,8 @@ export class Store {
   @Column({ name: 'online', default: false })
   isOnline: boolean;
 
-  @Column({ name: 'sell_type', nullable: true, length: 125 })
-  sellType: string;
+  @Column({ name: 'sell_type_id', default: 1 })
+  sellTypeId: number;
 
   @Column({ name: 'store_brand_id', default: 1 })
   storeBrandId: number;
@@ -99,4 +100,8 @@ export class Store {
   @ManyToOne(() => StoreBrand, (storeBrand: StoreBrand) => storeBrand.stores)
   @JoinColumn({ name: 'store_brand_id' })
   storeBrand: StoreBrand;
+
+  @ManyToOne(() => SellType, (sellType: SellType) => sellType.stores)
+  @JoinColumn({ name: 'sell_type_id' })
+  sellType: SellType;
 }

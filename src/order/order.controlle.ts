@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { Order } from './entities/order.entity';
-import { CreateOrder } from './dto/createOrder.dto';
+import { CreateOrder } from './dto/create-order.dto';
 import { CreateOrderItem } from '../orderItem/dto/create-order-item.dto';
 
 @UseInterceptors(ClassSerializerInterceptor)
