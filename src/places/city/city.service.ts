@@ -36,8 +36,9 @@ export class CityService {
     }
 
     for (const city of cities) {
+      console.log('city', city);
       city.name = city.name[lang];
-      city.prefix = city.prefix[lang];
+      if (city.prefix) city.prefix = city.prefix[lang];
     }
 
     return cities;
@@ -58,7 +59,7 @@ export class CityService {
     }
 
     city.name = city.name[lang];
-    city.prefix = city.prefix[lang];
+    if (city.prefix) city.prefix = city.prefix[lang];
 
     await this.cacheManager.set(
       this.cacheDefaultCityKey,
@@ -80,7 +81,7 @@ export class CityService {
     }
 
     city.name = city.name[lang];
-    city.prefix = city.prefix[lang];
+    if (city.prefix) city.prefix = city.prefix[lang];
 
     return city;
   }
@@ -110,7 +111,7 @@ export class CityService {
 
       citiesWithStores.forEach((city) => {
         city.name = city.name[lang];
-        city.prefix = city.prefix[lang];
+        if (city.prefix) city.prefix = city.prefix[lang];
 
         city.storesCount =
           storeCounts.find((r) => r.cityId === city.id)?.storeCount || 0;
