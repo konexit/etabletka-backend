@@ -36,7 +36,6 @@ export class CityService {
     }
 
     for (const city of cities) {
-      console.log('city', city);
       city.name = city.name[lang];
       if (city.prefix) city.prefix = city.prefix[lang];
     }
