@@ -36,7 +36,7 @@ export class SellTypeController {
   @UseGuards(AuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @Patch('/sell-type/update/:id')
-  async Update(
+  async update(
     @Req() request: Request,
     @Param('id') id: number,
     @Body() updateSellType: UpdateSellTypeDto,

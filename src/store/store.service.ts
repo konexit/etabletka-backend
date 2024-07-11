@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PaginationDto } from '../common/dto/paginationDto';
+import { UpdateStoreDto } from './dto/update-store.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class StoreService {
@@ -13,12 +15,45 @@ export class StoreService {
     private storeRepository: Repository<Store>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
+    private jwtService: JwtService,
   ) {}
 
   cacheActiveStoresKey = 'activeStores';
   cacheActiveStoresTTL = 3600000; // 1Hour
 
-  async setStoreStatus(token: string | any[], id: number): Promise<Store> {
+  async update(
+    token: string | any[],
+    id: number,
+    updateStore: UpdateStoreDto,
+    lang: string = 'uk',
+  ): Promise<any> {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    await this.storeRepository.update(id, updateStore);
+    const store = await this.storeRepository.findOneBy({ id: id });
+    if (!store) {
+      throw new HttpException(
+        `Can't update store with this data: ${updateStore}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    store.name = store.name[lang];
+    return store;
+  }
+
+  async setStoreStatus(
+    token: string | any[],
+    id: number,
+    lang: string = 'uk',
+  ): Promise<Store> {
     if (!token || typeof token !== 'string') {
       throw new HttpException('No access', HttpStatus.FORBIDDEN);
     }
@@ -29,6 +64,7 @@ export class StoreService {
     }
 
     store.isActive = !store.isActive;
+    store.name = store.name[lang];
 
     return this.storeRepository.save(store);
   }
@@ -152,7 +188,11 @@ export class StoreService {
     return store;
   }
 
-  async getStoreById(id: number, lang: string = 'uk'): Promise<Store> {
+  async getStoreById(
+    token: string | any[],
+    id: number,
+    lang: string = 'uk',
+  ): Promise<Store> {
     const store = await this.storeRepository.findOneBy({
       id,
     });
@@ -160,7 +200,9 @@ export class StoreService {
     if (!store) {
       throw new HttpException('Store not found', HttpStatus.NOT_FOUND);
     }
+
     store.name = store.name[lang];
+
     return store;
   }
 }
