@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Req } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req } from '@nestjs/common';
 import { CityService } from './city.service';
 import { City } from './entities/city.entity';
 import { Request } from 'express';
@@ -25,7 +25,16 @@ export class CityController {
   }
 
   @Get('/cities/stores')
-  async getCitiesWithStores(): Promise<City[]> {
-    return await this.cityService.getCitiesWithStores();
+  async getCitiesWithStores(
+    @Req() request: Request,
+    @Query('pagination') pagination?: any,
+    @Query('orderBy') orderBy?: any,
+  ): Promise<City[]> {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    return await this.cityService.getCitiesWithStores(
+      token,
+      pagination,
+      orderBy,
+    );
   }
 }

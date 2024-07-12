@@ -7,6 +7,7 @@ import { Store } from '../../store/entities/store.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { In } from 'typeorm';
+import { PaginationDto } from '../../common/dto/paginationDto';
 
 @Injectable()
 export class CityService {
@@ -85,14 +86,104 @@ export class CityService {
     return city;
   }
 
-  async getCitiesWithStores(lang: string = 'uk'): Promise<any> {
-    const cacheCitiesWithStores = await this.cacheManager.get(
-      this.cacheCitiesKey,
-    );
-    if (cacheCitiesWithStores) {
-      return cacheCitiesWithStores;
+  async getCitiesWithStores(
+    token: string | any[],
+    pagination: PaginationDto = {},
+    orderBy: any = {},
+    lang: string = 'uk',
+  ): Promise<any> {
+    if (!token || typeof token !== 'string') {
+      const cacheCitiesWithStores = await this.cacheManager.get(
+        this.cacheCitiesKey,
+      );
+      if (cacheCitiesWithStores) {
+        return cacheCitiesWithStores;
+      }
+
+      const citiesWithStores = await this.citiesWithStores(lang);
+      if (!citiesWithStores) {
+        throw new HttpException('Cities not found', HttpStatus.NOT_FOUND);
+      }
+
+      await this.cacheManager.set(
+        this.cacheCitiesKey,
+        citiesWithStores,
+        this.cacheCitiesTTL,
+      );
+
+      return [];
+    } else {
+      const payload = await this.jwtService.decode(token);
+      if (payload.roleId !== 1) {
+        const citiesWithStores = await this.citiesWithStores(lang);
+        if (!citiesWithStores) {
+          throw new HttpException('Cities not found', HttpStatus.NOT_FOUND);
+        }
+        return citiesWithStores;
+      }
+
+      const { take = 16, skip = 0 } = pagination;
+
+      const storeCounts = await this.storeRepository
+        .createQueryBuilder('stores')
+        .select('stores.city_id', 'cityId')
+        .addSelect('CAST(COUNT(stores.id) AS int)', 'storeCount')
+        .groupBy('stores.city_id')
+        .getRawMany();
+
+      const cityIds = storeCounts.map((r) => r.cityId);
+      if (cityIds) {
+        const queryBuilder = this.cityRepository.createQueryBuilder('city');
+
+        queryBuilder
+          .select('city')
+          .addSelect(`(city.name->'${lang}')::varchar`, 'langname')
+          .addSelect(`(city.prefix->'${lang}')::varchar`, 'langprefix')
+          .leftJoin('city.stores', 'stores')
+          .where('city.id IN (:...ids)', { ids: cityIds });
+
+        /** Order by statements **/
+        if (orderBy) {
+          if (orderBy?.orderName) {
+            queryBuilder.orderBy(`langname`, orderBy?.orderName);
+          }
+        }
+
+        queryBuilder.take(+take).skip(+skip);
+
+        // console.log('SQL', queryBuilder.getQuery());
+
+        const cities: City[] = await queryBuilder.getMany();
+        if (!cities) {
+          throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
+        }
+
+        cities.forEach((city) => {
+          city.name = city.name[lang];
+          if (city.prefix) city.prefix = city.prefix[lang];
+
+          city.storesCount =
+            storeCounts.find((r) => r.cityId === city.id)?.storeCount || 0;
+          if (city.stores) {
+            for (const store of city.stores) {
+              store.name = store.name[lang];
+            }
+          }
+        });
+
+        const total = await queryBuilder.getCount();
+
+        return {
+          cities,
+          pagination: { total, take, skip },
+        };
+      }
     }
 
+    return [];
+  }
+
+  async citiesWithStores(lang) {
     const storeCounts = await this.storeRepository
       .createQueryBuilder('stores')
       .select('stores.city_id', 'cityId')
@@ -101,7 +192,6 @@ export class CityService {
       .getRawMany();
 
     const cityIds = storeCounts.map((r) => r.cityId);
-
     if (cityIds) {
       const citiesWithStores = await this.cityRepository.find({
         where: { id: In(cityIds) },
@@ -121,19 +211,7 @@ export class CityService {
         }
       });
 
-      if (!citiesWithStores) {
-        throw new HttpException('Cities not found', HttpStatus.NOT_FOUND);
-      }
-
-      await this.cacheManager.set(
-        this.cacheCitiesKey,
-        citiesWithStores,
-        this.cacheCitiesTTL,
-      );
-
       return citiesWithStores;
     }
-
-    return [];
   }
 }
