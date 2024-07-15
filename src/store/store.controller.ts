@@ -5,7 +5,7 @@ import {
   Controller,
   Get,
   Param,
-  Put,
+  Patch,
   Post,
   Query,
   Req,
@@ -39,7 +39,7 @@ export class StoreController {
     return 'No image';
   }
 
-  @Put('/store/update/:id')
+  @Patch('/store/update/:id')
   async update(
     @Req() request: Request,
     @Param('id') id: number,

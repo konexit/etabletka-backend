@@ -23,7 +23,7 @@ export class UserService {
     });
     if (userExist) return userExist;
 
-    const user = await this.userRepository.create(createUserDto);
+    const user = this.userRepository.create(createUserDto);
     if (!user) {
       throw new HttpException(
         `Can't create user with this data: ${createUserDto}`,
