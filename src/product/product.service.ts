@@ -57,7 +57,7 @@ export class ProductService {
   ): Promise<Product[]> {
     const products = await this.productRepository
       .createQueryBuilder('product')
-      .leftJoinAndSelect('product.categories', 'category')
+      .leftJoinAndSelect('product.categories', 'categories')
       .leftJoinAndSelect('product.discounts', 'discount')
       .leftJoinAndSelect('product.badges', 'badges')
       .leftJoinAndSelect('product.productRemnants', 'productRemnants')
@@ -111,14 +111,11 @@ export class ProductService {
     queryBuilder
       .select('products')
       .addSelect(`(products.name->'${lang}')::varchar`, 'langname')
-      .addSelect('category')
-      .addSelect('productRemnant')
-      .addSelect('discount')
-      .addSelect('brand')
-      .leftJoin('products.category', 'category')
-      .leftJoin('products.productRemnant', 'productRemnant')
-      .leftJoin('products.discount', 'discount')
-      .leftJoin('products.brand', 'brand')
+      .leftJoinAndSelect('products.categories', 'categories')
+      .leftJoinAndSelect('products.discounts', 'discount')
+      .leftJoinAndSelect('products.badges', 'badges')
+      .leftJoinAndSelect('products.productRemnants', 'productRemnants')
+      .leftJoinAndSelect('products.brand', 'brand')
       .where('products.id is not null');
 
     /** Where statements **/
@@ -131,6 +128,8 @@ export class ProductService {
         queryBuilder.orderBy(`langname`, orderBy?.orderName);
       }
     }
+
+    queryBuilder.take(+take).skip(+skip);
 
     const products: Product[] = await queryBuilder.getMany();
     if (!products) {
