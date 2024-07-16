@@ -1,9 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AnotherPoint } from './entities/anotherPoint.entity';
+import { AnotherPoint } from './entities/another-point.entity';
 import { Repository } from 'typeorm';
-import { Store } from '../../store/entities/store.entity';
-import { UpdateAnothePoint } from './dto/update-anothe-point.dto';
+import { CreateAnotherPoint } from './dto/create-another-point.dto';
+import { UpdateAnotherPoint } from './dto/update-another-point.dto';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -14,10 +14,32 @@ export class AnotherPointService {
     private jwtService: JwtService,
   ) {}
 
+  async create(token: string | any[], createAnotherPoint: CreateAnotherPoint) {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const anotherPoint = this.anotherPointRepository.create(createAnotherPoint);
+
+    if (!anotherPoint) {
+      throw new HttpException(
+        `Can't create another point with this data: ${createAnotherPoint}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return await this.anotherPointRepository.save(anotherPoint);
+  }
+
   async update(
     token: string | any[],
     id: number,
-    updateAnotherPoint: UpdateAnothePoint,
+    updateAnotherPoint: UpdateAnotherPoint,
     lang: string = 'uk',
   ) {
     if (!token || typeof token !== 'string') {

@@ -6,8 +6,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class UpdateAnothePoint {
-  @IsOptional()
+export class CreateAnotherPoint {
   @IsString()
   @MinLength(1)
   name: string;

@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AnotherPoint } from './entities/anotherPoint.entity';
-import { AnotherPointController } from './anotherPoint.controller';
-import { AnotherPointService } from './anotherPoint.service';
+import { AnotherPoint } from './entities/another-point.entity';
+import { AnotherPointController } from './another-point.controller';
+import { AnotherPointService } from './another-point.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([AnotherPoint])],

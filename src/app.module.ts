@@ -10,7 +10,7 @@ import { DiscountModule } from './discount/discount.module';
 import { ProductModule } from './product/product.module';
 import { ProductRemnantModule } from './productRemnants/product-remnant.module';
 import { ProductTypeModule } from './productTypes/product-type.module';
-import { AnotherPointModule } from './places/anotherPoint/anotherPoint.module';
+import { AnotherPointModule } from './anotherPoint/another-point.module';
 import { RegionModule } from './places/region/region.module';
 import { CityModule } from './places/city/city.module';
 import { CommunityModule } from './places/communitiy/community.module';

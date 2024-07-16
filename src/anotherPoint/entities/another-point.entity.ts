@@ -19,7 +19,7 @@ export class AnotherPoint {
   @Column({ name: 'cdn_data', type: 'json', nullable: true })
   cdnData: JSON;
 
-  @Column({ name: 'active', default: true })
+  @Column({ name: 'active', default: false })
   isActive: boolean;
 
   @Column({ name: 'main_color', length: 7, default: '#ff0000' })
