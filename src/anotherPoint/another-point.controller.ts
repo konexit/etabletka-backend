@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   UploadedFile,
   ClassSerializerInterceptor,
+  Delete,
 } from '@nestjs/common';
 import { AnotherPointService } from './another-point.service';
 import { AnotherPoint } from './entities/another-point.entity';
@@ -77,6 +78,16 @@ export class AnotherPointController {
     }
 
     return 'No image';
+  }
+
+  @Delete('/another-point/:id')
+  async delete(@Req() request: Request, @Param('id') id: number) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    try {
+      return await this.anotherPointService.delete(token, id);
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Get('/markers/another-points')

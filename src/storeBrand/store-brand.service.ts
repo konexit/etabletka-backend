@@ -61,6 +61,33 @@ export class StoreBrandService {
     return storeBrand;
   }
 
+  async delete(
+    token: string | any[],
+    id: number,
+  ) {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const storeBrand = await this.storeBrandRepository.findOneBy({ id: id });
+    if (!storeBrand) {
+      throw new HttpException(
+        `Can't delete store brand`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (storeBrand.cdnData) {
+      //TODO: delete all image from CDN before delete record
+    }
+    return await this.storeBrandRepository.delete(id);
+  }
+
   async getAllStoreBrands(): Promise<StoreBrand[]> {
     const storeBrands = await this.storeBrandRepository.find({});
     if (!storeBrands) {

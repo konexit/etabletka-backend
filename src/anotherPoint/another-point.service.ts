@@ -64,6 +64,32 @@ export class AnotherPointService {
     return anotherPoint;
   }
 
+  async delete(token: string | any[], id: number) {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const anotherPoint = await this.anotherPointRepository.findOneBy({
+      id: id,
+    });
+    if (!anotherPoint) {
+      throw new HttpException(
+        'Can`t delete another points',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (anotherPoint.cdnData) {
+      //TODO: delete all image from CDN before delete record
+    }
+    return await this.anotherPointRepository.delete(id);
+  }
+
   async getAnotherPoints(): Promise<AnotherPoint[]> {
     const anotherPoints = await this.anotherPointRepository.find({
       order: { id: 'ASC' },

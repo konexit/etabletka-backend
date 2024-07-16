@@ -2,6 +2,7 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -52,6 +53,16 @@ export class StoreBrandController {
   ) {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
     return this.storeBrandService.update(token, +id, updateStoreBrand);
+  }
+
+  @Delete('/store/brand/:id')
+  async delete(@Req() request: Request, @Param('id') id: number) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    try {
+      return await this.storeBrandService.delete(token, id);
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Post('/store/brand/update/:id/image')
