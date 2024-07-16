@@ -15,6 +15,7 @@ import { ProductRemnant } from '../../productRemnants/entities/product-remnant.e
 import { ProductType } from '../../productTypes/entities/product-type.entity';
 import { Badge } from '../../badge/entities/badge.entity';
 import { Discount } from '../../discount/entities/discount.entity';
+import { Brand } from '../../brands/entities/brand.entity';
 
 @Entity({
   name: 'products',
@@ -116,12 +117,22 @@ export class Product {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(() => ProductRemnant, (productRemnant) => productRemnant.product)
+  @OneToMany(
+    () => ProductRemnant,
+    (productRemnant: ProductRemnant) => productRemnant.product,
+  )
   productRemnants: ProductRemnant[];
 
-  @ManyToOne(() => ProductType, (productType) => productType.product)
+  @ManyToOne(
+    () => ProductType,
+    (productType: ProductType) => productType.products,
+  )
   @JoinColumn({ name: 'product_type_id' })
   productType: ProductType;
+
+  @ManyToOne(() => Brand, (brand: Brand) => brand.products)
+  @JoinColumn({ name: 'brand_id' })
+  brand: Brand;
 
   @ManyToMany(() => Badge, (badge) => badge.products)
   @JoinTable({

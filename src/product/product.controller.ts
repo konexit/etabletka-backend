@@ -9,8 +9,8 @@ import {
   Delete,
   UseInterceptors,
   Req,
-  UseGuards,
-} from '@nestjs/common';
+  UseGuards, Query
+} from "@nestjs/common";
 import { Product } from './entities/product.entity';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -48,9 +48,14 @@ export class ProductController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('/products')
-  async findAll(@Req() request: Request) {
+  async findAll(
+    @Req() request: Request,
+    @Query('pagination') pagination?: any,
+    @Query('orderBy') orderBy?: any,
+    @Query('where') where?: any,
+  ) {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
-    return this.productService.findAll(token);
+    return this.productService.findAll(token, pagination, orderBy, where);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)

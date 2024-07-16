@@ -9,6 +9,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtService } from '@nestjs/jwt';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { PaginationDto } from '../common/dto/paginationDto';
 
 @Injectable()
 export class ProductService {
@@ -80,7 +81,13 @@ export class ProductService {
     return product;
   }
 
-  async findAll(token: string | any[], lang: string = 'uk') {
+  async findAll(
+    token: string | any[],
+    pagination: PaginationDto = {},
+    orderBy: any = {},
+    where: any = {},
+    lang: string = 'uk',
+  ) {
     if (!token || typeof token !== 'string') {
       const products = await this.productRepository.find({
         where: { isActive: true },
@@ -92,12 +99,49 @@ export class ProductService {
       return products;
     }
     const payload = await this.jwtService.decode(token);
-    if (payload.roleId === 1) {
+    if (payload.roleId !== 1) {
       return await this.productRepository.find({
         where: { isActive: true },
       });
     }
-    return await this.productRepository.find({});
+
+    /** ADMIN **/
+    const { take = 16, skip = 0 } = pagination;
+    const queryBuilder = this.productRepository.createQueryBuilder('products');
+    queryBuilder
+      .select('products')
+      .addSelect(`(products.name->'${lang}')::varchar`, 'langname')
+      .addSelect('category')
+      .addSelect('productRemnant')
+      .addSelect('discount')
+      .addSelect('brand')
+      .leftJoin('products.category', 'category')
+      .leftJoin('products.productRemnant', 'productRemnant')
+      .leftJoin('products.discount', 'discount')
+      .leftJoin('products.brand', 'brand')
+      .where('products.id is not null');
+
+    /** Where statements **/
+    if (where) {
+    }
+
+    /** Order by statements **/
+    if (orderBy) {
+      if (orderBy?.orderName) {
+        queryBuilder.orderBy(`langname`, orderBy?.orderName);
+      }
+    }
+
+    const products: Product[] = await queryBuilder.getMany();
+    if (!products) {
+      throw new HttpException('Products not found', HttpStatus.NOT_FOUND);
+    }
+
+    const total = await queryBuilder.getCount();
+    return {
+      products,
+      pagination: { total, take, skip },
+    };
   }
 
   async findAllSales(lang: string = 'uk'): Promise<any> {
