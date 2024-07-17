@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateBrandDto } from './dto/create-brand.dto';
@@ -16,8 +16,17 @@ export class BrandsService {
     return 'This action adds a new brand';
   }
 
-  async findAll(): Promise<Brand[]> {
-    return await this.brandRepository.find();
+  async findAll(lang: string = 'uk'): Promise<Brand[]> {
+    const brands = await this.brandRepository.find({});
+    if (!brands) {
+      throw new HttpException('Brands not found', HttpStatus.NOT_FOUND);
+    }
+
+    for (const brand of brands) {
+      brand.name = brand?.name[lang];
+    }
+
+    return brands;
   }
 
   async findOne(id: number): Promise<Brand> {

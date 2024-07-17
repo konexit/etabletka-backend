@@ -231,12 +231,33 @@ export class ProductService {
   async findProductById(id: number, lang: string = 'uk'): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id, isActive: true },
-      relations: ['productRemnants'],
+      relations: [
+        'productRemnants',
+        'productRemnants.store',
+        'productType',
+        'categories',
+        'discounts',
+        'badges',
+        'brand',
+      ],
     });
 
     if (!product) {
       throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
     }
+
+    /*** Calculate discountPrice ***/
+    if (product.discounts) {
+      for (const discount of product.discounts) {
+        discount.discountPrice = this.calculateDiscountPrice(
+          product.price,
+          discount.type,
+          discount.value,
+          discount.isActive,
+        );
+      }
+    }
+
     product.name = product?.name[lang];
     product.shortName = product?.shortName[lang];
     return product;
@@ -247,7 +268,6 @@ export class ProductService {
       where: {
         slug,
         isActive: true,
-        // productRemnants: { isActive: true },
       },
       relations: [
         'productRemnants',
@@ -256,6 +276,7 @@ export class ProductService {
         'categories',
         'discounts',
         'badges',
+        'brand',
       ],
     });
 

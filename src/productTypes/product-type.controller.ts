@@ -10,23 +10,23 @@ import {
 import { ProductTypeService } from './product-type.service';
 import { AuthGuard } from '../auth/auth.guard';
 
-@Controller('api/v1/product-types')
+@Controller('api/v1')
 export class ProductTypeController {
   constructor(private readonly productTypeService: ProductTypeService) {}
 
   @UseInterceptors(ClassSerializerInterceptor)
-  @Get()
+  @Get('/product-types')
   async findAll() {
     return await this.productTypeService.findAll();
   }
 
-  @Get(':id')
+  @Get('/product-type/:id')
   async findOne(@Param('id') id: number) {
     return await this.productTypeService.findOne(+id);
   }
 
   @UseGuards(AuthGuard)
-  @Delete(':id')
+  @Delete('/product-type/:id')
   async remove(@Param('id') id: number) {
     return await this.productTypeService.remove(id);
   }

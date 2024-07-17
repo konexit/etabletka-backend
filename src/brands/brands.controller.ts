@@ -14,32 +14,32 @@ import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 import { Brand } from './entities/brand.entity';
 
-@Controller('api/v1/brands')
+@Controller('api/v1')
 @UseInterceptors(ClassSerializerInterceptor)
 export class BrandsController {
   constructor(private readonly brandsService: BrandsService) { }
 
-  @Post()
+  @Post('/brand')
   create(@Body() createBrandDto: CreateBrandDto) {
     return this.brandsService.create(createBrandDto);
   }
 
-  @Get()
+  @Get('/brands')
   async findAll(): Promise<Brand[]> {
     return await this.brandsService.findAll();
   }
 
-  @Get(':id')
+  @Get('/brand/:id')
   async findOne(@Param('id') id: string): Promise<Brand> {
     return await this.brandsService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Patch('/brand/:id')
   update(@Param('id') id: string, @Body() updateBrandDto: UpdateBrandDto) {
     return this.brandsService.update(+id, updateBrandDto);
   }
 
-  @Delete(':id')
+  @Delete('/brand/:id')
   remove(@Param('id') id: string) {
     return this.brandsService.remove(+id);
   }
