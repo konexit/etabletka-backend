@@ -187,7 +187,11 @@ export class CategoriesService {
     return rootNodes;
   }
 
-  private formatModel(categories, idMap, lang) {
+  private formatModel(
+    categories: Category[],
+    idMap: Map<number, FormatCategoryMenuDto>,
+    lang: string = 'uk',
+  ) {
     for (let i = 0; i < categories.length; i++) {
       const category = categories[i];
       const formatCategoryMenuDto = new FormatCategoryMenuDto();
