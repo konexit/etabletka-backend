@@ -35,6 +35,8 @@ export class DiscountGroupService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    return await this.discountGroupRepository.save(discountGroup);
   }
 
   async update(
@@ -63,6 +65,26 @@ export class DiscountGroupService {
     }
 
     return discountGroup;
+  }
+
+  async setStatus(
+    token: string | any[],
+    id: number,
+    lang: string = 'uk',
+  ): Promise<DiscountGroup> {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('No access', HttpStatus.FORBIDDEN);
+    }
+
+    const discountGroup = await this.discountGroupRepository.findOneBy({ id });
+    if (!discountGroup) {
+      throw new HttpException('Discount Group not found', HttpStatus.NOT_FOUND);
+    }
+
+    discountGroup.isActive = !discountGroup.isActive;
+    discountGroup.name = discountGroup.name[lang];
+
+    return this.discountGroupRepository.save(discountGroup);
   }
 
   async getAllDiscountGroupsForUser(lang: string = 'uk') {
@@ -105,5 +127,23 @@ export class DiscountGroupService {
     }
 
     return discountGroups;
+  }
+
+  async getDiscountGroupById(
+    token: string | any[],
+    id: number,
+    lang: string = 'uk',
+  ): Promise<DiscountGroup> {
+    const discountGroup = await this.discountGroupRepository.findOneBy({
+      id,
+    });
+
+    if (!discountGroup) {
+      throw new HttpException('Store not found', HttpStatus.NOT_FOUND);
+    }
+
+    discountGroup.name = discountGroup.name[lang];
+
+    return discountGroup;
   }
 }

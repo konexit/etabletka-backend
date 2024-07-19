@@ -10,13 +10,15 @@ import {
   Post,
   Req,
   UploadedFile,
-  UseInterceptors
-} from "@nestjs/common";
+  UseInterceptors,
+} from '@nestjs/common';
 import { DiscountGroupService } from './discount-group.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { CreateDiscountGroup } from './dto/create-discount-group.dto';
 import { UpdateDiscountGroup } from './dto/update-discount-group.dto';
+import { Store } from '../store/entities/store.entity';
+import { DiscountGroup } from './entities/discount-group.entity';
 
 @Controller('api/v1')
 export class DiscountGroupController {
@@ -38,6 +40,21 @@ export class DiscountGroupController {
       ) {
         try {
           createDiscountGroup.name = JSON.parse(createDiscountGroup.name);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "name" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (
+        createDiscountGroup.isActive &&
+        typeof createDiscountGroup.isActive === 'string'
+      ) {
+        try {
+          createDiscountGroup.isActive =
+            createDiscountGroup.isActive === 'true';
         } catch (error) {
           throw new HttpException(
             'Invalid JSON format in "name" property',
@@ -113,9 +130,29 @@ export class DiscountGroupController {
     return 'No image';
   }
 
+  @Post('/discount-group/:id/status')
+  async setStatus(
+    @Param('id') id: number,
+    @Req() request: Request,
+  ): Promise<DiscountGroup> {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    return await this.discountGroupService.setStatus(token, +id);
+  }
+
   @Get('/discount-groups')
-  async getAllDiscountGroups(@Req() request: Request) {
+  async getAllDiscountGroups(
+    @Req() request: Request,
+  ): Promise<DiscountGroup[]> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
     return await this.discountGroupService.getAllDiscountGroups(token);
+  }
+
+  @Get('/discount-group/:id')
+  async getDiscountGroupById(
+    @Req() request: Request,
+    @Param('id') id: number,
+  ): Promise<DiscountGroup> {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    return await this.discountGroupService.getDiscountGroupById(token, +id);
   }
 }

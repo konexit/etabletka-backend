@@ -8,6 +8,6 @@ export class CreateDiscountGroup {
   slug: string;
 
   @IsOptional()
-  @IsBoolean()
+  @IsString()
   isActive: boolean;
 }
