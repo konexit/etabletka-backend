@@ -71,7 +71,10 @@ export class DiscountGroupService {
     });
 
     if (!discountGroups) {
-      return [];
+      throw new HttpException(
+        'Discount groups not found',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     for (const discountGroup of discountGroups) {
@@ -95,7 +98,10 @@ export class DiscountGroupService {
     const discountGroups = await this.discountGroupRepository.find();
 
     if (!discountGroups) {
-      return [];
+      throw new HttpException(
+        'Discount groups not found',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     return discountGroups;
