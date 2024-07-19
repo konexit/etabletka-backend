@@ -255,6 +255,14 @@ export class ProductService {
           discount.value,
           discount.isActive,
         );
+
+        discount.name = discount.name[lang];
+      }
+    }
+
+    if (product.categories) {
+      for (const category of product.categories) {
+        category.name = category?.name[lang];
       }
     }
 

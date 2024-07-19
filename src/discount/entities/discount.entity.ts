@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Product } from '../../product/entities/product.entity';
+import { DiscountGroup } from '../../discountGroup/entities/discount-group.entity';
 
 @Entity({
   name: 'discounts',
@@ -17,19 +18,10 @@ export class Discount {
   id: number;
 
   @Column({ type: 'json' })
-  title: JSON;
-
-  @Column({ type: 'json', nullable: true })
-  text: JSON;
+  name: JSON;
 
   @Column({ unique: true })
   slug: string;
-
-  @Column({ name: 'badge_title', type: 'json', nullable: true })
-  badgeTitle: JSON;
-
-  @Column({ name: 'badge_color', nullable: true, length: 8 })
-  badgeColor: string;
 
   @Column({ default: 0 })
   type: number;
@@ -65,4 +57,15 @@ export class Discount {
     inverseJoinColumn: { name: 'product_id', referencedColumnName: 'id' },
   })
   products: Product[];
+
+  @ManyToMany(
+    () => DiscountGroup,
+    (discountGroup: DiscountGroup) => discountGroup.discounts,
+  )
+  @JoinTable({
+    name: 'discounts_groups',
+    joinColumn: { name: 'discount_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'discount_id', referencedColumnName: 'id' },
+  })
+  discountGroups: DiscountGroup[];
 }

@@ -28,7 +28,7 @@ export class AnotherPointService {
 
     if (!anotherPoint) {
       throw new HttpException(
-        `Can't create another point with this data: ${createAnotherPoint}`,
+        `Can't create another point with data: ${createAnotherPoint}`,
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -40,7 +40,6 @@ export class AnotherPointService {
     token: string | any[],
     id: number,
     updateAnotherPoint: UpdateAnotherPoint,
-    lang: string = 'uk',
   ) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
@@ -53,11 +52,11 @@ export class AnotherPointService {
 
     await this.anotherPointRepository.update(id, updateAnotherPoint);
     const anotherPoint = await this.anotherPointRepository.findOneBy({
-      id: id,
+      id,
     });
     if (!anotherPoint) {
       throw new HttpException(
-        `Can't update another point with this data: ${updateAnotherPoint}`,
+        `Can't update another point with data: ${updateAnotherPoint}`,
         HttpStatus.BAD_REQUEST,
       );
     }
