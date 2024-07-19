@@ -27,6 +27,6 @@ export class SellType {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(() => Store, (store) => store.storeBrand)
+  @OneToMany(() => Store, (store) => store.sellType)
   stores: Store[];
 }
