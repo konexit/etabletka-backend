@@ -65,7 +65,7 @@ export class Discount {
   @JoinTable({
     name: 'discounts_groups',
     joinColumn: { name: 'discount_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'discount_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'group_id', referencedColumnName: 'id' },
   })
   discountGroups: DiscountGroup[];
 }

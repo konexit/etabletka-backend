@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { dataSourceOptions } from '../db/data-source';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { DiscountGroupModule } from './discountGroup/discount-group.module';
 import { DiscountModule } from './discount/discount.module';
 import { ProductModule } from './product/product.module';
 import { ProductRemnantModule } from './productRemnants/product-remnant.module';
@@ -43,6 +44,7 @@ import { SellTypeModule } from './sellType/sell-type.module';
     AuthModule,
     BadgeModule,
     BannerModule,
+    DiscountGroupModule,
     DiscountModule,
     FaqItemModule,
     PageModule,
