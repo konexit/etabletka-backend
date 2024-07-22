@@ -384,11 +384,11 @@ export class ProductService {
     discountActive: boolean,
   ): number {
     if (productPrice > 0 && discountActive) {
-      if (discountType === 0) {
+      if (discountType === 1) {
         return productPrice - (productPrice * discountValue) / 100;
       }
 
-      if (discountType === 1) {
+      if (discountType === 2) {
         return productPrice - discountValue;
       }
     }

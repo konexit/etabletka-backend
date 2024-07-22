@@ -23,7 +23,8 @@ export class Discount {
   @Column({ unique: true })
   slug: string;
 
-  @Column({ default: 0 })
+  // 1 - is %; 2 - is UAH;
+  @Column({ default: 1 })
   type: number;
 
   @Column({ default: 0, type: 'float' })

@@ -1,7 +1,70 @@
-import { Controller, Get, Param, Res } from '@nestjs/common';
+import {
+  Body,
+  ClassSerializerInterceptor,
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseInterceptors,
+} from '@nestjs/common';
+import slug from 'slug';
 import { DiscountService } from './discount.service';
+import { CreateDiscount } from './dto/create-discount.dto';
+import { Request } from 'express';
 
-@Controller('api/v1/discounts')
+@Controller('api/v1')
 export class DiscountController {
   constructor(private readonly discountService: DiscountService) {}
+
+  @Post('/discount/create')
+  @UseInterceptors(ClassSerializerInterceptor)
+  async create(
+    @Req() request: Request,
+    @Body() createDiscount: CreateDiscount,
+  ) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    console.log('createDiscount', createDiscount);
+    try {
+      if (createDiscount.name && typeof createDiscount.name === 'string') {
+        try {
+          createDiscount.name = JSON.parse(createDiscount.name);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "name" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        if (!createDiscount.slug) {
+          createDiscount.slug = slug(createDiscount.name['uk']);
+        }
+
+        if (
+          createDiscount.isActive &&
+          typeof createDiscount.isActive === 'string'
+        ) {
+          createDiscount.isActive = createDiscount.isActive === 'true';
+        }
+
+        return await this.discountService.create(token, createDiscount);
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Patch('/discount/update/:id')
+  async update() {
+    return 'Updated';
+  }
+
+  @Get('/discounts')
+  async getAllDiscounts(@Req() request: Request) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    return await this.discountService.getAllDiscounts(token);
+  }
 }

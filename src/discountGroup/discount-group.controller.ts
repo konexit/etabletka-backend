@@ -17,7 +17,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { CreateDiscountGroup } from './dto/create-discount-group.dto';
 import { UpdateDiscountGroup } from './dto/update-discount-group.dto';
-import { Store } from '../store/entities/store.entity';
 import { DiscountGroup } from './entities/discount-group.entity';
 
 @Controller('api/v1')
@@ -52,15 +51,7 @@ export class DiscountGroupController {
         createDiscountGroup.isActive &&
         typeof createDiscountGroup.isActive === 'string'
       ) {
-        try {
-          createDiscountGroup.isActive =
-            createDiscountGroup.isActive === 'true';
-        } catch (error) {
-          throw new HttpException(
-            'Invalid JSON format in "name" property',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
+        createDiscountGroup.isActive = createDiscountGroup.isActive === 'true';
       }
 
       const discountGroup = await this.discountGroupService.create(

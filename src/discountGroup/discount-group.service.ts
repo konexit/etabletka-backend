@@ -31,7 +31,7 @@ export class DiscountGroupService {
       this.discountGroupRepository.create(createDiscountGroup);
     if (!discountGroup) {
       throw new HttpException(
-        `Can't create discount group point with data: ${createDiscountGroup}`,
+        `Can't create discount group with data: ${createDiscountGroup}`,
         HttpStatus.BAD_REQUEST,
       );
     }
