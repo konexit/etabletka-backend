@@ -29,6 +29,6 @@ export class CreateDiscount {
   @IsOptional()
   discountGroups: [];
 
-  // @IsOptional()
-  // products: [];
+  @IsOptional()
+  products: [];
 }

@@ -103,7 +103,7 @@ export class DiscountService {
 
     /** Admin **/
     const discounts: Discount[] = await this.discountRepository.find({
-      relations: ['discountGroups'],
+      relations: ['discountGroups', 'products'],
     });
     if (!discounts) {
       throw new HttpException('Discounts not found', HttpStatus.NOT_FOUND);

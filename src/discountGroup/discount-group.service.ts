@@ -137,9 +137,11 @@ export class DiscountGroupService {
     const discountGroup = await this.discountGroupRepository.findOneBy({
       id,
     });
-
     if (!discountGroup) {
-      throw new HttpException('Store not found', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        'Discount groups not found',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     discountGroup.name = discountGroup.name[lang];
