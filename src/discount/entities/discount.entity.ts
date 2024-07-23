@@ -53,7 +53,7 @@ export class Discount {
 
   @ManyToMany(() => Product, (product) => product.discounts)
   @JoinTable({
-    name: 'product_discounts',
+    name: 'discounts_products',
     joinColumn: { name: 'discount_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'product_id', referencedColumnName: 'id' },
   })

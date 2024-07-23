@@ -11,7 +11,7 @@ import {
   Req,
   UseInterceptors,
 } from '@nestjs/common';
-import slug from 'slug';
+import slugify from 'slugify';
 import { DiscountService } from './discount.service';
 import { CreateDiscount } from './dto/create-discount.dto';
 import { Request } from 'express';
@@ -27,7 +27,6 @@ export class DiscountController {
     @Body() createDiscount: CreateDiscount,
   ) {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
-    console.log('createDiscount', createDiscount);
     try {
       if (createDiscount.name && typeof createDiscount.name === 'string') {
         try {
@@ -39,8 +38,8 @@ export class DiscountController {
           );
         }
 
-        if (!createDiscount.slug) {
-          createDiscount.slug = slug(createDiscount.name['uk']);
+        if (createDiscount.slug === '') {
+          createDiscount.slug = slugify(createDiscount.name['uk']);
         }
 
         if (
@@ -66,5 +65,11 @@ export class DiscountController {
   async getAllDiscounts(@Req() request: Request) {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
     return await this.discountService.getAllDiscounts(token);
+  }
+
+  @Get('/discount/:id')
+  async getDiscountById(@Req() request: Request, @Param('id') id: number) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    return await this.discountService.getDiscountById(token, +id);
   }
 }

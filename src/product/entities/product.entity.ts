@@ -142,15 +142,15 @@ export class Product {
   })
   badges: Badge[];
 
-  @ManyToMany(() => Discount, (discount) => discount.products)
+  @ManyToMany(() => Discount, (discount: Discount) => discount.products)
   @JoinTable({
-    name: 'product_discounts',
+    name: 'discounts_products',
     joinColumn: { name: 'product_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'discount_id', referencedColumnName: 'id' },
   })
   discounts: Discount[];
 
-  @ManyToMany(() => Category, (categories) => categories.products)
+  @ManyToMany(() => Category, (categories: Category) => categories.products)
   @JoinTable({
     name: 'products_categories',
     joinColumn: { name: 'product_id', referencedColumnName: 'id' },

@@ -1,9 +1,4 @@
-import {
-  IsDate,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateDiscount {
   @IsString()
@@ -19,15 +14,21 @@ export class CreateDiscount {
   @IsNumber()
   value: number;
 
-  @IsString()
+  @IsBoolean()
   @IsOptional()
   isActive: boolean;
 
-  @IsDate()
+  @IsString()
   @IsOptional()
   publishStart: Date;
 
-  @IsDate()
+  @IsString()
   @IsOptional()
   publishEnd: Date;
+
+  @IsOptional()
+  discountGroups: [];
+
+  // @IsOptional()
+  // products: [];
 }
