@@ -107,11 +107,7 @@ export class Category {
   @Exclude()
   updatedAt: Date;
 
-  @ManyToMany(() => Product, (products) => products.categories)
-  @JoinTable({
-    name: 'products_categories',
-    // joinColumn: { name: 'category_id', referencedColumnName: 'id' },
-    // inverseJoinColumn: { name: 'product_id', referencedColumnName: 'id' },
-  })
+  @ManyToMany(() => Product)
+  @JoinTable()
   products: Product[];
 }

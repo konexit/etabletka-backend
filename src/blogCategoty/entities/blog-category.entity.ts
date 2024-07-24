@@ -43,11 +43,7 @@ export class BlogCategory {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @ManyToMany(() => BlogPost, (blogPost) => blogPost.categories)
-  @JoinTable({
-    name: 'blog_posts_categories',
-    // joinColumn: { name: 'category_id', referencedColumnName: 'id' },
-    // inverseJoinColumn: { name: 'post_id', referencedColumnName: 'id' },
-  })
+  @ManyToMany(() => BlogPost)
+  @JoinTable()
   posts: BlogPost[];
 }

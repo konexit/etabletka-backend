@@ -37,11 +37,7 @@ export class DiscountGroup {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @ManyToMany(() => Discount, (discount) => discount.discountGroups)
-  @JoinTable({
-    name: 'discounts_groups',
-    // joinColumn: { name: 'group_id', referencedColumnName: 'id' },
-    // inverseJoinColumn: { name: 'discount_id', referencedColumnName: 'id' },
-  })
+  @ManyToMany(() => Discount)
+  @JoinTable()
   discounts: Discount[];
 }

@@ -16,7 +16,7 @@ export class DiscountService {
     private jwtService: JwtService,
   ) {}
 
-  async addDiscountGroup(ids: Array<number>, discount: Discount) {
+  async addDiscountGroup(ids: Array<number>) {
     console.log('discountGroups', ids);
     const discountGroups = await this.discountGroupRepository.find({
       where: { id: In(ids) },
@@ -27,7 +27,8 @@ export class DiscountService {
         HttpStatus.NOT_FOUND,
       );
     }
-    discount.discountGroups = discountGroups;
+
+    return discountGroups;
   }
 
   async create(
@@ -55,7 +56,8 @@ export class DiscountService {
       const ids: Array<number> = String(createDiscount.discountGroups)
         .split(',')
         .map(Number);
-      await this.addDiscountGroup(ids, discount);
+
+      discount.discountGroups = await this.addDiscountGroup(ids);
     }
 
     const discountUpd: Discount = await this.discountRepository.save(discount);

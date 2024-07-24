@@ -84,11 +84,7 @@ export class BlogPost {
   @JoinColumn({ name: 'id', referencedColumnName: 'post_id' })
   blogComments: BlogComment[];
 
-  @ManyToMany(() => BlogCategory, (blogCategory) => blogCategory.posts)
-  @JoinTable({
-    name: 'blog_posts_categories',
-    // joinColumn: { name: 'post_id', referencedColumnName: 'id' },
-    // inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' },
-  })
+  @ManyToMany(() => BlogCategory)
+  @JoinTable()
   categories: BlogCategory[];
 }

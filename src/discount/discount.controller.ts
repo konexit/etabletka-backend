@@ -32,7 +32,6 @@ export class DiscountController {
     @Body() createDiscount: CreateDiscount,
   ) {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
-    console.log('createDiscount', createDiscount);
     try {
       if (createDiscount.name && typeof createDiscount.name === 'string') {
         try {
