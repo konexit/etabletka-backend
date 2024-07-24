@@ -40,8 +40,8 @@ export class DiscountGroup {
   @ManyToMany(() => Discount, (discount) => discount.discountGroups)
   @JoinTable({
     name: 'discounts_groups',
-    joinColumn: { name: 'group_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'discount_id', referencedColumnName: 'id' },
+    // joinColumn: { name: 'group_id', referencedColumnName: 'id' },
+    // inverseJoinColumn: { name: 'discount_id', referencedColumnName: 'id' },
   })
   discounts: Discount[];
 }

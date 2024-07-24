@@ -34,8 +34,8 @@ export class Badge {
   @ManyToMany(() => Product, (product) => product.badges)
   @JoinTable({
     name: 'product_badges',
-    joinColumn: { name: 'badge_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'product_id', referencedColumnName: 'id' },
+    // joinColumn: { name: 'badge_id', referencedColumnName: 'id' },
+    // inverseJoinColumn: { name: 'product_id', referencedColumnName: 'id' },
   })
   products: Product[];
 }

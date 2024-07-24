@@ -137,24 +137,24 @@ export class Product {
   @ManyToMany(() => Badge, (badge) => badge.products)
   @JoinTable({
     name: 'product_badges',
-    joinColumn: { name: 'product_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'badge_id', referencedColumnName: 'id' },
+    // joinColumn: { name: 'product_id', referencedColumnName: 'id' },
+    // inverseJoinColumn: { name: 'badge_id', referencedColumnName: 'id' },
   })
   badges: Badge[];
 
   @ManyToMany(() => Discount, (discount: Discount) => discount.products)
   @JoinTable({
     name: 'discounts_products',
-    joinColumn: { name: 'product_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'discount_id', referencedColumnName: 'id' },
+    // joinColumn: { name: 'product_id', referencedColumnName: 'id' },
+    // inverseJoinColumn: { name: 'discount_id', referencedColumnName: 'id' },
   })
   discounts: Discount[];
 
   @ManyToMany(() => Category, (categories: Category) => categories.products)
   @JoinTable({
     name: 'products_categories',
-    joinColumn: { name: 'product_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' },
+    // joinColumn: { name: 'product_id', referencedColumnName: 'id' },
+    // inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' },
   })
   categories: Category[];
 }

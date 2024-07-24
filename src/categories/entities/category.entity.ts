@@ -110,8 +110,8 @@ export class Category {
   @ManyToMany(() => Product, (products) => products.categories)
   @JoinTable({
     name: 'products_categories',
-    joinColumn: { name: 'category_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'product_id', referencedColumnName: 'id' },
+    // joinColumn: { name: 'category_id', referencedColumnName: 'id' },
+    // inverseJoinColumn: { name: 'product_id', referencedColumnName: 'id' },
   })
   products: Product[];
 }

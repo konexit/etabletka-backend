@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Discount } from './entities/discount.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateDiscount } from './dto/create-discount.dto';
 import { JwtService } from '@nestjs/jwt';
 import { DiscountGroup } from '../discountGroup/entities/discount-group.entity';
@@ -16,22 +16,18 @@ export class DiscountService {
     private jwtService: JwtService,
   ) {}
 
-  async addDiscountGroup(discountGroups: [], discount: Discount) {
-    // const discount: Discount = await this.discountRepository.findOneBy({
-    //   id: discountId,
-    // });
-    if (discount) {
-      for (const discountGroupId of discountGroups) {
-        console.log('discountGroupId', discountGroupId);
-        const discountGroup = await this.discountGroupRepository.findOne({
-          where: { id: discountGroupId },
-        });
-        if (discountGroup) {
-          discount.discountGroups.push(discountGroup);
-          await this.discountRepository.save(discount);
-        }
-      }
+  async addDiscountGroup(ids: Array<number>, discount: Discount) {
+    console.log('discountGroups', ids);
+    const discountGroups = await this.discountGroupRepository.find({
+      where: { id: In(ids) },
+    });
+    if (discountGroups.length !== discountGroups.length) {
+      throw new HttpException(
+        'One or more discount groups not found',
+        HttpStatus.NOT_FOUND,
+      );
     }
+    discount.discountGroups = discountGroups;
   }
 
   async create(
@@ -47,23 +43,25 @@ export class DiscountService {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
 
-    const discountData = this.discountRepository.create(createDiscount);
-    if (!discountData) {
+    const discount = this.discountRepository.create(createDiscount);
+    if (!discount) {
       throw new HttpException(
         `Can't create discount  with data: ${createDiscount}`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    const discount = await this.discountRepository.save(discountData);
-
     if (createDiscount.discountGroups) {
-      await this.addDiscountGroup(createDiscount.discountGroups, discount);
+      const ids: Array<number> = String(createDiscount.discountGroups)
+        .split(',')
+        .map(Number);
+      await this.addDiscountGroup(ids, discount);
     }
 
+    const discountUpd: Discount = await this.discountRepository.save(discount);
     return await this.discountRepository.findOne({
-      where: { id: discount.id },
-      relations: ['discountGroups'],
+      where: { id: discountUpd.id },
+      relations: ['discountGroups', 'products'],
     });
   }
 
@@ -125,7 +123,7 @@ export class DiscountService {
   async getAllDiscountsForUser(lang: string = 'uk') {
     const discounts: Discount[] = await this.discountRepository.find({
       where: { isActive: true },
-      relations: ['discountGroups'],
+      relations: ['discountGroups', 'products'],
     });
 
     for (const discount of discounts) {
@@ -163,7 +161,7 @@ export class DiscountService {
   ) {
     const discount = await this.discountRepository.findOne({
       where: { id },
-      relations: ['discountGroups'],
+      relations: ['discountGroups', 'products'],
     });
     if (!discount) {
       throw new HttpException('Discount not found', HttpStatus.NOT_FOUND);

@@ -9,13 +9,15 @@ import {
   Patch,
   Post,
   Req,
+  UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import slugify from 'slugify';
 import { DiscountService } from './discount.service';
 import { CreateDiscount } from './dto/create-discount.dto';
 import { Request } from 'express';
-import { Discount } from "./entities/discount.entity";
+import { Discount } from './entities/discount.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('api/v1')
 export class DiscountController {
@@ -23,11 +25,14 @@ export class DiscountController {
 
   @Post('/discount/create')
   @UseInterceptors(ClassSerializerInterceptor)
+  @UseInterceptors(FileInterceptor('image', {}))
   async create(
     @Req() request: Request,
+    @UploadedFile() image: Express.Multer.File,
     @Body() createDiscount: CreateDiscount,
   ) {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
+    console.log('createDiscount', createDiscount);
     try {
       if (createDiscount.name && typeof createDiscount.name === 'string') {
         try {
@@ -38,20 +43,32 @@ export class DiscountController {
             HttpStatus.BAD_REQUEST,
           );
         }
-
-        if (createDiscount.slug === '') {
-          createDiscount.slug = slugify(createDiscount.name['uk']);
-        }
-
-        if (
-          createDiscount.isActive &&
-          typeof createDiscount.isActive === 'string'
-        ) {
-          createDiscount.isActive = createDiscount.isActive === 'true';
-        }
-
-        return await this.discountService.create(token, createDiscount);
       }
+
+      if (!createDiscount.slug)
+        createDiscount.slug = slugify(createDiscount.name['uk']);
+
+      if (
+        createDiscount.isActive &&
+        typeof createDiscount.isActive === 'string'
+      ) {
+        createDiscount.isActive = createDiscount.isActive === 'true';
+      }
+
+      if (createDiscount.type && typeof createDiscount.type === 'string') {
+        createDiscount.type = +createDiscount.type;
+      }
+
+      if (createDiscount.value && typeof createDiscount.value === 'string') {
+        createDiscount.value = +createDiscount.value;
+      }
+
+      if (image) {
+        // TODO: add image to CDN and fill cdnData, get new data for entity
+        console.log(`Image uploaded: ${image.originalname}`);
+      }
+
+      return await this.discountService.create(token, createDiscount);
     } catch (error) {
       throw error;
     }
@@ -60,6 +77,24 @@ export class DiscountController {
   @Patch('/discount/update/:id')
   async update() {
     return 'Updated';
+  }
+
+  @Post('/discount/update/:id/image')
+  @UseInterceptors(FileInterceptor('image', {}))
+  async updateImage(
+    @Req() request: Request,
+    @Param('id') id: number,
+    @UploadedFile() image: Express.Multer.File,
+  ) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+
+    // TODO: Upload file to CDN
+    if (image) {
+      console.log(`Image uploaded: ${image.originalname}`);
+      return 'Image has received';
+    }
+
+    return 'No image';
   }
 
   @Post('/discount/:id/status')

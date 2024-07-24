@@ -109,6 +109,9 @@ export class DiscountGroupService {
     const discountGroups = await this.discountGroupRepository.find({
       where: { isActive: true },
       relations: ['discounts'],
+      order: {
+        id: 'ASC',
+      },
     });
 
     if (!discountGroups) {
@@ -138,6 +141,9 @@ export class DiscountGroupService {
     /** Admin **/
     const discountGroups = await this.discountGroupRepository.find({
       relations: ['discounts'],
+      order: {
+        id: 'ASC',
+      },
     });
 
     if (!discountGroups) {
