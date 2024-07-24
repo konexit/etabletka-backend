@@ -23,6 +23,9 @@ export class Discount {
   @Column({ unique: true })
   slug: string;
 
+  @Column({ name: 'cdn_data', type: 'json', nullable: true })
+  cdnData: JSON;
+
   // 1 - is %; 2 - is UAH;
   @Column({ default: 1 })
   type: number;

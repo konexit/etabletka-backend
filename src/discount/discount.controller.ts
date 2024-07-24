@@ -15,6 +15,7 @@ import slugify from 'slugify';
 import { DiscountService } from './discount.service';
 import { CreateDiscount } from './dto/create-discount.dto';
 import { Request } from 'express';
+import { Discount } from "./entities/discount.entity";
 
 @Controller('api/v1')
 export class DiscountController {
@@ -61,8 +62,17 @@ export class DiscountController {
     return 'Updated';
   }
 
+  @Post('/discount/:id/status')
+  async setStatus(
+    @Param('id') id: number,
+    @Req() request: Request,
+  ): Promise<Discount> {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    return await this.discountService.setStatus(token, +id);
+  }
+
   @Get('/discounts')
-  async getAllDiscounts(@Req() request: Request) {
+  async getAllDiscounts(@Req() request: Request): Promise<Discount[]> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
     return await this.discountService.getAllDiscounts(token);
   }

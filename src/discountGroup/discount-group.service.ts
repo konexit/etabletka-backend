@@ -76,20 +76,39 @@ export class DiscountGroupService {
       throw new HttpException('No access', HttpStatus.FORBIDDEN);
     }
 
-    const discountGroup = await this.discountGroupRepository.findOneBy({ id });
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const discountGroup = await this.discountGroupRepository.findOne({
+      where: { id },
+    });
     if (!discountGroup) {
       throw new HttpException('Discount Group not found', HttpStatus.NOT_FOUND);
     }
 
     discountGroup.isActive = !discountGroup.isActive;
-    discountGroup.name = discountGroup.name[lang];
+    await this.discountGroupRepository.save(discountGroup);
 
-    return this.discountGroupRepository.save(discountGroup);
+    const updDiscountGroup = await this.discountGroupRepository.findOne({
+      where: { id },
+      relations: ['discounts'],
+    });
+    updDiscountGroup.name = updDiscountGroup.name[lang];
+    if (updDiscountGroup.discounts) {
+      for (const discount of updDiscountGroup.discounts) {
+        discount.name = discount.name[lang];
+      }
+    }
+
+    return updDiscountGroup;
   }
 
   async getAllDiscountGroupsForUser(lang: string = 'uk') {
     const discountGroups = await this.discountGroupRepository.find({
       where: { isActive: true },
+      relations: ['discounts'],
     });
 
     if (!discountGroups) {
@@ -117,7 +136,9 @@ export class DiscountGroupService {
     }
 
     /** Admin **/
-    const discountGroups = await this.discountGroupRepository.find();
+    const discountGroups = await this.discountGroupRepository.find({
+      relations: ['discounts'],
+    });
 
     if (!discountGroups) {
       throw new HttpException(

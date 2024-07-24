@@ -22,7 +22,7 @@ export class DiscountService {
     // });
     if (discount) {
       for (const discountGroupId of discountGroups) {
-        console.log("discountGroupId", discountGroupId);
+        console.log('discountGroupId', discountGroupId);
         const discountGroup = await this.discountGroupRepository.findOne({
           where: { id: discountGroupId },
         });
@@ -76,6 +76,50 @@ export class DiscountService {
     if (payload.roleId !== 1) {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
+  }
+
+  async setStatus(
+    token: string | any[],
+    id: number,
+    lang: string = 'uk',
+  ): Promise<Discount> {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('No access', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const discount = await this.discountRepository.findOne({
+      where: { id },
+    });
+    if (!discount) {
+      throw new HttpException('Discount not found', HttpStatus.NOT_FOUND);
+    }
+
+    discount.isActive = !discount.isActive;
+    await this.discountRepository.save(discount);
+
+    const updDiscount = await this.discountRepository.findOne({
+      where: { id },
+      relations: ['discountGroups', 'products'],
+    });
+
+    updDiscount.name = updDiscount.name[lang];
+    if (updDiscount.discountGroups) {
+      for (const discountGroup of updDiscount.discountGroups) {
+        discountGroup.name = discountGroup.name[lang];
+      }
+    }
+    if (updDiscount.products) {
+      for (const product of updDiscount.products) {
+        product.name = product.name[lang];
+      }
+    }
+
+    return updDiscount;
   }
 
   async getAllDiscountsForUser(lang: string = 'uk') {
