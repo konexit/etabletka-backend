@@ -94,7 +94,7 @@ export class AnotherPointService {
       order: { id: 'ASC' },
     });
     if (!anotherPoints) {
-      throw new HttpException('Can`t get another points', HttpStatus.NOT_FOUND);
+      return [];
     }
     return anotherPoints;
   }

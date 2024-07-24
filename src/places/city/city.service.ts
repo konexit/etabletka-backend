@@ -86,6 +86,28 @@ export class CityService {
     return city;
   }
 
+  async getCitiesWithStoresForUser(lang: string = 'uk') {
+    const cacheCitiesWithStores = await this.cacheManager.get(
+      this.cacheCitiesKey,
+    );
+    if (cacheCitiesWithStores) {
+      return cacheCitiesWithStores;
+    }
+
+    const citiesWithStores = await this.citiesWithStores(lang);
+    if (!citiesWithStores) {
+      throw new HttpException('Cities not found', HttpStatus.NOT_FOUND);
+    }
+
+    await this.cacheManager.set(
+      this.cacheCitiesKey,
+      citiesWithStores,
+      this.cacheCitiesTTL,
+    );
+
+    return await this.cacheManager.get(this.cacheCitiesKey);
+  }
+
   async getCitiesWithStores(
     token: string | any[],
     pagination: PaginationDto = {},
@@ -93,33 +115,11 @@ export class CityService {
     lang: string = 'uk',
   ): Promise<any> {
     if (!token || typeof token !== 'string') {
-      const cacheCitiesWithStores = await this.cacheManager.get(
-        this.cacheCitiesKey,
-      );
-      if (cacheCitiesWithStores) {
-        return cacheCitiesWithStores;
-      }
-
-      const citiesWithStores = await this.citiesWithStores(lang);
-      if (!citiesWithStores) {
-        throw new HttpException('Cities not found', HttpStatus.NOT_FOUND);
-      }
-
-      await this.cacheManager.set(
-        this.cacheCitiesKey,
-        citiesWithStores,
-        this.cacheCitiesTTL,
-      );
-
-      return [];
+      return await this.getCitiesWithStoresForUser(lang);
     } else {
       const payload = await this.jwtService.decode(token);
       if (payload.roleId !== 1) {
-        const citiesWithStores = await this.citiesWithStores(lang);
-        if (!citiesWithStores) {
-          throw new HttpException('Cities not found', HttpStatus.NOT_FOUND);
-        }
-        return citiesWithStores;
+        return await this.getCitiesWithStoresForUser(lang);
       }
 
       const { take = 16, skip = 0 } = pagination;
@@ -130,6 +130,13 @@ export class CityService {
         .addSelect('CAST(COUNT(stores.id) AS int)', 'storeCount')
         .groupBy('stores.city_id')
         .getRawMany();
+
+      if (storeCounts.length === 0) {
+        return {
+          cities: [],
+          pagination: { total: 0, take, skip },
+        };
+      }
 
       const cityIds = storeCounts.map((r) => r.cityId);
       if (cityIds) {
@@ -155,7 +162,10 @@ export class CityService {
 
         const cities: City[] = await queryBuilder.getMany();
         if (!cities) {
-          throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
+          return {
+            cities,
+            pagination: { total: 0, take, skip },
+          };
         }
 
         cities.forEach((city) => {
