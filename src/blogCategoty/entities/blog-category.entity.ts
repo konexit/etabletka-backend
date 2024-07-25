@@ -44,6 +44,8 @@ export class BlogCategory {
   updatedAt: Date;
 
   @ManyToMany(() => BlogPost)
-  @JoinTable()
+  @JoinTable({
+    name: 'cross_blog_categories_posts',
+  })
   posts: BlogPost[];
 }

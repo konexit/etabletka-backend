@@ -135,14 +135,20 @@ export class Product {
   brand: Brand;
 
   @ManyToMany(() => Badge)
-  @JoinTable()
+  @JoinTable({
+    name: 'cross_badges_products',
+  })
   badges: Badge[];
 
   @ManyToMany(() => Discount)
-  @JoinTable()
+  @JoinTable({
+    name: 'cross_discounts_products',
+  })
   discounts: Discount[];
 
   @ManyToMany(() => Category)
-  @JoinTable()
+  @JoinTable({
+    name: 'cross_categories_products',
+  })
   categories: Category[];
 }

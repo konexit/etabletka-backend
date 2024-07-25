@@ -38,6 +38,8 @@ export class DiscountGroup {
   updatedAt: Date;
 
   @ManyToMany(() => Discount)
-  @JoinTable()
+  @JoinTable({
+    name: 'cross_discounts_groups',
+  })
   discounts: Discount[];
 }

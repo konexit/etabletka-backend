@@ -32,6 +32,8 @@ export class Badge {
   updatedAt: Date;
 
   @ManyToMany(() => Product)
-  @JoinTable()
+  @JoinTable({
+    name: 'cross_badges_products',
+  })
   products: Product[];
 }

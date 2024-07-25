@@ -108,6 +108,8 @@ export class Category {
   updatedAt: Date;
 
   @ManyToMany(() => Product)
-  @JoinTable()
+  @JoinTable({
+    name: 'cross_categories_products',
+  })
   products: Product[];
 }

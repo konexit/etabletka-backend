@@ -85,6 +85,8 @@ export class BlogPost {
   blogComments: BlogComment[];
 
   @ManyToMany(() => BlogCategory)
-  @JoinTable()
+  @JoinTable({
+    name: 'cross_blog_categories_posts',
+  })
   categories: BlogCategory[];
 }
