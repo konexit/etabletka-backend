@@ -18,6 +18,7 @@ import { CreateDiscount } from './dto/create-discount.dto';
 import { Request } from 'express';
 import { Discount } from './entities/discount.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateDiscount } from './dto/update-discount.dto';
 
 @Controller('api/v1')
 export class DiscountController {
@@ -74,8 +75,47 @@ export class DiscountController {
   }
 
   @Patch('/discount/update/:id')
-  async update() {
-    return 'Updated';
+  async update(
+    @Req() request: Request,
+    @Param('id') id: number,
+    @Body() updateDiscount: UpdateDiscount,
+  ) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+
+    try {
+      if (updateDiscount.name && typeof updateDiscount.name === 'string') {
+        try {
+          updateDiscount.name = JSON.parse(updateDiscount.name);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "name" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (!updateDiscount.slug && updateDiscount.name)
+        updateDiscount.slug = slugify(updateDiscount.name['uk']);
+
+      if (
+        updateDiscount.isActive &&
+        typeof updateDiscount.isActive === 'string'
+      ) {
+        updateDiscount.isActive = updateDiscount.isActive === 'true';
+      }
+
+      if (updateDiscount.type && typeof updateDiscount.type === 'string') {
+        updateDiscount.type = +updateDiscount.type;
+      }
+
+      if (updateDiscount.value && typeof updateDiscount.value === 'string') {
+        updateDiscount.value = +updateDiscount.value;
+      }
+
+      return await this.discountService.update(token, +id, updateDiscount);
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Post('/discount/update/:id/image')

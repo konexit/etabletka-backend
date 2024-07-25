@@ -10,9 +10,11 @@ export class UpdateDiscount {
   slug: string;
 
   @IsNumber()
+  @IsOptional()
   type: number;
 
   @IsNumber()
+  @IsOptional()
   value: number;
 
   @IsBoolean()
