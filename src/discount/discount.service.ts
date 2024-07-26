@@ -198,6 +198,13 @@ export class DiscountService {
 
     for (const discount of discounts) {
       discount.name = discount.name[lang];
+      for (const discountGroup of discount.discountGroups) {
+        discountGroup.name = discountGroup.name[lang];
+      }
+      for (const product of discount.products) {
+        product.name = product.name[lang];
+        if (product.shortName) product.shortName = product.shortName[lang];
+      }
     }
 
     return discounts;
@@ -238,6 +245,13 @@ export class DiscountService {
     }
 
     discount.name = discount.name[lang];
+    for (const discountGroup of discount.discountGroups) {
+      discountGroup.name = discountGroup.name[lang];
+    }
+    for (const product of discount.products) {
+      product.name = product.name[lang];
+      if (product.shortName) product.shortName = product.shortName[lang];
+    }
 
     return discount;
   }
