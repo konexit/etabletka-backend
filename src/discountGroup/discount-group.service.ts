@@ -107,7 +107,7 @@ export class DiscountGroupService {
 
   async getAllDiscountGroupsForUser(lang: string = 'uk') {
     const discountGroups = await this.discountGroupRepository.find({
-      where: { isActive: true },
+      where: { isActive: true, discounts: { isActive: true } },
       relations: ['discounts'],
       order: {
         id: 'ASC',
@@ -123,6 +123,9 @@ export class DiscountGroupService {
 
     for (const discountGroup of discountGroups) {
       discountGroup.name = discountGroup.name[lang];
+      for (const discount of discountGroup.discounts) {
+        discount.name = discount.name[lang];
+      }
     }
 
     return discountGroups;
@@ -161,8 +164,9 @@ export class DiscountGroupService {
     id: number,
     lang: string = 'uk',
   ): Promise<DiscountGroup> {
-    const discountGroup = await this.discountGroupRepository.findOneBy({
-      id,
+    const discountGroup = await this.discountGroupRepository.findOne({
+      where: { id },
+      relations: ['discounts'],
     });
     if (!discountGroup) {
       throw new HttpException(
@@ -172,6 +176,9 @@ export class DiscountGroupService {
     }
 
     discountGroup.name = discountGroup.name[lang];
+    for (const discount of discountGroup.discounts) {
+      discount.name = discount.name[lang];
+    }
 
     return discountGroup;
   }

@@ -7,11 +7,11 @@ import {
   HttpStatus,
   Param,
   Patch,
-  Post,
+  Post, Query,
   Req,
   UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
+  UseInterceptors
+} from "@nestjs/common";
 import { DiscountGroupService } from './discount-group.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
