@@ -111,6 +111,9 @@ export class Product {
   @Column({ name: 'morion_code', default: 0 })
   morionCode: number;
 
+  @Column({ type: 'json', nullable: true })
+  attributes: JSON;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
