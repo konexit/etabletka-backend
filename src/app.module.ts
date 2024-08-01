@@ -33,6 +33,7 @@ import { BlogPostModule } from './blogPost/blog-post.module';
 import { BlogCommentModule } from './blogComment/blog-comment.module';
 import { StoreBrandModule } from './storeBrand/store-brand.module';
 import { SellTypeModule } from './sellType/sell-type.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { SellTypeModule } from './sellType/sell-type.module';
     BlogPostModule,
     BlogCommentModule,
     SellTypeModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

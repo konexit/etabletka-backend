@@ -1,0 +1,8 @@
+import { IsNotEmpty, IsString, Length } from 'class-validator';
+
+export class SearchDto {
+  @IsNotEmpty()
+  @Length(2, 255)
+  @IsString()
+  text: string;
+}

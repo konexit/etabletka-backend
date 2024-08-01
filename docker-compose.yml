@@ -32,6 +32,18 @@ services:
       retries: 3
       timeout: 5s
 
+  etab-meilisearch:
+    image: getmeili/meilisearch:v1.9
+    container_name: etab-meilisearch-backend
+    restart: always
+    ports:
+      - 7700:7700
+    environment:
+      MEILI_MASTER_KEY: '1AovuXGwTo93HgerTuo7wr2'
+    networks:
+      - web
+    volumes:
+      - ./docker/meilisearch_data:/data.ms
 
 networks:
   web:
