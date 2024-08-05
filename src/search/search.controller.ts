@@ -4,7 +4,7 @@ import { SearchDto } from './dto/search.dto';
 
 @Controller('api/v1')
 export class SearchController {
-  constructor(private readonly searchService: SearchService) { }
+  constructor(private readonly searchService: SearchService) {}
 
   @Post('/search')
   async getSearch(@Body() search: SearchDto) {
@@ -14,9 +14,7 @@ export class SearchController {
   }
 
   @Post('/search/make-index')
-  async makeIndex(
-    @Query('name') name?: string,
-  ) {
+  async makeIndex(@Query('name') name?: string) {
     return await this.searchService.makeIndex(name ?? 'products');
   }
 }
