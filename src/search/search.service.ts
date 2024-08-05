@@ -51,6 +51,8 @@ export class SearchService {
         'id', id,
         'sync_id', sync_id,
         'name', name->>'${lang}',
+        'rating', rating,
+        'category_path', attributes->'category_path'->>'path',
         'price', price) || (SELECT json_object_agg(key, value->>'slug') FROM jsonb_each(attributes) AS kv(key, value) WHERE (value->>'filter')::boolean = false
       )::jsonb AS p
       FROM products
