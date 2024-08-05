@@ -64,6 +64,7 @@ export class SearchService {
         'id', id,
         'sync_id', sync_id,
         'name', name->>'${lang}',
+        'isActive', active,
         'img', 'https://etabletka.ua/img/no-photo.png',
         'rating', rating,
         'category_path', attributes->'category_path'->>'path',
@@ -75,7 +76,7 @@ export class SearchService {
 
     if (!products) {
       throw new HttpException(
-        'Product with this syncId does not exist',
+        'Products does not exist',
         HttpStatus.NOT_FOUND,
       );
     }
