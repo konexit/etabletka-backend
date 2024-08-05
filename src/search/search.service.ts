@@ -51,6 +51,7 @@ export class SearchService {
         'id', id,
         'sync_id', sync_id,
         'name', name->>'${lang}',
+        'isActive', active,
         'rating', rating,
         'category_path', attributes->'category_path'->>'path',
         'price', price) || (SELECT json_object_agg(key, value->>'slug') FROM jsonb_each(attributes) AS kv(key, value) WHERE (value->>'filter')::boolean = false
@@ -61,7 +62,7 @@ export class SearchService {
 
     if (!products) {
       throw new HttpException(
-        'Product with this syncId does not exist',
+        'Products does not exist',
         HttpStatus.NOT_FOUND,
       );
     }
