@@ -11,6 +11,10 @@ export class CreateProductGroup {
   @IsString()
   name: string;
 
+  @IsString()
+  @IsOptional()
+  slug: string;
+
   @IsOptional()
   @IsBoolean()
   root: boolean;

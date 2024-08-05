@@ -9,6 +9,7 @@ import {
   Req,
   UseInterceptors,
 } from '@nestjs/common';
+import slugify from 'slugify';
 import { ProductGroupService } from './product-group.service';
 import { CreateProductGroup } from './dto/create-product-group.dto';
 import { Request } from 'express';
@@ -24,6 +25,10 @@ export class ProductGroupController {
     @Body() createProductGroup: CreateProductGroup,
   ) {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
+
+    if (!createProductGroup.slug)
+      createProductGroup.slug = slugify(createProductGroup.name);
+
     return await this.productGroupService.create(token, createProductGroup);
   }
 

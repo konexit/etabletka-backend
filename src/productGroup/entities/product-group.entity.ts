@@ -19,6 +19,9 @@ export class ProductGroup {
   @Column({ length: 200, unique: true })
   name: string;
 
+  @Column({ length: 50, unique: true })
+  slug: string;
+
   @Column({ default: false })
   root: boolean;
 
