@@ -38,7 +38,7 @@ import { SearchModule } from './search/search.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['.env', '.env.local'],
+      envFilePath: ['.env', '.env.local', '/var/www/etabletka.ua/api/dist/src/.env'],
       isGlobal: true,
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
