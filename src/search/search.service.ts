@@ -1,10 +1,12 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MeiliSearch, SearchParams } from 'meilisearch';
+import { MeiliSearch, SearchParams, SearchResponse, CategoriesDistribution, FacetStats } from 'meilisearch';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from '../product/entities/product.entity';
 import { Repository } from 'typeorm';
-
+import { FacetSearchFilterDto, Filter } from './dto/facet-search-filters.dto';
+import * as facetSearchMap from './facet-search-map.json'; //todo import from db
+import { isEmpty } from './utils';
 // Documentation:  https://www.npmjs.com/package/meilisearch
 @Injectable()
 export class SearchService {
@@ -25,8 +27,8 @@ export class SearchService {
         ID 18 - Відпуск за рецептом 
         ID 19 - Температура зберігання
       */
-      filterableAttr: ['sync_id', '2', '3', '5', '6', '10', '14', '18', '19'], //todo dynamic config this attr
-      facetAttr: ['2', '3', '5', '6', '10', '14', '18', '19'],
+      filterableAttr: ['sync_id', '2', '3', '5', '6', '10', '14', '18', '19', 'price'], //todo dynamic config this attr
+      facetAttr: ['2', '3', '5', '6', '10', '14', '18', '19', 'price'],
     },
   };
 
@@ -93,6 +95,13 @@ export class SearchService {
       .search(text, searchParams);
   }
 
+  async facetSearch(text: string, searchParams?: SearchParams) {
+    return this.createFacetFilters(
+      await this.client
+        .index(this.indexesConfig.products.name)
+        .search(text, searchParams));
+  }
+
   getFacetFilter(index: string = 'products'): string[] {
     return this.indexesConfig[index].facetAttr;
   }
@@ -130,5 +139,46 @@ export class SearchService {
       this.logger.error('Error adding documents:', error);
       throw error;
     }
+  }
+
+  private createFacetFilters(res: SearchResponse): FacetSearchFilterDto {
+    return {
+      filters: Object
+        .keys(res.facetDistribution)
+        .reduce((acc, key) => {
+          if (isEmpty(res.facetDistribution[key])) return acc;
+          acc.push(this.createFilter(key, res.facetDistribution[key], res.facetStats));
+          return acc;
+        }, [])
+        .sort((a, b) => a.order - b.order),
+      products: res.hits,
+      limit: res.limit,
+      offset: res.offset,
+      estimatedTotalHits: res.estimatedTotalHits,
+      query: res.query
+    };
+  }
+
+  private createFilter(key: string, values: CategoriesDistribution, facetStats: FacetStats): Filter {
+    const filter: Filter = facetSearchMap.filter[key];
+    return {
+      api: '',
+      name: filter.name,
+      order: filter.order,
+      alias: filter.alias,
+      type: filter.type,
+      values: filter.type == 'range' ? Object.assign({
+        name: facetSearchMap.values[key] ?? key,
+        alias: key,
+      }, facetStats[key]) : Object
+        .keys(values)
+        .map((item) => {
+          return {
+            name: facetSearchMap.values[item] ?? item,
+            alias: item,
+            count: values[item]
+          };
+        })
+    };
   }
 }

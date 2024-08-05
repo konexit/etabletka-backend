@@ -1,0 +1,69 @@
+{
+	"filter": {
+		"2": {
+			"order": 1,
+			"name": "Форма випуску",
+			"type": "checkbox",
+			"alias":"production-form"
+		},
+		"3": {
+			"order": 2,
+			"name": "Кількість в упаковці",
+			"type": "checkbox",
+			"alias":"quantity"
+		},
+		"5": {
+			"order": 3,
+			"name": "Первинна упаковка",
+			"type": "checkbox",
+			"alias":"primary-packaging"
+		},
+		"6": {
+			"order": 4,
+			"name": "Кількість первинних упаковок",
+			"type": "checkbox",
+			"alias":"quantity-primary-packaging"
+		},
+		"10": {
+			"order": 5,
+			"name": "Упаковка",
+			"type": "checkbox",
+			"alias":"package"
+		},
+		"14": {
+			"order": 6,
+			"name": "Розмір",
+			"type": "checkbox",
+			"alias":"size"
+		},
+		"18": {
+			"order": 7,
+			"name": "Відпуск за рецептом",
+			"type": "checkbox",
+			"alias":"prescription"
+		},
+		"19": {
+			"order": 8,
+			"name": "Температура зберігання",
+			"type": "checkbox",
+			"alias":"storage-temperature"
+		},
+		"price": {
+			"order": 0,
+			"name": "Ціна",
+			"type": "range",
+			"alias":"price"
+		}
+	},
+	"values": {
+		"kapsuly": "капсули",
+		"price": "ціна",
+		"klipsa": "кліпса",
+		"shampun": "шамунь",
+		"tabletky": "таблетки",
+		"tak": "так",
+		"ni": "ні",
+		"pach": "пачка",
+		"blister": "блістер"
+	}
+}

@@ -15,10 +15,11 @@ export class SearchController {
 
   @Post('/facet-search')
   async getFacetSearch(@Body() search: SearchDto) {
-    return this.searchService.search(search.text, {
+    return this.searchService.facetSearch(search.text, {
       attributesToRetrieve: ['id', 'img', 'rating', 'name', 'category_path', 'price'],
       limit: 16,
-      facets: this.searchService.getFacetFilter()
+      facets: this.searchService.getFacetFilter(),
+      filter: []
     });
   }
 
