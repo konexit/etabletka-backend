@@ -93,9 +93,9 @@ export class AnotherPointService {
     const anotherPoints = await this.anotherPointRepository.find({
       order: { id: 'ASC' },
     });
-    if (!anotherPoints) {
-      return [];
-    }
+
+    if (!anotherPoints) return [];
+
     return anotherPoints;
   }
 

@@ -16,6 +16,7 @@ import { ProductType } from '../../productTypes/entities/product-type.entity';
 import { Badge } from '../../badge/entities/badge.entity';
 import { Discount } from '../../discount/entities/discount.entity';
 import { Brand } from '../../brands/entities/brand.entity';
+import { ProductGroup } from '../../productGroup/entities/product-group.entity';
 
 @Entity({
   name: 'products',
@@ -154,4 +155,10 @@ export class Product {
     name: 'cross_categories_products',
   })
   categories: Category[];
+
+  @ManyToMany(() => ProductGroup)
+  @JoinTable({
+    name: 'cross_groups_products',
+  })
+  productGroups: ProductGroup[];
 }

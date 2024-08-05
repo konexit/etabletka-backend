@@ -34,11 +34,16 @@ import { BlogCommentModule } from './blogComment/blog-comment.module';
 import { StoreBrandModule } from './storeBrand/store-brand.module';
 import { SellTypeModule } from './sellType/sell-type.module';
 import { SearchModule } from './search/search.module';
+import { ProductGroupModule } from './productGroup/product-group.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['.env', '.env.local', '/var/www/etabletka.ua/api/dist/src/.env'],
+      envFilePath: [
+        '.env',
+        '.env.local',
+        '/var/www/etabletka.ua/api/dist/src/.env',
+      ],
       isGlobal: true,
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
@@ -52,6 +57,7 @@ import { SearchModule } from './search/search.module';
     ProductModule,
     ProductTypeModule,
     ProductRemnantModule,
+    ProductGroupModule,
     CityModule,
     AnotherPointModule,
     CommunityModule,

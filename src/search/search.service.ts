@@ -26,8 +26,8 @@ export class SearchService {
         ID 19 - Температура зберігання
       */
       filterableAttr: ['sync_id', '2', '3', '5', '6', '10', '14', '18', '19'], //todo dynamic config this attr
-      facetAttr: ['2', '3', '5', '6', '10', '14', '18', '19']
-    }
+      facetAttr: ['2', '3', '5', '6', '10', '14', '18', '19'],
+    },
   };
 
   constructor(
@@ -75,10 +75,7 @@ export class SearchService {
     );
 
     if (!products) {
-      throw new HttpException(
-        'Products does not exist',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException('Products does not exist', HttpStatus.NOT_FOUND);
     }
 
     const productsToIndex = products.map((product) => product.p);
@@ -107,7 +104,9 @@ export class SearchService {
     );
 
     if (!indexExists) {
-      await this.client.createIndex(indexConfig.name, { primaryKey: indexConfig.primaryKey });
+      await this.client.createIndex(indexConfig.name, {
+        primaryKey: indexConfig.primaryKey,
+      });
       this.logger.log(
         `Index "${indexConfig.name}" created with primary key "${indexConfig.primaryKey}", attributes: searcheble[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}]`,
       );
