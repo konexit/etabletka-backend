@@ -10,7 +10,25 @@ import { Repository } from 'typeorm';
 export class SearchService {
   private readonly logger = new Logger(SearchService.name);
   private client: MeiliSearch;
-  private productIndex = 'products';
+  private indexesConfig: IndexesConfig = {
+    products: {
+      name: 'products',
+      primaryKey: 'id',
+      searchableAttr: ['name', 'sync_id'],
+      /*
+        ID  2 - Форма випуску
+        ID  3 - Кількість в упаковці
+        ID  5 - Первинна упаковка
+        ID  6 - Кількість первинних упаковок
+        ID 10 - Упаковка
+        ID 14 - Розмір
+        ID 18 - Відпуск за рецептом 
+        ID 19 - Температура зберігання
+      */
+      filterableAttr: ['sync_id', '2', '3', '5', '6', '10', '14', '18', '19'], //todo dynamic config this attr
+      facetAttr: ['2', '3', '5', '6', '10', '14', '18', '19']
+    }
+  };
 
   constructor(
     @InjectRepository(Product)
@@ -21,19 +39,14 @@ export class SearchService {
       host: this.configService.get('MEILISEARCH_HOST'),
       apiKey: this.configService.get('MEILISEARCH_KEY'),
     });
-    this.createIndexIfNotExists(
-      this.productIndex,
-      'id',
-      ['name', 'sync_id'],
-      ['sync_id'],
-    );
-    this.makeIndex(this.productIndex);
+    this.createIndexIfNotExists(this.indexesConfig.products);
+    this.makeIndex(this.indexesConfig.products.name);
   }
 
   async makeIndex(index: string, lang: string = 'uk') {
     let document: Array<any> = [];
     switch (index) {
-      case this.productIndex:
+      case this.indexesConfig.products.name:
         document = await this.makeProductIndex(lang);
         break;
       default:
@@ -51,6 +64,7 @@ export class SearchService {
         'id', id,
         'sync_id', sync_id,
         'name', name->>'${lang}',
+        'img', 'https://etabletka.ua/img/no-photo.png',
         'rating', rating,
         'category_path', attributes->'category_path'->>'path',
         'price', price) || (SELECT json_object_agg(key, value->>'slug') FROM jsonb_each(attributes) AS kv(key, value) WHERE (value->>'filter')::boolean = false
@@ -77,34 +91,33 @@ export class SearchService {
     if (!isNaN(Number(text)))
       Object.assign(searchParams, { filter: [`sync_id = ${text}`] });
     return await this.client
-      .index(this.productIndex)
+      .index(this.indexesConfig.products.name)
       .search(text, searchParams);
   }
 
-  private async createIndexIfNotExists(
-    indexName: string,
-    primaryKey: string,
-    searchableAttr: string[],
-    filterableAttr: string[],
-  ) {
+  getFacetFilter(index: string = 'products'): string[] {
+    return this.indexesConfig[index].facetAttr;
+  }
+
+  private async createIndexIfNotExists(indexConfig: IndexConfig) {
     const indexes = await this.client.getIndexes();
     const indexExists = indexes.results.some(
-      (index) => index.uid === indexName,
+      (index) => index.uid === indexConfig.name,
     );
 
     if (!indexExists) {
-      await this.client.createIndex(indexName, { primaryKey });
+      await this.client.createIndex(indexConfig.name, { primaryKey: indexConfig.primaryKey });
       this.logger.log(
-        `Index "${indexName}" created with primary key "${primaryKey}", attributes: searcheble[${searchableAttr}] filterable[${filterableAttr}]`,
+        `Index "${indexConfig.name}" created with primary key "${indexConfig.primaryKey}", attributes: searcheble[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}]`,
       );
     } else {
       this.logger.log(
-        `Index "${indexName}" already exists, attributes: searcheble[${searchableAttr}] filterable[${filterableAttr}]`,
+        `Index "${indexConfig.name}" already exists, attributes: searcheble[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}]`,
       );
     }
-    const index = this.client.index(indexName);
-    await index.updateSearchableAttributes(searchableAttr);
-    await index.updateFilterableAttributes(filterableAttr);
+    const index = this.client.index(indexConfig.name);
+    await index.updateSearchableAttributes(indexConfig.searchableAttr);
+    await index.updateFilterableAttributes(indexConfig.filterableAttr);
   }
 
   private async addDocumentsToIndex(
