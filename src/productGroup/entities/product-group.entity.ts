@@ -10,7 +10,7 @@ import {
 import { Product } from '../../product/entities/product.entity';
 
 @Entity({
-  name: 'product_group',
+  name: 'product_groups',
 })
 export class ProductGroup {
   @PrimaryGeneratedColumn()
@@ -25,7 +25,7 @@ export class ProductGroup {
   @Column({ default: false })
   root: boolean;
 
-  @Column({ name: 'parent_id', default: 0 })
+  @Column({ name: 'parent_id', default: null })
   parentId: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
