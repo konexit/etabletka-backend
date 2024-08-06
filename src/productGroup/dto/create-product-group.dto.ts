@@ -1,5 +1,4 @@
 import {
-  IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -16,7 +15,7 @@ export class CreateProductGroup {
   slug: string;
 
   @IsOptional()
-  @IsBoolean()
+  @IsString()
   root: boolean;
 
   @IsOptional()

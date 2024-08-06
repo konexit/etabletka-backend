@@ -25,10 +25,14 @@ export class ProductGroupController {
     @Req() request: Request,
     @Body() createProductGroup: CreateProductGroup,
   ) {
+    console.log('CreateProductGroup', createProductGroup);
     const token = request.headers.authorization?.split(' ')[1] ?? [];
 
     if (!createProductGroup.slug)
       createProductGroup.slug = slugify(createProductGroup.name);
+
+    if (createProductGroup.root && typeof createProductGroup.root === 'string')
+      createProductGroup.root = createProductGroup.root === 'true';
 
     return await this.productGroupService.create(token, createProductGroup);
   }
@@ -42,6 +46,12 @@ export class ProductGroupController {
   ) {
     try {
       const token = request.headers.authorization?.split(' ')[1] ?? [];
+
+      if (
+        updateProductGroup.root &&
+        typeof updateProductGroup.root === 'string'
+      )
+        updateProductGroup.root = updateProductGroup.root === 'true';
 
       return await this.productGroupService.update(
         token,
