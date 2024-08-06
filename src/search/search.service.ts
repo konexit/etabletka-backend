@@ -4,9 +4,10 @@ import { MeiliSearch, SearchParams, SearchResponse, CategoriesDistribution, Face
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from '../product/entities/product.entity';
 import { Repository } from 'typeorm';
-import { FacetSearchFilterDto, Filter } from './dto/facet-search-filters.dto';
+import { FacetSearchFilterDto, Filter, FilterValues, TypeUI } from './dto/facet-search-filters.dto';
 import * as facetSearchMap from './facet-search-map.json'; //todo import from db
 import { isEmpty } from './utils';
+import { SearchDto } from './dto/search.dto';
 // Documentation:  https://www.npmjs.com/package/meilisearch
 @Injectable()
 export class SearchService {
@@ -95,11 +96,11 @@ export class SearchService {
       .search(text, searchParams);
   }
 
-  async facetSearch(text: string, searchParams?: SearchParams) {
-    return this.createFacetFilters(
+  async facetSearch(search: SearchDto, searchParams?: SearchParams) {
+    return this.createFacetFilters(search.lang,
       await this.client
         .index(this.indexesConfig.products.name)
-        .search(text, searchParams));
+        .search(search.text, searchParams));
   }
 
   getFacetFilter(index: string = 'products'): string[] {
@@ -117,11 +118,11 @@ export class SearchService {
         primaryKey: indexConfig.primaryKey,
       });
       this.logger.log(
-        `Index "${indexConfig.name}" created with primary key "${indexConfig.primaryKey}", attributes: searcheble[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}]`,
+        `Index '${indexConfig.name}' created with primary key '${indexConfig.primaryKey}', attributes: searcheble[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}]`,
       );
     } else {
       this.logger.log(
-        `Index "${indexConfig.name}" already exists, attributes: searcheble[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}]`,
+        `Index '${indexConfig.name}' already exists, attributes: searcheble[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}]`,
       );
     }
     const index = this.client.index(indexConfig.name);
@@ -141,13 +142,13 @@ export class SearchService {
     }
   }
 
-  private createFacetFilters(res: SearchResponse): FacetSearchFilterDto {
+  private createFacetFilters(lang: string, res: SearchResponse): FacetSearchFilterDto {
     return {
       filters: Object
         .keys(res.facetDistribution)
         .reduce((acc, key) => {
           if (isEmpty(res.facetDistribution[key])) return acc;
-          acc.push(this.createFilter(key, res.facetDistribution[key], res.facetStats));
+          acc.push(this.createFilter(lang, key, res.facetDistribution[key], res.facetStats));
           return acc;
         }, [])
         .sort((a, b) => a.order - b.order),
@@ -159,26 +160,46 @@ export class SearchService {
     };
   }
 
-  private createFilter(key: string, values: CategoriesDistribution, facetStats: FacetStats): Filter {
-    const filter: Filter = facetSearchMap.filter[key];
+  private createFilter(lang: string, key: string, values: CategoriesDistribution, facetStats: FacetStats): Filter {
+    const filter: Filter = facetSearchMap.attributes[key];
+    let filterValues: FilterValues = [];
+
+    switch (filter.typeUI) {
+      case TypeUI.Checkbox:
+        filterValues = Object
+          .keys(values)
+          .map((item) => {
+            return {
+              name: this.getFilterValueName(lang, item),
+              alias: item,
+              count: values[item]
+            };
+          })
+        break;
+      case TypeUI.Range:
+        filterValues = Object
+          .assign({
+            name: this.getFilterValueName(lang, key),
+            alias: key,
+          }, facetStats[key])
+        break;
+      default:
+        this.logger.warn(
+          `facet-filter not support typeUI '${filter.typeUI}'`,
+        );
+    }
+
     return {
-      api: '',
-      name: filter.name,
+      api: 'https://etabletka.ua', //todo migrate to .env
+      name: filter.name[lang] ?? filter.alias,
       order: filter.order,
       alias: filter.alias,
-      type: filter.type,
-      values: filter.type == 'range' ? Object.assign({
-        name: facetSearchMap.values[key] ?? key,
-        alias: key,
-      }, facetStats[key]) : Object
-        .keys(values)
-        .map((item) => {
-          return {
-            name: facetSearchMap.values[item] ?? item,
-            alias: item,
-            count: values[item]
-          };
-        })
+      typeUI: filter.typeUI,
+      values: filterValues
     };
+  }
+
+  private getFilterValueName(lang: string, key: string): string {
+    return (facetSearchMap.attributesValue[key] && facetSearchMap.attributesValue[key][lang]) ?? key;
   }
 }

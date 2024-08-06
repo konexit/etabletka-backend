@@ -1,69 +1,123 @@
 {
-	"filter": {
+	"attributes": {
 		"2": {
 			"order": 1,
-			"name": "Форма випуску",
-			"type": "checkbox",
-			"alias":"production-form"
+			"name": {
+				"uk": "Форма випуску"
+			},
+			"typeUI": "checkboxs",
+			"alias": "production-form",
+			"type": "import",
+			"values": []
 		},
 		"3": {
 			"order": 2,
-			"name": "Кількість в упаковці",
-			"type": "checkbox",
-			"alias":"quantity"
+			"name": {
+				"uk": "Кількість в упаковці"
+			},
+			"typeUI": "checkbox",
+			"alias": "quantity",
+			"type": "import",
+			"values": []
 		},
 		"5": {
 			"order": 3,
-			"name": "Первинна упаковка",
-			"type": "checkbox",
-			"alias":"primary-packaging"
+			"name": {
+				"uk": "Первинна упаковка"
+			},
+			"typeUI": "checkbox",
+			"alias": "primary-packaging",
+			"type": "import",
+			"values": []
 		},
 		"6": {
 			"order": 4,
-			"name": "Кількість первинних упаковок",
-			"type": "checkbox",
-			"alias":"quantity-primary-packaging"
+			"name": {
+				"uk": "Кількість первинних упаковок"
+			},
+			"typeUI": "checkbox",
+			"alias": "quantity-primary-packaging",
+			"type": "import",
+			"values": []
 		},
 		"10": {
 			"order": 5,
-			"name": "Упаковка",
-			"type": "checkbox",
-			"alias":"package"
+			"name": {
+				"uk": "Упаковка"
+			},
+			"typeUI": "checkbox",
+			"alias": "package",
+			"type": "import",
+			"values": []
 		},
 		"14": {
 			"order": 6,
-			"name": "Розмір",
-			"type": "checkbox",
-			"alias":"size"
+			"name": {
+				"uk": "Розмір"
+			},
+			"typeUI": "checkbox",
+			"alias": "size",
+			"type": "import",
+			"values": []
 		},
 		"18": {
 			"order": 7,
-			"name": "Відпуск за рецептом",
-			"type": "checkbox",
-			"alias":"prescription"
+			"name": {
+				"uk": "Відпуск за рецептом"
+			},
+			"typeUI": "checkbox",
+			"alias": "prescription",
+			"type": "import",
+			"values": []
 		},
 		"19": {
 			"order": 8,
-			"name": "Температура зберігання",
-			"type": "checkbox",
-			"alias":"storage-temperature"
+			"name": {
+				"uk": "Температура зберігання"
+			},
+			"typeUI": "checkbox",
+			"alias": "storage-temperature",
+			"type": "import",
+			"values": []
 		},
 		"price": {
 			"order": 0,
-			"name": "Ціна",
-			"type": "range",
-			"alias":"price"
+			"name": {
+				"uk": "Ціна"
+			},
+			"typeUI": "range",
+			"alias": "price",
+			"type": "import",
+			"values": []
 		}
 	},
-	"values": {
-		"kapsuly": "капсули",
-		"price": "ціна",
-		"klipsa": "кліпса",
-		"shampun": "шамунь",
-		"tabletky": "таблетки",
-		"tak": "так",
-		"ni": "ні",
-		"pach": "пачка",
-		"blister": "блістер"
+	"attributesValue": {
+		"kapsuly": {
+			"uk": "капсули"
+		},
+		"price": {
+			"uk": "ціна"
+		},
+		"klipsa": {
+			"uk": "кліпса"
+		},
+		"shampun": {
+			"uk": "шамунь"
+		},
+		"tabletky": {
+			"uk": "таблетки"
+		},
+		"tak": {
+			"uk": "так"
+		},
+		"ni": {
+			"uk": "ні"
+		},
+		"pach": {
+			"uk": "пачка"
+		},
+		"blister": {
+			"uk": "блістер"
+		}
 	}
 }
