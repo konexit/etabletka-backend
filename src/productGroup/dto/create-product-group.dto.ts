@@ -1,6 +1,5 @@
 import {
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -19,6 +18,10 @@ export class CreateProductGroup {
   root: boolean;
 
   @IsOptional()
-  @IsNumber()
+  @IsString()
   parentId: number;
+
+  @IsOptional()
+  @IsString()
+  products: [];
 }

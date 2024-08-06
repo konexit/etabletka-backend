@@ -18,4 +18,7 @@ export class UpdateProductGroup {
   @IsOptional()
   @IsNumber()
   parentId: number;
+
+  @IsOptional()
+  products: [];
 }

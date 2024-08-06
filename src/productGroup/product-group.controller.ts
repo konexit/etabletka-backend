@@ -31,13 +31,22 @@ export class ProductGroupController {
     if (!createProductGroup.slug)
       createProductGroup.slug = slugify(createProductGroup.name);
 
+    if (!createProductGroup.slug)
+      createProductGroup.slug = slugify(createProductGroup.name);
+
+    if (
+      createProductGroup.parentId &&
+      typeof createProductGroup.parentId === 'string'
+    )
+      createProductGroup.parentId = +createProductGroup.parentId;
+
     if (createProductGroup.root && typeof createProductGroup.root === 'string')
       createProductGroup.root = createProductGroup.root === 'true';
 
     return await this.productGroupService.create(token, createProductGroup);
   }
 
-  @Patch('/product-group/update')
+  @Patch('/product-group/update/:id')
   @UseInterceptors(ClassSerializerInterceptor)
   async update(
     @Req() request: Request,

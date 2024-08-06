@@ -123,7 +123,6 @@ export class DiscountService {
       discount.discountGroups = [];
     }
 
-
     if (discountProductIds) {
       if (!Array.isArray(discountProductIds)) {
         const ids: Array<number> = String(discountProductIds)
