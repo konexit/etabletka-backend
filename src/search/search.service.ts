@@ -1,13 +1,14 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { MeiliSearch, SearchParams, SearchResponse, CategoriesDistribution, FacetStats } from 'meilisearch';
+import { HttpException, HttpStatus, Injectable, Logger, Inject } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from '../product/entities/product.entity';
 import { Repository } from 'typeorm';
-import { FacetSearchFilterDto, Filter, FilterValues, TypeUI } from './dto/facet-search-filters.dto';
-import * as facetSearchMap from './facet-search-map.json'; //todo import from db
-import { isEmpty } from './utils';
+import { Product } from '../product/entities/product.entity';
+import { FacetSearchFilterDto, Filter, TypeUI } from './dto/facet-search-filters.dto';
 import { SearchDto } from './dto/search.dto';
+import { isEmpty } from './utils';
 // Documentation:  https://www.npmjs.com/package/meilisearch
 @Injectable()
 export class SearchService {
@@ -37,6 +38,8 @@ export class SearchService {
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
     private configService: ConfigService,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {
     this.client = new MeiliSearch({
       host: this.configService.get('MEILISEARCH_HOST'),
@@ -97,7 +100,7 @@ export class SearchService {
   }
 
   async facetSearch(search: SearchDto, searchParams?: SearchParams) {
-    return this.createFacetFilters(search.lang,
+    return await this.createFacetFilters(search.lang,
       await this.client
         .index(this.indexesConfig.products.name)
         .search(search.text, searchParams));
@@ -142,13 +145,17 @@ export class SearchService {
     }
   }
 
-  private createFacetFilters(lang: string, res: SearchResponse): FacetSearchFilterDto {
+  private async createFacetFilters(lang: string, res: SearchResponse): Promise<FacetSearchFilterDto> {
+    const facetSearchMap: Search.FacetSearchMap = {
+      attributes: await this.cacheManager.get('product_attributes') ?? {},
+      attributesValue: await this.cacheManager.get('product_attributes_value') ?? {}
+    };
     return {
       filters: Object
         .keys(res.facetDistribution)
         .reduce((acc, key) => {
           if (isEmpty(res.facetDistribution[key])) return acc;
-          acc.push(this.createFilter(lang, key, res.facetDistribution[key], res.facetStats));
+          acc.push(this.createFilter(lang, key, res.facetDistribution[key], res.facetStats, facetSearchMap));
           return acc;
         }, [])
         .sort((a, b) => a.order - b.order),
@@ -160,9 +167,10 @@ export class SearchService {
     };
   }
 
-  private createFilter(lang: string, key: string, values: CategoriesDistribution, facetStats: FacetStats): Filter {
+  private createFilter(lang: string, key: string, values: CategoriesDistribution, facetStats: FacetStats, facetSearchMap: Search.FacetSearchMap): Filter {
     const filter: Filter = facetSearchMap.attributes[key];
-    let filterValues: FilterValues = [];
+    if (!filter) return new Filter();
+    let filterValues: Search.FilterValues = [];
 
     switch (filter.typeUI) {
       case TypeUI.Checkbox:
@@ -170,7 +178,7 @@ export class SearchService {
           .keys(values)
           .map((item) => {
             return {
-              name: this.getFilterValueName(lang, item),
+              name: this.getFilterValueName(lang, item, facetSearchMap),
               alias: item,
               count: values[item]
             };
@@ -179,7 +187,7 @@ export class SearchService {
       case TypeUI.Range:
         filterValues = Object
           .assign({
-            name: this.getFilterValueName(lang, key),
+            name: this.getFilterValueName(lang, key, facetSearchMap),
             alias: key,
           }, facetStats[key])
         break;
@@ -199,7 +207,7 @@ export class SearchService {
     };
   }
 
-  private getFilterValueName(lang: string, key: string): string {
+  private getFilterValueName(lang: string, key: string, facetSearchMap: Search.FacetSearchMap): string {
     return (facetSearchMap.attributesValue[key] && facetSearchMap.attributesValue[key][lang]) ?? key;
   }
 }
