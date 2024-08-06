@@ -169,7 +169,12 @@ export class SearchService {
 
   private createFilter(lang: string, key: string, values: CategoriesDistribution, facetStats: FacetStats, facetSearchMap: Search.FacetSearchMap): Filter {
     const filter: Filter = facetSearchMap.attributes[key];
-    if (!filter) return new Filter();
+    if (!filter) {
+      this.logger.warn(
+        `facet-filter key '${key}' not found in facetSearchMap, may be problems importing it from db table 'site_options'`,
+      );
+      return new Filter();
+    }
     let filterValues: Search.FilterValues = [];
 
     switch (filter.typeUI) {
