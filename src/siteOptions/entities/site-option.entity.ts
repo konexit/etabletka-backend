@@ -22,6 +22,9 @@ export class SiteOption {
   @Column({ type: 'text', nullable: true })
   value: string;
 
+  @Column({ type: 'jsonb', nullable: true })
+  json: JSON;
+
   @Column({ length: 125 })
   type: string;
 
