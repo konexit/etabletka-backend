@@ -98,4 +98,12 @@ export class ProductGroupService {
 
     return productGroups;
   }
+
+  async getProductGroupById(id) {
+    const productGroup = await this.productGroupRepository.findOneBy({ id });
+    if (!productGroup) {
+      throw new HttpException('Can`t get product group', HttpStatus.NOT_FOUND);
+    }
+    return productGroup;
+  }
 }

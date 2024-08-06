@@ -14,6 +14,7 @@ import { ProductGroupService } from './product-group.service';
 import { CreateProductGroup } from './dto/create-product-group.dto';
 import { Request } from 'express';
 import { UpdateProductGroup } from './dto/update-product-group.dto';
+import { ProductGroup } from './entities/product-group.entity';
 @Controller('api/v1')
 export class ProductGroupController {
   constructor(private readonly productGroupService: ProductGroupService) {}
@@ -55,5 +56,10 @@ export class ProductGroupController {
   @Get('/product-groups')
   async getProductGroups() {
     return await this.productGroupService.getProductGroups();
+  }
+
+  @Get('/product-group/:id')
+  async getProductGroupById(@Param('id') id: number): Promise<ProductGroup> {
+    return await this.productGroupService.getProductGroupById(+id);
   }
 }
