@@ -5,4 +5,6 @@ export class SearchDto {
   @Length(2, 255)
   @IsString()
   text: string;
+  lang?: string;
+  limit?: number;
 }

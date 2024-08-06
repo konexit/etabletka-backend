@@ -1,12 +1,19 @@
 import { Hits } from 'meilisearch';
 
+export type FilterValues = FilterCheckBoxValue[] | FilterRangeValue;
+
+export enum TypeUI {
+  Checkbox = 'checkbox',
+  Range = 'range'
+}
+
 export class Filter {
   api: string;
   name: string;
   order: number;
   alias: string;
-  type: 'range' | 'checkbox';
-  values: FilterCheckBoxValue[] | FilterRangeValue;
+  typeUI: TypeUI;
+  values: FilterValues;
 }
 
 class FilterCheckBoxValue {

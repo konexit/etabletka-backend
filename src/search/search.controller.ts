@@ -1,6 +1,12 @@
-import { Body, Controller, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Query
+} from '@nestjs/common';
 import { SearchService } from './search.service';
 import { SearchDto } from './dto/search.dto';
+import { FacetSearchFilterDto } from './dto/facet-search-filters.dto';
 
 @Controller('api/v1')
 export class SearchController {
@@ -14,10 +20,10 @@ export class SearchController {
   }
 
   @Post('/facet-search')
-  async getFacetSearch(@Body() search: SearchDto) {
-    return this.searchService.facetSearch(search.text, {
+  async getFacetSearch(@Body() search: SearchDto): Promise<FacetSearchFilterDto> {
+    return this.searchService.facetSearch(search, {
       attributesToRetrieve: ['id', 'img', 'rating', 'name', 'category_path', 'price'],
-      limit: 16,
+      limit: search.limit,
       facets: this.searchService.getFacetFilter(),
       filter: []
     });
