@@ -14,7 +14,9 @@ export class SiteOptionService {
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private jwtService: JwtService,
-  ) {}
+  ) {
+    this.initFacetSearchMap()
+  }
 
   cacheSiteOptionsKey: string = 'siteOptions';
   cacheSiteOptionsTTL: number = 3600000; // 1Hour
@@ -42,5 +44,15 @@ export class SiteOptionService {
     );
 
     return siteOptions;
+  }
+
+  private async initFacetSearchMap() {
+    const { json: { attributes, attributesValue } } = await this.siteOptionRepositary.findOne({
+      select: ['json'],
+      where: { key: 'product_attributes_map' },
+    });
+
+    await this.cacheManager.set('product_attributes', attributes);
+    await this.cacheManager.set('product_attributes_value', attributesValue);
   }
 }

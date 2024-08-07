@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { CacheModule } from '@nestjs/cache-manager';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -46,6 +47,10 @@ import { ProductGroupModule } from './productGroup/product-group.module';
       ],
       isGlobal: true,
     }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 0
+    }),
     TypeOrmModule.forRoot(dataSourceOptions),
     AuthModule,
     BadgeModule,
@@ -82,4 +87,4 @@ import { ProductGroupModule } from './productGroup/product-group.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

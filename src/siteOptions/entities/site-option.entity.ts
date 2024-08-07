@@ -23,7 +23,7 @@ export class SiteOption {
   value: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  json: JSON;
+  json: Record<string, any>;
 
   @Column({ length: 125 })
   type: string;
