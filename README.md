@@ -9,6 +9,9 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Swagger
+[API](http://localhost:3000/api) use your DOMAIN name
+
 ## Docker start
 ```bash
 $ docker-compose up --build -d
