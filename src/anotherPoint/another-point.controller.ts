@@ -17,7 +17,9 @@ import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateAnotherPoint } from './dto/create-another-point.dto';
 import { UpdateAnotherPoint } from './dto/update-another-point.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('another-point')
 @Controller('api/v1')
 export class AnotherPointController {
   constructor(private readonly anotherPointService: AnotherPointService) {}

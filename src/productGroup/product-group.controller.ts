@@ -15,6 +15,9 @@ import { CreateProductGroup } from './dto/create-product-group.dto';
 import { Request } from 'express';
 import { UpdateProductGroup } from './dto/update-product-group.dto';
 import { ProductGroup } from './entities/product-group.entity';
+import { ApiTags } from '@nestjs/swagger';
+
+@ApiTags('product-groups')
 @Controller('api/v1')
 export class ProductGroupController {
   constructor(private readonly productGroupService: ProductGroupService) {}

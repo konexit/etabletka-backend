@@ -2,7 +2,9 @@ import { Controller, Get, Param, Req } from '@nestjs/common';
 import { PageService } from './page.service';
 import { Request } from 'express';
 import { Page } from './entities/page.entity';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('pages')
 @Controller('api/v1')
 export class PageController {
   constructor(private readonly pageService: PageService) {}

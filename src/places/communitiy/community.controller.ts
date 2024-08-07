@@ -9,7 +9,9 @@ import {
 import { CommunityService } from './community.service';
 import { Request } from 'express';
 import { Community } from './entities/community.entity';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('communities')
 @Controller('api/v1/communities')
 export class CommunityController {
   constructor(private readonly communityService: CommunityService) {}

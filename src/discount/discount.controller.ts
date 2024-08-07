@@ -19,7 +19,9 @@ import { Request } from 'express';
 import { Discount } from './entities/discount.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateDiscount } from './dto/update-discount.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('discounts')
 @Controller('api/v1')
 export class DiscountController {
   constructor(private readonly discountService: DiscountService) {}

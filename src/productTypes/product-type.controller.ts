@@ -9,7 +9,9 @@ import {
 } from '@nestjs/common';
 import { ProductTypeService } from './product-type.service';
 import { AuthGuard } from '../auth/auth.guard';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('product-types')
 @Controller('api/v1')
 export class ProductTypeController {
   constructor(private readonly productTypeService: ProductTypeService) {}

@@ -9,8 +9,9 @@ import { OrderService } from './order.service';
 import { Order } from './entities/order.entity';
 import { CreateOrder } from './dto/create-order.dto';
 import { CreateOrderItem } from '../orderItem/dto/create-order-item.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-@UseInterceptors(ClassSerializerInterceptor)
+@ApiTags('order')
 @Controller('api/v1/order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}

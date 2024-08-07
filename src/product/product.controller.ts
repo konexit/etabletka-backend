@@ -9,15 +9,18 @@ import {
   Delete,
   UseInterceptors,
   Req,
-  UseGuards, Query
-} from "@nestjs/common";
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { Product } from './entities/product.entity';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Request } from 'express';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('products')
 @Controller('api/v1')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}

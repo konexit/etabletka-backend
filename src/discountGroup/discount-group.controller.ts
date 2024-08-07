@@ -7,18 +7,20 @@ import {
   HttpStatus,
   Param,
   Patch,
-  Post, Query,
+  Post,
   Req,
   UploadedFile,
-  UseInterceptors
-} from "@nestjs/common";
+  UseInterceptors,
+} from '@nestjs/common';
 import { DiscountGroupService } from './discount-group.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { CreateDiscountGroup } from './dto/create-discount-group.dto';
 import { UpdateDiscountGroup } from './dto/update-discount-group.dto';
 import { DiscountGroup } from './entities/discount-group.entity';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('discount-groups')
 @Controller('api/v1')
 export class DiscountGroupController {
   constructor(private readonly discountGroupService: DiscountGroupService) {}

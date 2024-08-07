@@ -12,13 +12,14 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-
 import { StoreService } from './store.service';
 import { Store } from './entities/store.entity';
 import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateStoreDto } from './dto/update-store.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('stores')
 @Controller('api/v1')
 export class StoreController {
   constructor(private readonly storeService: StoreService) {}

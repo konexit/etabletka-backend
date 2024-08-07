@@ -13,7 +13,9 @@ import { BrandsService } from './brands.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 import { Brand } from './entities/brand.entity';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('brands')
 @Controller('api/v1')
 @UseInterceptors(ClassSerializerInterceptor)
 export class BrandsController {

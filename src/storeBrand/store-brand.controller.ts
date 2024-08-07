@@ -17,7 +17,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { CreateStoreBrand } from './dto/create-store-brand.dto';
 import { UpdateStoreBrand } from './dto/update-store-brand.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('/store/brand')
 @Controller('api/v1')
 export class StoreBrandController {
   constructor(private readonly storeBrandService: StoreBrandService) {}

@@ -17,7 +17,9 @@ import { SellType } from './entities/sell-type.entity';
 import { Request } from 'express';
 import { AuthGuard } from '../auth/auth.guard';
 import { UpdateSellTypeDto } from './dto/update-sell-type.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('sell-types')
 @Controller('api/v1')
 export class SellTypeController {
   constructor(private readonly sellTypeService: SellTypeService) {}

@@ -7,7 +7,9 @@ import {
 import { SearchService } from './search.service';
 import { SearchDto } from './dto/search.dto';
 import { FacetSearchFilterDto } from './dto/facet-search-filters.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('search')
 @Controller('api/v1')
 export class SearchController {
   constructor(private readonly searchService: SearchService) { }

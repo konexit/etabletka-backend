@@ -12,7 +12,9 @@ import {
 import { BlogPostService } from './blog-post.service';
 import { BlogPost } from './entities/blog-post.entity';
 import { PaginationDto } from '../common/dto/paginationDto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('post')
 @Controller('api/v1')
 export class BlogPostController {
   constructor(private readonly blogPostService: BlogPostService) {}
