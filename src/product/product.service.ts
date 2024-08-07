@@ -61,6 +61,7 @@ export class ProductService {
       .leftJoinAndSelect('product.discounts', 'discount')
       .leftJoinAndSelect('product.badges', 'badges')
       .leftJoinAndSelect('product.productRemnants', 'productRemnants')
+      .leftJoinAndSelect('product.productGroups,', 'productGroups')
       .where('category.id = :categoryId', { categoryId })
       .getMany();
 
@@ -91,6 +92,16 @@ export class ProductService {
     if (!token || typeof token !== 'string') {
       const products = await this.productRepository.find({
         where: { isActive: true },
+        relations: [
+          'productGroups',
+          'productRemnants',
+          'productRemnants.store',
+          'productType',
+          'categories',
+          'discounts',
+          'badges',
+          'brand',
+        ],
       });
       for (const product of products) {
         product.name = product?.name[lang];
@@ -102,6 +113,16 @@ export class ProductService {
     if (payload.roleId !== 1) {
       return await this.productRepository.find({
         where: { isActive: true },
+        relations: [
+          'productGroups',
+          'productRemnants',
+          'productRemnants.store',
+          'productType',
+          'categories',
+          'discounts',
+          'badges',
+          'brand',
+        ],
       });
     }
 
@@ -232,6 +253,7 @@ export class ProductService {
     const product = await this.productRepository.findOne({
       where: { id, isActive: true },
       relations: [
+        'productGroups',
         'productRemnants',
         'productRemnants.store',
         'productType',
@@ -278,6 +300,7 @@ export class ProductService {
         isActive: true,
       },
       relations: [
+        'productGroups',
         'productRemnants',
         'productRemnants.store',
         'productType',
