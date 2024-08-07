@@ -19,18 +19,8 @@ export class SearchService {
       name: 'products',
       primaryKey: 'id',
       searchableAttr: ['name', 'sync_id'],
-      /*
-        ID  2 - Форма випуску
-        ID  3 - Кількість в упаковці
-        ID  5 - Первинна упаковка
-        ID  6 - Кількість первинних упаковок
-        ID 10 - Упаковка
-        ID 14 - Розмір
-        ID 18 - Відпуск за рецептом 
-        ID 19 - Температура зберігання
-      */
-      filterableAttr: ['sync_id', '2', '3', '5', '6', '10', '14', '18', '19', 'price'], //todo dynamic config this attr
-      facetAttr: ['2', '3', '5', '6', '10', '14', '18', '19', 'price'],
+      filterableAttr: ['sync_id'],
+      facetAttr: [],
     },
   };
 
@@ -45,6 +35,13 @@ export class SearchService {
       host: this.configService.get('MEILISEARCH_HOST'),
       apiKey: this.configService.get('MEILISEARCH_KEY'),
     });
+    this.init();
+  }
+
+  async init() {
+    const filterUI = (await this.getFilters('filterUI'));
+    this.indexesConfig.products.facetAttr = filterUI;
+    this.indexesConfig.products.filterableAttr = filterUI.concat(this.indexesConfig.products.filterableAttr);
     this.createIndexIfNotExists(this.indexesConfig.products);
     this.makeIndex(this.indexesConfig.products.name);
   }
@@ -53,7 +50,7 @@ export class SearchService {
     let document: Array<any> = [];
     switch (index) {
       case this.indexesConfig.products.name:
-        document = await this.makeProductIndex(lang);
+        document = await this.makeProductsIndex(lang);
         break;
       default:
         throw new HttpException(
@@ -64,31 +61,16 @@ export class SearchService {
     return await this.addDocumentsToIndex(document, index);
   }
 
-  async makeProductIndex(lang: string): Promise<Array<any>> {
-    const products = await this.productRepository.query(
-      `SELECT jsonb_build_object(
-        'id', id,
-        'sync_id', sync_id,
-        'name', name->>'${lang}',
-        'isActive', active,
-        'img', 'https://etabletka.ua/img/no-photo.png',
-        'rating', rating,
-        'category_path', attributes->'category_path'->>'path',
-        'price', price) || (SELECT json_object_agg(key, value->>'slug') FROM jsonb_each(attributes) AS kv(key, value) WHERE (value->>'filter')::boolean = false
-      )::jsonb AS p
-      FROM products
-      WHERE products.attributes IS NOT NULL`,
-    );
-
+  async makeProductsIndex(lang: string): Promise<Array<any>> {
+    const start = performance.now()
+    const products = await this.productRepository.query(this.productIndexQuery(lang, await this.getFilters()));
     if (!products) {
       throw new HttpException('Products does not exist', HttpStatus.NOT_FOUND);
     }
-
-    const productsToIndex = products.map((product) => product.p);
     this.logger.log(
-      `product indexing was successful, count: ${productsToIndex.length}`,
+      `products indexing was successful, count: ${products.length} time: ${(performance.now() - start).toFixed(3)} ms `
     );
-    return productsToIndex;
+    return products;
   }
 
   async search(text: string, searchParams?: SearchParams) {
@@ -121,11 +103,11 @@ export class SearchService {
         primaryKey: indexConfig.primaryKey,
       });
       this.logger.log(
-        `Index '${indexConfig.name}' created with primary key '${indexConfig.primaryKey}', attributes: searcheble[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}]`,
+        `Index '${indexConfig.name}' created with primary key '${indexConfig.primaryKey}', attributes: searchable[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}]`,
       );
     } else {
       this.logger.log(
-        `Index '${indexConfig.name}' already exists, attributes: searcheble[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}]`,
+        `Index '${indexConfig.name}' already exists, attributes: searchable[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}]`,
       );
     }
     const index = this.client.index(indexConfig.name);
@@ -214,5 +196,27 @@ export class SearchService {
 
   private getFilterValueName(lang: string, key: string, facetSearchMap: Search.FacetSearchMap): string {
     return (facetSearchMap.attributesValue[key] && facetSearchMap.attributesValue[key][lang]) ?? key;
+  }
+
+  private async getFilters(typeFilter: string = 'filter'): Promise<string[]> {
+    return (await this.productRepository
+      .query(`SELECT key
+              FROM jsonb_each((SELECT json->'attributes' FROM site_options WHERE key = 'product_attributes_map')) AS kv(key, value) 
+              WHERE (value->'${typeFilter}')::boolean = true`
+      ))
+      .map(f => f.key);
+  }
+
+  private productIndexQuery(lang: string, filters: string[], productId?: number): string {
+    return `SELECT
+                id,
+                sync_id,
+                name->>'${lang}' as name,
+                rating,
+                attributes->'category_path'->>'path' as category_path,
+                price
+                ${filters.map(f => `,attributes->'${f}'->>'slug' as "${f}"`).join('')}
+            FROM products p
+            WHERE p.attributes IS NOT NULL AND p.active = true ${productId ? `AND p.id = ${productId}` : ''}`
   }
 }
