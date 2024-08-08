@@ -58,7 +58,7 @@ export class SiteOptionService {
 
   async getSiteOptionByKey(key: string): Promise<SiteOption> {
     return await this.siteOptionRepositary.findOne({
-      where: { key: key}
+      where: { key: key },
     });
   }
 
