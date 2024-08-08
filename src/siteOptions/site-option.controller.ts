@@ -17,4 +17,11 @@ export class SiteOptionController {
   async getSiteOptionById(@Param('id') id: number) {
     return await this.siteOptionService.getSiteOptionById(+id);
   }
+
+  @Get('/site-option/key/:key')
+  async getSiteOptionByKey(
+    @Param('key') key: string = 'product_attributes_map',
+  ) {
+    return await this.siteOptionService.getSiteOptionByKey(key);
+  }
 }

@@ -56,6 +56,12 @@ export class SiteOptionService {
     return siteOption;
   }
 
+  async getSiteOptionByKey(key: string): Promise<SiteOption> {
+    return await this.siteOptionRepositary.findOne({
+      where: { key: key}
+    });
+  }
+
   private async initFacetSearchMap(): Promise<void> {
     const {
       json: { attributes, attributesValue },
