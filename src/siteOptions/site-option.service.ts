@@ -15,7 +15,7 @@ export class SiteOptionService {
     private cacheManager: Cache,
     private jwtService: JwtService,
   ) {
-    this.initFacetSearchMap()
+    this.initFacetSearchMap();
   }
 
   cacheSiteOptionsKey: string = 'siteOptions';
@@ -46,8 +46,20 @@ export class SiteOptionService {
     return siteOptions;
   }
 
-  private async initFacetSearchMap() {
-    const { json: { attributes, attributesValue } } = await this.siteOptionRepositary.findOne({
+  async getSiteOptionById(id: number) {
+    const siteOption = await this.siteOptionRepositary.findOne({
+      where: { id },
+    });
+    if (!siteOption) {
+      throw new HttpException('Site option not found', HttpStatus.NOT_FOUND);
+    }
+    return siteOption;
+  }
+
+  private async initFacetSearchMap(): Promise<void> {
+    const {
+      json: { attributes, attributesValue },
+    } = await this.siteOptionRepositary.findOne({
       select: ['json'],
       where: { key: 'product_attributes_map' },
     });
