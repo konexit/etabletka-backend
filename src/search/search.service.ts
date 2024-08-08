@@ -1,12 +1,28 @@
-import { MeiliSearch, SearchParams, SearchResponse, CategoriesDistribution, FacetStats } from 'meilisearch';
-import { HttpException, HttpStatus, Injectable, Logger, Inject } from '@nestjs/common';
+import {
+  MeiliSearch,
+  SearchParams,
+  SearchResponse,
+  CategoriesDistribution,
+  FacetStats,
+} from 'meilisearch';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  Inject,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from '../product/entities/product.entity';
-import { FacetSearchFilterDto, Filter, TypeUI } from './dto/facet-search-filters.dto';
+import {
+  FacetSearchFilterDto,
+  Filter,
+  TypeUI,
+} from './dto/facet-search-filters.dto';
 import { SearchDto } from './dto/search.dto';
 import { isEmpty } from './utils';
 // Documentation:  https://www.npmjs.com/package/meilisearch
@@ -39,9 +55,11 @@ export class SearchService {
   }
 
   async init() {
-    const filterUI = (await this.getFilters('filterUI'));
+    const filterUI = await this.getFilters('filterUI');
     this.indexesConfig.products.facetAttr = filterUI;
-    this.indexesConfig.products.filterableAttr = filterUI.concat(this.indexesConfig.products.filterableAttr);
+    this.indexesConfig.products.filterableAttr = filterUI.concat(
+      this.indexesConfig.products.filterableAttr,
+    );
     this.createIndexIfNotExists(this.indexesConfig.products);
     this.makeIndex(this.indexesConfig.products.name);
   }
@@ -62,13 +80,15 @@ export class SearchService {
   }
 
   async makeProductsIndex(lang: string): Promise<Array<any>> {
-    const start = performance.now()
-    const products = await this.productRepository.query(this.productIndexQuery(lang, await this.getFilters()));
+    const start = performance.now();
+    const products = await this.productRepository.query(
+      this.productIndexQuery(lang, await this.getFilters()),
+    );
     if (!products) {
       throw new HttpException('Products does not exist', HttpStatus.NOT_FOUND);
     }
     this.logger.log(
-      `products indexing was successful, count: ${products.length} time: ${(performance.now() - start).toFixed(3)} ms `
+      `products indexing was successful, count: ${products.length} time: ${(performance.now() - start).toFixed(3)} ms `,
     );
     return products;
   }
@@ -82,10 +102,12 @@ export class SearchService {
   }
 
   async facetSearch(search: SearchDto, searchParams?: SearchParams) {
-    return await this.createFacetFilters(search.lang,
+    return await this.createFacetFilters(
+      search.lang,
       await this.client
         .index(this.indexesConfig.products.name)
-        .search(search.text, searchParams));
+        .search(search.text, searchParams),
+    );
   }
 
   getFacetFilter(index: string = 'products'): string[] {
@@ -127,17 +149,28 @@ export class SearchService {
     }
   }
 
-  private async createFacetFilters(lang: string, res: SearchResponse): Promise<FacetSearchFilterDto> {
+  private async createFacetFilters(
+    lang: string,
+    res: SearchResponse,
+  ): Promise<FacetSearchFilterDto> {
     const facetSearchMap: Search.FacetSearchMap = {
-      attributes: await this.cacheManager.get('product_attributes') ?? {},
-      attributesValue: await this.cacheManager.get('product_attributes_value') ?? {}
+      attributes: (await this.cacheManager.get('product_attributes')) ?? {},
+      attributesValue:
+        (await this.cacheManager.get('product_attributes_value')) ?? {},
     };
     return {
-      filters: Object
-        .keys(res.facetDistribution)
+      filters: Object.keys(res.facetDistribution)
         .reduce((acc, key) => {
           if (isEmpty(res.facetDistribution[key])) return acc;
-          acc.push(this.createFilter(lang, key, res.facetDistribution[key], res.facetStats, facetSearchMap));
+          acc.push(
+            this.createFilter(
+              lang,
+              key,
+              res.facetDistribution[key],
+              res.facetStats,
+              facetSearchMap,
+            ),
+          );
           return acc;
         }, [])
         .sort((a, b) => a.order - b.order),
@@ -145,11 +178,17 @@ export class SearchService {
       limit: res.limit,
       offset: res.offset,
       estimatedTotalHits: res.estimatedTotalHits,
-      query: res.query
+      query: res.query,
     };
   }
 
-  private createFilter(lang: string, key: string, values: CategoriesDistribution, facetStats: FacetStats, facetSearchMap: Search.FacetSearchMap): Filter {
+  private createFilter(
+    lang: string,
+    key: string,
+    values: CategoriesDistribution,
+    facetStats: FacetStats,
+    facetSearchMap: Search.FacetSearchMap,
+  ): Filter {
     const filter: Filter = facetSearchMap.attributes[key];
     if (!filter) {
       this.logger.warn(
@@ -161,27 +200,25 @@ export class SearchService {
 
     switch (filter.typeUI) {
       case TypeUI.Checkbox:
-        filterValues = Object
-          .keys(values)
-          .map((item) => {
-            return {
-              name: this.getFilterValueName(lang, item, facetSearchMap),
-              alias: item,
-              count: values[item]
-            };
-          })
+        filterValues = Object.keys(values).map((item) => {
+          return {
+            name: this.getFilterValueName(lang, item, facetSearchMap),
+            alias: item,
+            count: values[item],
+          };
+        });
         break;
       case TypeUI.Range:
-        filterValues = Object
-          .assign({
+        filterValues = Object.assign(
+          {
             name: this.getFilterValueName(lang, key, facetSearchMap),
             alias: key,
-          }, facetStats[key])
+          },
+          facetStats[key],
+        );
         break;
       default:
-        this.logger.warn(
-          `facet-filter not support typeUI '${filter.typeUI}'`,
-        );
+        this.logger.warn(`facet-filter not support typeUI '${filter.typeUI}'`);
     }
 
     return {
@@ -190,24 +227,35 @@ export class SearchService {
       order: filter.order,
       alias: filter.alias,
       typeUI: filter.typeUI,
-      values: filterValues
+      values: filterValues,
     };
   }
 
-  private getFilterValueName(lang: string, key: string, facetSearchMap: Search.FacetSearchMap): string {
-    return (facetSearchMap.attributesValue[key] && facetSearchMap.attributesValue[key][lang]) ?? key;
+  private getFilterValueName(
+    lang: string,
+    key: string,
+    facetSearchMap: Search.FacetSearchMap,
+  ): string {
+    return (
+      (facetSearchMap.attributesValue[key] &&
+        facetSearchMap.attributesValue[key][lang]) ??
+      key
+    );
   }
 
   private async getFilters(typeFilter: string = 'filter'): Promise<string[]> {
-    return (await this.productRepository
-      .query(`SELECT key
+    return (
+      await this.productRepository.query(`SELECT key
               FROM jsonb_each((SELECT json->'attributes' FROM site_options WHERE key = 'product_attributes_map')) AS kv(key, value) 
-              WHERE (value->'${typeFilter}')::boolean = true`
-      ))
-      .map(f => f.key);
+              WHERE (value->'${typeFilter}')::boolean = true`)
+    ).map((f) => f.key);
   }
 
-  private productIndexQuery(lang: string, filters: string[], productId?: number): string {
+  private productIndexQuery(
+    lang: string,
+    filters: string[],
+    productId?: number,
+  ): string {
     return `SELECT
                 id,
                 sync_id,
@@ -215,8 +263,8 @@ export class SearchService {
                 rating,
                 attributes->'category_path'->>'path' as category_path,
                 price
-                ${filters.map(f => `,attributes->'${f}'->>'slug' as "${f}"`).join('')}
+                ${filters.map((f) => `,attributes->'${f}'->>'slug' as "${f}"`).join('')}
             FROM products p
-            WHERE p.attributes IS NOT NULL AND p.active = true ${productId ? `AND p.id = ${productId}` : ''}`
+            WHERE p.attributes IS NOT NULL AND p.active = true ${productId ? `AND p.id = ${productId}` : ''}`;
   }
 }
