@@ -27,5 +27,5 @@ export class CreateCharacteristic {
   key: string;
 
   @IsObject()
-  data: Characteristic;
+  attribute: Characteristic;
 }

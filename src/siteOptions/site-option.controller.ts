@@ -12,7 +12,7 @@ export class SiteOptionController {
   constructor(private readonly siteOptionService: SiteOptionService) {}
 
   @Post('/site-option/create')
-  async create() {}
+  async create(@Req() request: Request,) {}
 
   @Patch('/site-option/update/:id')
   async update(@Req() request: Request, @Param('id') id: number) {}

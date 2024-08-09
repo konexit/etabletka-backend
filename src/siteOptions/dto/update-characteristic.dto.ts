@@ -27,5 +27,5 @@ export class UpdateCharacteristic {
   key: string;
 
   @IsObject()
-  data: Characteristic;
+  attribute: Characteristic;
 }
