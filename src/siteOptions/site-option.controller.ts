@@ -5,6 +5,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { UpdateCharacteristic } from './dto/update-characteristic.dto';
 import { CreateCharacteristic } from './dto/create-characteristic.dto';
+import { UpdateValue } from './dto/update-value.dto';
+import { CreateValue } from './dto/create-value.dto';
 
 @ApiTags('site-options')
 @Controller('api/v1')
@@ -12,7 +14,7 @@ export class SiteOptionController {
   constructor(private readonly siteOptionService: SiteOptionService) {}
 
   @Post('/site-option/create')
-  async create(@Req() request: Request,) {}
+  async create(@Req() request: Request) {}
 
   @Patch('/site-option/update/:id')
   async update(@Req() request: Request, @Param('id') id: number) {}
@@ -42,6 +44,23 @@ export class SiteOptionController {
       key,
       updateCharacteristic,
     );
+  }
+
+  @Post('/value/create')
+  async valueCreate(@Req() request: Request, @Body() createValue: CreateValue) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    return await this.siteOptionService.valueCreate(token, createValue);
+  }
+
+  @Patch('/value/update/:key')
+  async valueUpdate(
+    @Req() request: Request,
+    @Param('key') key: string,
+    @Body() updateValue: UpdateValue,
+  ) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    console.log('updateValue', updateValue);
+    return await this.siteOptionService.valueUpdate(token, key, updateValue);
   }
 
   @Get('/site-options')

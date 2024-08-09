@@ -7,6 +7,8 @@ import { Cache } from 'cache-manager';
 import { JwtService } from '@nestjs/jwt';
 import { UpdateCharacteristic } from './dto/update-characteristic.dto';
 import { CreateCharacteristic } from './dto/create-characteristic.dto';
+import { CreateValue } from './dto/create-value.dto';
+import { UpdateValue } from './dto/update-value.dto';
 
 @Injectable()
 export class SiteOptionService {
@@ -39,6 +41,19 @@ export class SiteOptionService {
     //TODO: Here must be code for create Characteristic in the site option witch has key "product_attributes_map"
   }
 
+  async valueCreate(token: string | any[], createValue: CreateValue) {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    //TODO: Here must be code for create Values in the site option witch has key "product_attributes_map"
+  }
+
   async characteristicUpdate(
     token: string | any[],
     key: string,
@@ -60,6 +75,29 @@ export class SiteOptionService {
     });
 
     //TODO: Here must be code for update Characteristic in the site option witch has key "product_attributes_map"
+  }
+
+  async valueUpdate(
+    token: string | any[],
+    key: string,
+    updateValue: UpdateValue,
+  ) {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const {
+      json: { attributesValue },
+    } = await this.siteOptionRepositary.findOne({
+      where: { key: 'product_attributes_map' },
+    });
+
+    //TODO: Here must be code for update Value in the site option witch has key "product_attributes_map"
   }
 
   async getActiveSiteOptions(): Promise<any> {
