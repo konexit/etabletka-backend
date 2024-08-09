@@ -1,0 +1,31 @@
+import { IsObject, IsString, MinLength } from 'class-validator';
+
+interface Characteristic {
+  alias: string;
+  filter: boolean;
+  filterUI: boolean;
+  name: JSON;
+  order: number;
+  type: string;
+  typeUI: string;
+  values: Values[];
+}
+
+interface Values {
+  icon: string;
+  name: string;
+  path: string;
+  slug: string;
+  color: string;
+  filter: boolean;
+  isPreview: boolean;
+}
+
+export class UpdateCharacteristic {
+  @IsString()
+  @MinLength(1)
+  key: string;
+
+  @IsObject()
+  data: Characteristic;
+}

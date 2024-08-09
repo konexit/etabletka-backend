@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { JwtService } from '@nestjs/jwt';
+import { UpdateCharacteristic } from './dto/update-characteristic.dto';
 
 @Injectable()
 export class SiteOptionService {
@@ -20,6 +21,29 @@ export class SiteOptionService {
 
   cacheSiteOptionsKey: string = 'siteOptions';
   cacheSiteOptionsTTL: number = 3600000; // 1Hour
+
+  async characteristicsUpdate(
+    token: string | any[],
+    key: string,
+    updateCharacteristic: UpdateCharacteristic,
+  ) {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const {
+      json: { attributes },
+    } = await this.siteOptionRepositary.findOne({
+      where: { key: 'product_attributes_map' },
+    });
+
+    //TODO: Here mus be code for update Characteristic in the site option witch has key "product_attributes_map"
+  }
 
   async getActiveSiteOptions(): Promise<any> {
     const cacheSiteOptions = await this.cacheManager.get(
