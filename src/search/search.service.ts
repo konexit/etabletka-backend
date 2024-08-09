@@ -110,8 +110,32 @@ export class SearchService {
     );
   }
 
-  getFacetFilter(index: string = 'products'): string[] {
+  getFacetFilters(index: string = 'products'): string[] {
     return this.indexesConfig[index].facetAttr;
+  }
+
+
+  /**
+   * Supported filter types:
+   * - `range` [key:value1&value2] - separator `&`;
+   * - `checkbox` [key:value1_value2_value3] - separator `_`;
+   * 
+   * Filter merging template: filter1/filter2/filter... - separator `/`;
+   * 
+   * Example:
+   * @param filter price:50&1000/production-form:kapsuly_klipsa_shampun 
+   */
+  extractFacetFilter(filter: string): string {
+    const sqlParts = [];
+    filter
+      .split('/')
+      .forEach(param => {
+        const [key, value] = param.split(':');
+        if (!key || !value) return;
+        sqlParts.push(this.buildSQL(key, value));
+      });
+    if (!sqlParts.length) return '';
+    return sqlParts.join(' AND ');
   }
 
   private async createIndexIfNotExists(indexConfig: IndexConfig) {
@@ -155,8 +179,7 @@ export class SearchService {
   ): Promise<FacetSearchFilterDto> {
     const facetSearchMap: Search.FacetSearchMap = {
       attributes: (await this.cacheManager.get('product_attributes')) ?? {},
-      attributesValue:
-        (await this.cacheManager.get('product_attributes_value')) ?? {},
+      attributesValue: (await this.cacheManager.get('product_attributes_value')) ?? {},
     };
     return {
       filters: Object.keys(res.facetDistribution)
@@ -189,7 +212,7 @@ export class SearchService {
     facetStats: FacetStats,
     facetSearchMap: Search.FacetSearchMap,
   ): Filter {
-    const filter: Filter = facetSearchMap.attributes[key];
+    const filter = facetSearchMap.attributes[key];
     if (!filter) {
       this.logger.warn(
         `facet-filter key '${key}' not found in facetSearchMap, may be problems importing it from db table 'site_options'`,
@@ -222,7 +245,6 @@ export class SearchService {
     }
 
     return {
-      api: 'https://etabletka.ua', //todo migrate to .env
       name: filter.name[lang] ?? filter.alias,
       order: filter.order,
       alias: filter.alias,
@@ -247,8 +269,7 @@ export class SearchService {
     return (
       await this.productRepository.query(`SELECT key
               FROM jsonb_each((SELECT json->'attributes' FROM site_options WHERE key = 'product_attributes_map')) AS kv(key, value) 
-              WHERE (value->'${typeFilter}')::boolean = true`)
-    ).map((f) => f.key);
+              WHERE (value->'${typeFilter}')::boolean = true`)).map(({ key }) => key);
   }
 
   private productIndexQuery(
@@ -266,5 +287,17 @@ export class SearchService {
                 ${filters.map((f) => `,attributes->'${f}'->>'slug' as "${f}"`).join('')}
             FROM products p
             WHERE p.attributes IS NOT NULL AND p.active = true ${productId ? `AND p.id = ${productId}` : ''}`;
+  }
+
+  private buildSQL(key: string, value: string): string {
+    if (value.includes('&')) {
+      const [min, max] = value.split('&').map(Number);
+      return `${key} ${min} TO ${max}`;
+    } else if (value.includes('_')) {
+      const items = value.split('_').map(v => `'${v}'`);
+      return `${key} IN [${items.join(',')}]`;
+    } else {
+      return `${key} = '${value}'`;
+    }
   }
 }

@@ -6,7 +6,6 @@ export enum TypeUI {
 }
 
 export class Filter {
-  api: string;
   name: string;
   order: number;
   alias: string;

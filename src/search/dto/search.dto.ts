@@ -7,4 +7,6 @@ export class SearchDto {
   text: string;
   lang?: string;
   limit?: number;
+  offset?: number;
+  filter?: string;
 }

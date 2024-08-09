@@ -7,7 +7,7 @@ import { ApiTags } from '@nestjs/swagger';
 @ApiTags('search')
 @Controller('api/v1')
 export class SearchController {
-  constructor(private readonly searchService: SearchService) {}
+  constructor(private readonly searchService: SearchService) { }
 
   @Post('/search')
   async getSearch(@Body() search: SearchDto) {
@@ -30,8 +30,9 @@ export class SearchController {
         'price',
       ],
       limit: search.limit,
-      facets: this.searchService.getFacetFilter(),
-      filter: [],
+      offset: search.offset,
+      facets: this.searchService.getFacetFilters(),
+      filter: this.searchService.extractFacetFilter(search.filter),
     });
   }
 
