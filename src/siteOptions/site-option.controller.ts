@@ -4,6 +4,7 @@ import { SiteOption } from './entities/site-option.entity';
 import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { UpdateCharacteristic } from './dto/update-characteristic.dto';
+import { CreateCharacteristic } from './dto/create-characteristic.dto';
 
 @ApiTags('site-options')
 @Controller('api/v1')
@@ -16,15 +17,27 @@ export class SiteOptionController {
   @Patch('/site-option/update/:id')
   async update(@Req() request: Request, @Param('id') id: number) {}
 
-  @Patch('/characteristics/update/:key')
-  async characteristicsUpdate(
+  @Post('/characteristic/create')
+  async characteristicCreate(
+    @Req() request: Request,
+    @Body() createCharacteristic: CreateCharacteristic,
+  ) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    return await this.siteOptionService.characteristicCreate(
+      token,
+      createCharacteristic,
+    );
+  }
+
+  @Patch('/characteristic/update/:key')
+  async characteristicUpdate(
     @Req() request: Request,
     @Param('key') key: string,
     @Body() updateCharacteristic: UpdateCharacteristic,
   ) {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
-
-    return await this.siteOptionService.characteristicsUpdate(
+    console.log('updateCharacteristic', updateCharacteristic);
+    return await this.siteOptionService.characteristicUpdate(
       token,
       key,
       updateCharacteristic,
