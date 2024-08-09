@@ -114,7 +114,6 @@ export class SearchService {
     return this.indexesConfig[index].facetAttr;
   }
 
-
   /**
    * Supported filter types:
    * - `range` [key:value1&value2] - separator `&`;

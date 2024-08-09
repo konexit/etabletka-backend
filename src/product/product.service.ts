@@ -10,6 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PaginationDto } from '../common/dto/paginationDto';
+import { TransformAttributes } from 'src/common/decorators/transform-attributes';
 
 @Injectable()
 export class ProductService {
@@ -23,7 +24,7 @@ export class ProductService {
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   cacheSalesProductsKey = 'salesProducts';
   cacheProductsTTL = 7200000; // 2Hour
@@ -249,6 +250,7 @@ export class ProductService {
     return products;
   }
 
+  @TransformAttributes('uk')
   async findProductById(id: number, lang: string = 'uk'): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id, isActive: true },
