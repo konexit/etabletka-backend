@@ -107,7 +107,7 @@ export class DiscountGroupService {
 
   async getMainDiscountForUser(lang: string = 'uk') {
     const discountGroup = await this.discountGroupRepository.findOne({
-      where: { isActive: true, slug: 'sales' },
+      where: { isActive: true, slug: 'all' },
       relations: ['discounts'],
     });
 
