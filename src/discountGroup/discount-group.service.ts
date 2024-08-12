@@ -105,6 +105,24 @@ export class DiscountGroupService {
     return updDiscountGroup;
   }
 
+  async getMainDiscountForUser(lang: string = 'uk') {
+    const discountGroup = await this.discountGroupRepository.findOne({
+      where: { isActive: true, slug: 'sales' },
+      relations: ['discounts'],
+    });
+
+    if (!discountGroup) {
+      throw new HttpException('Discount group not found', HttpStatus.NOT_FOUND);
+    }
+
+    discountGroup.name = discountGroup.name[lang];
+    for (const discount of discountGroup.discounts) {
+      discount.name = discount.name[lang];
+    }
+
+    return discountGroup;
+  }
+
   async getAllDiscountGroupsForUser(lang: string = 'uk') {
     const discountGroups = await this.discountGroupRepository.find({
       where: { isActive: true },

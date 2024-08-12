@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UploadedFile,
   UseInterceptors,
@@ -135,8 +136,15 @@ export class DiscountGroupController {
   @Get('/discount-groups')
   async getAllDiscountGroups(
     @Req() request: Request,
-  ): Promise<DiscountGroup[]> {
+    @Query('format') format: string = 'all',
+  ): Promise<any> {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
+    if (format) {
+      switch (format) {
+        case 'main':
+          await this.discountGroupService.getMainDiscountForUser();
+      }
+    }
     return await this.discountGroupService.getAllDiscountGroups(token);
   }
 
