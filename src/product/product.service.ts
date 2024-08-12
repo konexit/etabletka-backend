@@ -1,16 +1,16 @@
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from './entities/product.entity';
+import { Cache } from 'cache-manager';
+import { TransformAttributes } from 'src/common/decorators/transform-attributes';
+import { Repository } from 'typeorm';
 import { Badge } from '../badge/entities/badge.entity';
+import { PaginationDto } from '../common/dto/paginationDto';
 import { Discount } from '../discount/entities/discount.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { JwtService } from '@nestjs/jwt';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { PaginationDto } from '../common/dto/paginationDto';
-import { TransformAttributes } from 'src/common/decorators/transform-attributes';
+import { Product } from './entities/product.entity';
 
 @Injectable()
 export class ProductService {
@@ -295,6 +295,7 @@ export class ProductService {
     return product;
   }
 
+  @TransformAttributes('uk')
   async findProductBySlug(slug: string, lang: string = 'uk'): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: {
