@@ -4,6 +4,7 @@ interface Characteristic {
   alias: string;
   filter: boolean;
   filterUI: boolean;
+  isPreview: boolean;
   name: JSON;
   order: number;
   type: string;
@@ -17,8 +18,6 @@ interface Values {
   path: string;
   slug: string;
   color: string;
-  filter: boolean;
-  isPreview: boolean;
 }
 
 export class CreateCharacteristic {
