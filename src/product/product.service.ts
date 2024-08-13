@@ -53,7 +53,7 @@ export class ProductService {
   }
 
   async getProductsByCategoryId(
-    categoryId,
+    categoryId: number,
     lang: string = 'uk',
   ): Promise<Product[]> {
     const products = await this.productRepository
@@ -62,8 +62,9 @@ export class ProductService {
       .leftJoinAndSelect('product.discounts', 'discount')
       .leftJoinAndSelect('product.badges', 'badges')
       .leftJoinAndSelect('product.productRemnants', 'productRemnants')
-      .leftJoinAndSelect('product.productGroups,', 'productGroups')
-      .where('category.id = :categoryId', { categoryId })
+      .leftJoinAndSelect('product.productGroups', 'productGroups')
+      .where('product.isActive = :isActive', { isActive: true })
+      .andWhere('categories.id = :categoryId', { categoryId: categoryId })
       .getMany();
 
     if (!products) {

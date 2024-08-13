@@ -33,7 +33,8 @@ export class ProductGroup {
 
   @ApiProperty({
     example: 'true',
-    description: 'Use true if the ProductGroup is root. ParentId - must be null',
+    description:
+      'Use true if the ProductGroup is root. ParentId - must be null',
   })
   @Column({ default: false })
   root: boolean;
