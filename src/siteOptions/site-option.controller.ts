@@ -38,7 +38,6 @@ export class SiteOptionController {
     @Body() updateCharacteristic: UpdateCharacteristic,
   ) {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
-    console.log('updateCharacteristic', updateCharacteristic);
     return await this.siteOptionService.characteristicUpdate(
       token,
       key,
@@ -59,7 +58,6 @@ export class SiteOptionController {
     @Body() updateValue: UpdateValue,
   ) {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
-    console.log('updateValue', updateValue);
     return await this.siteOptionService.valueUpdate(token, key, updateValue);
   }
 

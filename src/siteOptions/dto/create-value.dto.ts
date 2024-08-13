@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, MinLength } from 'class-validator';
 
 interface AttributeValue {
   key: string;
@@ -6,6 +6,9 @@ interface AttributeValue {
 }
 
 export class CreateValue {
+  @MinLength(1)
+  key: string;
+
   @IsNotEmpty()
   attributeValue: AttributeValue;
 }
