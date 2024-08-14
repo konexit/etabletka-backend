@@ -7,12 +7,13 @@ import {
   Get,
   Post,
   Param,
-  UseInterceptors,
-} from '@nestjs/common';
+  UseInterceptors, Req, Query
+} from "@nestjs/common";
 import { BlogPostService } from './blog-post.service';
 import { BlogPost } from './entities/blog-post.entity';
 import { PaginationDto } from '../common/dto/paginationDto';
 import { ApiTags } from '@nestjs/swagger';
+import { Request } from "express";
 
 @ApiTags('post')
 @Controller('api/v1')
@@ -24,10 +25,11 @@ export class BlogPostController {
     return await this.blogPostService.getLatestPosts();
   }
 
-  @Post('/blog')
+  @Get('/blogs')
   async getPosts(
-    @Body('pagination') pagination?: PaginationDto,
-  ): Promise<{ posts: BlogPost[]; total: number }> {
+    @Req() request: Request,
+    @Query('pagination') pagination?: any,
+  ): Promise<{ posts: BlogPost[]; pagination: any }> {
     try {
       return await this.blogPostService.getPosts(pagination);
     } catch (error) {
