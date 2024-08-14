@@ -101,8 +101,8 @@ export class DiscountGroupController {
           updateDiscountGroup,
         );
       }
-    } catch (error) {
-      throw error;
+    } catch (e) {
+      throw e;
     }
   }
 

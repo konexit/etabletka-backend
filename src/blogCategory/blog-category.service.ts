@@ -5,6 +5,9 @@ import { Repository } from 'typeorm';
 import { BlogPost } from '../blogPost/entities/blog-post.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { CreateBlogCategory } from './dto/create-blog-category.dto';
+import { JwtService } from '@nestjs/jwt';
+import { UpdateBlogCategory } from './dto/update-blog-category.dto';
 
 @Injectable()
 export class BlogCategoryService {
@@ -15,13 +18,86 @@ export class BlogCategoryService {
     private readonly blogPostRepository: Repository<BlogPost>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
+    private jwtService: JwtService,
   ) {}
 
   cacheBlogCategoriesKey = 'blogCategories';
   cacheBlogCategoriesTTL = 14400000; // 4 Hour
 
-  async create(): Promise<BlogCategory> {
-    return await this.blogCategoryRepository.create();
+  private convertRecord(item: BlogCategory, lang: string = 'uk') {
+    item.title = item.title[lang];
+    if (item.seoH1) item.seoH1 = item.seoH1[lang];
+    if (item.seoText) item.seoText = item.seoText[lang];
+    if (item.seoTitle) item.seoTitle = item.seoTitle[lang];
+    if (item.seoDescription) item.seoDescription = item.seoDescription[lang];
+    if (item.seoKeywords) item.seoKeywords = item.seoDescription[lang];
+    return item;
+  }
+
+  async create(
+    token: string | any[],
+    createBlogCategory: CreateBlogCategory,
+  ): Promise<BlogCategory> {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const blogCategory = this.blogCategoryRepository.create(createBlogCategory);
+    if (!blogCategory) {
+      throw new HttpException(
+        `Can't create discount group with data: ${createBlogCategory}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.cacheManager.set(
+      this.cacheBlogCategoriesKey,
+      null,
+      this.cacheBlogCategoriesTTL,
+    );
+
+    return await this.blogCategoryRepository.save(blogCategory);
+  }
+
+  async update(
+    token: string | any[],
+    id: number,
+    updateBlogCategory: UpdateBlogCategory,
+    lang: string = 'uk',
+  ) {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    await this.blogCategoryRepository.update(id, updateBlogCategory);
+    const blogCategory = await this.blogCategoryRepository.findOne({
+      where: { id },
+    });
+
+    if (!blogCategory) {
+      throw new HttpException(
+        `Can't update discount group with data: ${updateBlogCategory}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.cacheManager.set(
+      this.cacheBlogCategoriesKey,
+      null,
+      this.cacheBlogCategoriesTTL,
+    );
+
+    return this.convertRecord(blogCategory, lang);
   }
 
   async addPostToCategory(id: number, postId: number): Promise<void> {
@@ -42,7 +118,9 @@ export class BlogCategoryService {
       return cacheCategories;
     }
 
-    const blogCategories = await this.blogCategoryRepository.find();
+    const blogCategories = await this.blogCategoryRepository.find({
+      order: { id: 'ASC' },
+    });
     if (!blogCategories) {
       throw new HttpException(
         'Blog categories not found',
@@ -57,5 +135,17 @@ export class BlogCategoryService {
     );
 
     return blogCategories;
+  }
+
+  async getBlogCategoryById(id: number, lang: string = 'uk') {
+    const blogCategory = await this.blogCategoryRepository.findOne({
+      where: { id },
+    });
+
+    if (!blogCategory) {
+      throw new HttpException('Blog category not found', HttpStatus.NOT_FOUND);
+    }
+
+    return this.convertRecord(blogCategory, lang);
   }
 }

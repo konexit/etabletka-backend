@@ -1,15 +1,251 @@
-import { Controller, Get } from '@nestjs/common';
+import {
+  Body,
+  ClassSerializerInterceptor,
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseInterceptors,
+} from '@nestjs/common';
 import { BlogCategoryService } from './blog-category.service';
 import { BlogCategory } from './entities/blog-category.entity';
 import { ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
+import { CreateBlogCategory } from './dto/create-blog-category.dto';
+import slugify from 'slugify';
+import { UpdateBlogCategory } from './dto/update-blog-category.dto';
 
 @ApiTags('blog-categories')
 @Controller('api/v1')
 export class BlogCategoryController {
   constructor(private readonly blogCategoryService: BlogCategoryService) {}
 
+  @Post('/blog-category/create')
+  @UseInterceptors(ClassSerializerInterceptor)
+  async create(
+    @Req() request: Request,
+    @Body() createBlogCategory: CreateBlogCategory,
+  ) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    try {
+      if (
+        createBlogCategory.title &&
+        typeof createBlogCategory.title === 'string'
+      ) {
+        try {
+          createBlogCategory.title = JSON.parse(createBlogCategory.title);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "name" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (!createBlogCategory.slug)
+        createBlogCategory.slug = slugify(createBlogCategory.title['uk']);
+
+      if (
+        createBlogCategory.seoH1 &&
+        typeof createBlogCategory.seoH1 === 'string'
+      ) {
+        try {
+          createBlogCategory.seoH1 = JSON.parse(createBlogCategory.seoH1);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "seoH1" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (
+        createBlogCategory.seoTitle &&
+        typeof createBlogCategory.seoTitle === 'string'
+      ) {
+        try {
+          createBlogCategory.seoTitle = JSON.parse(createBlogCategory.seoTitle);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "seoTitle" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (
+        createBlogCategory.seoDescription &&
+        typeof createBlogCategory.seoDescription === 'string'
+      ) {
+        try {
+          createBlogCategory.seoDescription = JSON.parse(
+            createBlogCategory.seoDescription,
+          );
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "seoTitle" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (
+        createBlogCategory.seoKeywords &&
+        typeof createBlogCategory.seoKeywords === 'string'
+      ) {
+        try {
+          createBlogCategory.seoKeywords = JSON.parse(
+            createBlogCategory.seoKeywords,
+          );
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "seoDescription" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (
+        createBlogCategory.seoText &&
+        typeof createBlogCategory.seoText === 'string'
+      ) {
+        try {
+          createBlogCategory.seoText = JSON.parse(createBlogCategory.seoText);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "seoText" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      return await this.blogCategoryService.create(token, createBlogCategory);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Patch('/blog-category/update/:id')
+  @UseInterceptors(ClassSerializerInterceptor)
+  async update(
+    @Req() request: Request,
+    @Param('id') id: number,
+    @Body() updateBlogCategory: UpdateBlogCategory,
+  ) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    try {
+      if (
+        updateBlogCategory.title &&
+        typeof updateBlogCategory.title === 'string'
+      ) {
+        try {
+          updateBlogCategory.title = JSON.parse(updateBlogCategory.title);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "name" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (!updateBlogCategory.slug)
+        updateBlogCategory.slug = slugify(updateBlogCategory.title['uk']);
+
+      if (
+        updateBlogCategory.seoH1 &&
+        typeof updateBlogCategory.seoH1 === 'string'
+      ) {
+        try {
+          updateBlogCategory.seoH1 = JSON.parse(updateBlogCategory.seoH1);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "seoH1" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (
+        updateBlogCategory.seoTitle &&
+        typeof updateBlogCategory.seoTitle === 'string'
+      ) {
+        try {
+          updateBlogCategory.seoTitle = JSON.parse(updateBlogCategory.seoTitle);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "seoTitle" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (
+        updateBlogCategory.seoDescription &&
+        typeof updateBlogCategory.seoDescription === 'string'
+      ) {
+        try {
+          updateBlogCategory.seoDescription = JSON.parse(
+            updateBlogCategory.seoDescription,
+          );
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "seoTitle" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (
+        updateBlogCategory.seoKeywords &&
+        typeof updateBlogCategory.seoKeywords === 'string'
+      ) {
+        try {
+          updateBlogCategory.seoKeywords = JSON.parse(
+            updateBlogCategory.seoKeywords,
+          );
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "seoDescription" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (
+        updateBlogCategory.seoText &&
+        typeof updateBlogCategory.seoText === 'string'
+      ) {
+        try {
+          updateBlogCategory.seoText = JSON.parse(updateBlogCategory.seoText);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "seoText" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      return await this.blogCategoryService.update(
+        token,
+        +id,
+        updateBlogCategory,
+      );
+    } catch (e) {
+      throw e;
+    }
+  }
+
   @Get('/blog-categories')
   async getBlogCategories(): Promise<BlogCategory[]> {
     return await this.blogCategoryService.getBlogCategories();
+  }
+
+  @Get('/blog-category/:id')
+  async getBlogCategoryById(@Param('id') id: number): Promise<BlogCategory> {
+    return await this.blogCategoryService.getBlogCategoryById(+id);
   }
 }
