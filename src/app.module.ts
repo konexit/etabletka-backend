@@ -29,7 +29,7 @@ import { SiteOptionModule } from './siteOptions/site-option.module';
 import { RoleModule } from './role/role.module';
 import { UserProfileModule } from './userProfile/user-profile.module';
 import { BrandsModule } from './brands/brands.module';
-import { BlogCategoryModule } from './blogCategoty/blog-category.module';
+import { BlogCategoryModule } from './blogCategory/blog-category.module';
 import { BlogPostModule } from './blogPost/blog-post.module';
 import { BlogCommentModule } from './blogComment/blog-comment.module';
 import { StoreBrandModule } from './storeBrand/store-brand.module';

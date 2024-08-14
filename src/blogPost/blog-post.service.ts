@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BlogPost } from './entities/blog-post.entity';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { BlogCategory } from '../blogCategoty/entities/blog-category.entity';
+import { BlogCategory } from '../blogCategory/entities/blog-category.entity';
 import { PaginationDto } from '../common/dto/paginationDto';
 
 @Injectable()
