@@ -1,10 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BlogPost } from './entities/blog-post.entity';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { In, Repository, SelectQueryBuilder } from 'typeorm';
 import { BlogCategory } from '../blogCategory/entities/blog-category.entity';
 import { PaginationDto } from '../common/dto/paginationDto';
 import { JwtService } from '@nestjs/jwt';
+import { CreatePost } from './dto/create-post.dto';
 
 @Injectable()
 export class BlogPostService {
@@ -36,7 +37,13 @@ export class BlogPostService {
     return post;
   }
 
-  async create(token: string | any[]) {
+  async addBlogCategories(ids: Array<number>) {
+    return await this.blogCategoryRepository.find({
+      where: { id: In(ids) },
+    });
+  }
+
+  async create(token: string | any[], createPost: CreatePost) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
@@ -46,7 +53,26 @@ export class BlogPostService {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
 
-    return await this.blogPostRepository.create();
+    const post = this.blogPostRepository.create(createPost);
+    if (!post) {
+      throw new HttpException(
+        `Can't create post with data: ${createPost}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (createPost.categories) {
+      const ids: Array<number> = String(createPost.categories)
+        .split(',')
+        .map(Number);
+
+      post.categories = await this.addBlogCategories(ids);
+    }
+
+    const postUpd: BlogPost = await this.blogPostRepository.save(post);
+    const queryBuilder = this.makeQueryBulder(postUpd.id);
+
+    return this.convertPost(await queryBuilder.getOne());
   }
 
   async update(token: string | any[]) {
@@ -205,6 +231,16 @@ export class BlogPostService {
   }
 
   async getPostById(id) {
+    const queryBuilder = this.makeQueryBulder(id);
+    const post = await queryBuilder.getOne();
+    if (!post) {
+      throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+    }
+
+    return this.convertPost(post);
+  }
+
+  private makeQueryBulder(id: number) {
     const queryBuilder = this.blogPostRepository.createQueryBuilder('post');
     queryBuilder
       .select('post')
@@ -223,11 +259,6 @@ export class BlogPostService {
       .leftJoin('post.censor', 'censor')
       .where('post.id = :id', { id });
 
-    const post = await queryBuilder.getOne();
-    if (!post) {
-      throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
-    }
-
-    return this.convertPost(post);
+    return queryBuilder;
   }
 }
