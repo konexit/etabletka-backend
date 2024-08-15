@@ -137,6 +137,19 @@ export class UserService {
     return users;
   }
 
+  async getUserByRoleId(id: number): Promise<User[]> {
+    const users = await this.userRepository.find({
+      where: { role: { id } },
+      relations: ['role'],
+    });
+
+    if (!users) {
+      throw new HttpException('Users does not exist', HttpStatus.NOT_FOUND);
+    }
+
+    return users;
+  }
+
   async getUserById(id: number): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },

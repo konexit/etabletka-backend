@@ -31,6 +31,18 @@ export class UserController {
     return await this.userService.create(createUserDto);
   }
 
+  @UseGuards(AuthGuard)
+  @Patch('/user/update/:id')
+  update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(id, updateUserDto);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete('/user/delete/:id')
+  async remove(@Param('id') id: number) {
+    return await this.userService.remove(id);
+  }
+
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('/user/activation')
   async activation(@Body() data: any): Promise<User> {
@@ -46,20 +58,14 @@ export class UserController {
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/users/role/:id')
+  async getUserByRoleId(@Param('id') id: number): Promise<User[]> {
+    return await this.userService.getUserByRoleId(+id);
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get('/user/:id')
   async getUserById(@Param('id') id: number): Promise<User> {
     return await this.userService.getUserById(+id);
-  }
-
-  @UseGuards(AuthGuard)
-  @Patch('/user/update/:id')
-  update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(id, updateUserDto);
-  }
-
-  @UseGuards(AuthGuard)
-  @Delete('/user/delete/:id')
-  async remove(@Param('id') id: number) {
-    return await this.userService.remove(id);
   }
 }
