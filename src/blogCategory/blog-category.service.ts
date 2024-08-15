@@ -110,7 +110,7 @@ export class BlogCategoryService {
     await this.blogCategoryRepository.save(category);
   }
 
-  async getBlogCategories(): Promise<any> {
+  async getBlogCategories(lang: string = 'uk'): Promise<any> {
     const cacheCategories = await this.cacheManager.get(
       this.cacheBlogCategoriesKey,
     );
@@ -126,6 +126,10 @@ export class BlogCategoryService {
         'Blog categories not found',
         HttpStatus.NOT_FOUND,
       );
+    }
+
+    for (const blogCategory of blogCategories) {
+      blogCategory.title = blogCategory.title[lang];
     }
 
     await this.cacheManager.set(

@@ -7,13 +7,15 @@ import {
   Get,
   Post,
   Param,
-  UseInterceptors, Req, Query
-} from "@nestjs/common";
+  UseInterceptors,
+  Req,
+  Query,
+} from '@nestjs/common';
 import { BlogPostService } from './blog-post.service';
 import { BlogPost } from './entities/blog-post.entity';
 import { PaginationDto } from '../common/dto/paginationDto';
 import { ApiTags } from '@nestjs/swagger';
-import { Request } from "express";
+import { Request } from 'express';
 
 @ApiTags('post')
 @Controller('api/v1')
@@ -56,5 +58,11 @@ export class BlogPostController {
     @Param('slug') slug: string,
   ): Promise<BlogPost> {
     return await this.blogPostService.getPost(category, slug);
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/post/:id')
+  async getPostById(@Param('id') id: number): Promise<BlogPost> {
+    return await this.blogPostService.getPostById(id);
   }
 }

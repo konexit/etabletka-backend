@@ -4,12 +4,12 @@ import {
   Entity,
   JoinColumn,
   JoinTable,
-  ManyToMany, ManyToOne,
+  ManyToMany,
+  ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn
-} from "typeorm";
+  UpdateDateColumn,
+} from 'typeorm';
 import { BlogCategory } from '../../blogCategory/entities/blog-category.entity';
 import { BlogComment } from '../../blogComment/entities/blog-comment.entity';
 import { User } from '../../user/entities/user.entity';

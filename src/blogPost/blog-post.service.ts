@@ -4,6 +4,7 @@ import { BlogPost } from './entities/blog-post.entity';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { BlogCategory } from '../blogCategory/entities/blog-category.entity';
 import { PaginationDto } from '../common/dto/paginationDto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class BlogPostService {
@@ -12,6 +13,7 @@ export class BlogPostService {
     private readonly blogPostRepository: Repository<BlogPost>,
     @InjectRepository(BlogCategory)
     private readonly blogCategoryRepository: Repository<BlogCategory>,
+    private jwtService: JwtService,
   ) {}
 
   private convertPost(post: BlogPost, lang: string = 'uk') {
@@ -34,6 +36,30 @@ export class BlogPostService {
     return post;
   }
 
+  async create(token: string | any[]) {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    return await this.blogPostRepository.create();
+  }
+
+  async update(token: string | any[]) {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+  }
+
   public async fetchData(
     queryBuilder: SelectQueryBuilder<BlogPost>,
     take: number,
@@ -42,9 +68,11 @@ export class BlogPostService {
   ) {
     const query = queryBuilder
       .select('post')
+      .addSelect('author.id')
       .addSelect('author.firstName')
       .addSelect('author.lastName')
       .addSelect('censor.firstName')
+      .addSelect('censor.id')
       .addSelect('censor.lastName')
       .addSelect('categories.id')
       .addSelect('categories.slug')
@@ -59,10 +87,6 @@ export class BlogPostService {
     query.orderBy('post.publishedAt', 'DESC').take(take).skip(skip);
 
     return query.getMany();
-  }
-
-  async create(): Promise<BlogPost> {
-    return await this.blogPostRepository.create();
   }
 
   async addCategoryToPost(id: number, blogCategoryId: number): Promise<void> {
@@ -141,14 +165,19 @@ export class BlogPostService {
       .addSelect('post.cdnData')
       .addSelect('post.slug')
       .addSelect('COUNT(blogComments.id) | 0', 'commentCount')
+      .addSelect('author.id')
       .addSelect('author.firstName')
       .addSelect('author.lastName')
+      .addSelect('censor.id')
+      .addSelect('censor.firstName')
+      .addSelect('censor.lastName')
       .addSelect('categories.id')
       .addSelect('categories.slug')
       .addSelect('categories.title')
       .leftJoin('post.categories', 'categories')
       .leftJoin('post.blogComments', 'blogComments')
       .leftJoin('post.author', 'author')
+      .leftJoin('post.censor', 'censor')
       .where('post.published = :published', { published: true })
       .groupBy('post.id')
       .addGroupBy('author.id')
@@ -164,7 +193,7 @@ export class BlogPostService {
   }
 
   async getPost(category, slug): Promise<BlogPost> {
-    const post = this.blogPostRepository.findOne({
+    const post = await this.blogPostRepository.findOne({
       where: { slug },
       relations: ['categories', 'author', 'censor', 'blogComments'],
     });
@@ -172,6 +201,33 @@ export class BlogPostService {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     }
 
-    return post;
+    return this.convertPost(post);
+  }
+
+  async getPostById(id) {
+    const queryBuilder = this.blogPostRepository.createQueryBuilder('post');
+    queryBuilder
+      .select('post')
+      .addSelect('author.id')
+      .addSelect('author.firstName')
+      .addSelect('author.lastName')
+      .addSelect('censor.id')
+      .addSelect('censor.firstName')
+      .addSelect('censor.lastName')
+      .addSelect('categories.id')
+      .addSelect('categories.slug')
+      .addSelect('categories.title')
+      .leftJoin('post.categories', 'categories')
+      .leftJoin('post.blogComments', 'blogComments')
+      .leftJoin('post.author', 'author')
+      .leftJoin('post.censor', 'censor')
+      .where('post.id = :id', { id });
+
+    const post = await queryBuilder.getOne();
+    if (!post) {
+      throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+    }
+
+    return this.convertPost(post);
   }
 }

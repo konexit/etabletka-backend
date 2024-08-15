@@ -138,6 +138,7 @@ export class UserService {
   }
 
   async getUserByRoleId(id: number): Promise<User[]> {
+    console.log('ID', id);
     const users = await this.userRepository.find({
       where: { role: { id } },
       relations: ['role'],
