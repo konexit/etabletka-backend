@@ -3,6 +3,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
+import { ConfigService } from '@nestjs/config';
 import { TransformAttributes } from 'src/common/decorators/transform-attributes';
 import { Repository } from 'typeorm';
 import { Badge } from '../badge/entities/badge.entity';
@@ -14,6 +15,8 @@ import { Product } from './entities/product.entity';
 
 @Injectable()
 export class ProductService {
+  private priceConfig: PriceConfig;
+
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
@@ -24,7 +27,10 @@ export class ProductService {
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private jwtService: JwtService,
-  ) { }
+    private configService: ConfigService,
+  ) {
+    this.priceConfig = JSON.parse(this.configService.get('PRICE_CONFIG'));
+  }
 
   cacheSalesProductsKey = 'salesProducts';
   cacheProductsTTL = 7200000; // 2Hour
