@@ -6,6 +6,7 @@ import { BlogCategory } from '../blogCategory/entities/blog-category.entity';
 import { PaginationDto } from '../common/dto/paginationDto';
 import { JwtService } from '@nestjs/jwt';
 import { CreatePost } from './dto/create-post.dto';
+import { UpdatePost } from './dto/update-post.dto';
 
 @Injectable()
 export class BlogPostService {
@@ -73,7 +74,7 @@ export class BlogPostService {
     return this.convertPost(await queryBuilder.getOne());
   }
 
-  async update(token: string | any[]) {
+  async update(token: string | any[], id: number, updatePost: UpdatePost) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
@@ -82,6 +83,41 @@ export class BlogPostService {
     if (payload.roleId !== 1) {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
+
+    const blogCategoryIds = updatePost.categories;
+    delete updatePost.categories;
+
+    await this.blogPostRepository.update(id, updatePost);
+    const post: BlogPost = await this.blogPostRepository.findOne({
+      where: { id },
+      relations: ['categories'],
+    });
+    if (!post) {
+      throw new HttpException(
+        `Can't update post with data: ${updatePost}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (blogCategoryIds) {
+      if (!Array.isArray(blogCategoryIds)) {
+        const ids: Array<number> = String(blogCategoryIds)
+          .split(',')
+          .map(Number);
+
+        console.log('GroupIds', ids);
+        post.categories = await this.addBlogCategories(ids);
+      } else {
+        post.categories = await this.addBlogCategories(blogCategoryIds);
+      }
+    } else {
+      post.categories = [];
+    }
+
+    const postUpd: BlogPost = await this.blogPostRepository.save(post);
+    const queryBuilder = this.makeQueryBulder(postUpd.id);
+
+    return this.convertPost(await queryBuilder.getOne());
   }
 
   public async fetchData(

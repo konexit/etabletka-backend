@@ -1,18 +1,21 @@
 import { IsOptional, IsString } from 'class-validator';
 
 export class UpdatePost {
-  @IsString()
+  @IsOptional()
   authorId: number;
 
-  @IsString()
+  @IsOptional()
   censorId: number;
 
+  @IsOptional()
   @IsString()
   publishedAt: Date;
 
+  @IsOptional()
   @IsString()
   title: JSON;
 
+  @IsOptional()
   @IsString()
   content: JSON;
 
@@ -41,6 +44,5 @@ export class UpdatePost {
   seoDescription: JSON;
 
   @IsOptional()
-  @IsString()
   categories: [];
 }

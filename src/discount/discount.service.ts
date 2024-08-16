@@ -97,13 +97,13 @@ export class DiscountService {
     delete updateDiscount['products'];
 
     await this.discountRepository.update(id, updateDiscount);
-    const discount = await this.discountRepository.findOne({
+    const discount: Discount = await this.discountRepository.findOne({
       where: { id: id },
       relations: ['discountGroups', 'products', 'products.categories'],
     });
     if (!discount) {
       throw new HttpException(
-        `Can't create discount  with data: ${updateDiscount}`,
+        `Can't update discount with data: ${updateDiscount}`,
         HttpStatus.BAD_REQUEST,
       );
     }

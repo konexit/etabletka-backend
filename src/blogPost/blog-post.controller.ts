@@ -11,6 +11,7 @@ import {
   Req,
   Query,
   UploadedFile,
+  Patch,
 } from '@nestjs/common';
 import { BlogPostService } from './blog-post.service';
 import { BlogPost } from './entities/blog-post.entity';
@@ -20,6 +21,7 @@ import { Request } from 'express';
 import { CreatePost } from './dto/create-post.dto';
 import slugify from 'slugify';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdatePost } from './dto/update-post.dto';
 
 @ApiTags('post')
 @Controller('api/v1')
@@ -127,6 +129,101 @@ export class BlogPostController {
       }
 
       return post;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Patch('/post/:id')
+  async update(
+    @Req() request: Request,
+    @Param('id') id: number,
+    @Body() updatePost: UpdatePost,
+  ) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+
+    try {
+      if (updatePost.title && typeof updatePost.title === 'string') {
+        try {
+          updatePost.title = JSON.parse(updatePost.title);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "title" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (updatePost.excerpt && typeof updatePost.excerpt === 'string') {
+        try {
+          updatePost.excerpt = JSON.parse(updatePost.excerpt);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "excerpt" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (updatePost.content && typeof updatePost.content === 'string') {
+        try {
+          updatePost.content = JSON.parse(updatePost.content);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "content" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (updatePost.alt && typeof updatePost.alt === 'string') {
+        try {
+          updatePost.alt = JSON.parse(updatePost.alt);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "alt" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (updatePost.seoH1 && typeof updatePost.seoH1 === 'string') {
+        try {
+          updatePost.seoH1 = JSON.parse(updatePost.seoH1);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "seoH1" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (updatePost.seoTitle && typeof updatePost.seoTitle === 'string') {
+        try {
+          updatePost.seoTitle = JSON.parse(updatePost.seoTitle);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "seoTitle" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      if (
+        updatePost.seoDescription &&
+        typeof updatePost.seoDescription === 'string'
+      ) {
+        try {
+          updatePost.seoDescription = JSON.parse(updatePost.seoDescription);
+        } catch (error) {
+          throw new HttpException(
+            'Invalid JSON format in "seoTitle" property',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      return await this.blogPostService.update(token, +id, updatePost);
     } catch (error) {
       throw error;
     }
