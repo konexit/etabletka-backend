@@ -19,7 +19,7 @@ const initialValueTypeViewsObject = () => ({
   },
   preview: [],
   main: [],
-  atrributes: []
+  attributes: []
 })
 
 interface TransformAttributesOptions {
@@ -56,7 +56,7 @@ export function TransformAttributes(defaultLang: string, optionParamIndex: numbe
                   }));
                   return acc;
                 }, initialValueTypeViewsObject());
-              if (true) {
+              if (result.attributes[priceConfig.denominatorKey] && result.attributes[priceConfig.wholeKey] && result.attributes[priceConfig.partKey]) {
                 prepareResult.price.denominator = +result.attributes[priceConfig.denominatorKey].name
                 prepareResult.price.wholeName = result.attributes[priceConfig.wholeKey].name
                 prepareResult.price.partName = result.attributes[priceConfig.partKey].name
