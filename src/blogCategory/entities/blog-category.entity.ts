@@ -31,12 +31,6 @@ export class BlogCategory {
   @Column({ name: 'seo_description', type: 'json', nullable: true })
   seoDescription: JSON;
 
-  @Column({ name: 'seo_text', type: 'json', nullable: true })
-  seoText: JSON;
-
-  @Column({ name: 'seo_keywords', type: 'json', nullable: true })
-  seoKeywords: JSON;
-
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 

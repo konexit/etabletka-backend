@@ -27,10 +27,8 @@ export class BlogCategoryService {
   private convertRecord(item: BlogCategory, lang: string = 'uk') {
     item.title = item.title[lang];
     if (item.seoH1) item.seoH1 = item.seoH1[lang];
-    if (item.seoText) item.seoText = item.seoText[lang];
     if (item.seoTitle) item.seoTitle = item.seoTitle[lang];
     if (item.seoDescription) item.seoDescription = item.seoDescription[lang];
-    if (item.seoKeywords) item.seoKeywords = item.seoDescription[lang];
     return item;
   }
 

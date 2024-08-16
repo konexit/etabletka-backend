@@ -26,8 +26,6 @@ export class BlogPostService {
     if (post.seoH1) post.seoH1 = post.seoH1[lang];
     if (post.seoTitle) post.seoTitle = post.seoTitle[lang];
     if (post.seoDescription) post.seoDescription = post.seoDescription[lang];
-    if (post.seoText) post.seoText = post.seoText[lang];
-    if (post.seoKeywords) post.seoKeywords = post.seoKeywords[lang];
 
     if (post.categories) {
       for (const category of post.categories) {

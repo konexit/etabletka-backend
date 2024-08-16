@@ -55,12 +55,6 @@ export class Category {
   @Column({ name: 'seo_description', type: 'json', nullable: true })
   seoDescription: JSON;
 
-  @Column({ name: 'seo_keywords', type: 'json', nullable: true })
-  seoKeywords: JSON;
-
-  @Column({ name: 'seo_text', type: 'json', nullable: true })
-  seoText: JSON;
-
   @Column({ nullable: true })
   image: string;
 

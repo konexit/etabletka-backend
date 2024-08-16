@@ -20,12 +20,4 @@ export class UpdateBlogCategory {
   @IsOptional()
   @IsString()
   seoDescription: JSON;
-
-  @IsOptional()
-  @IsString()
-  seoKeywords: JSON;
-
-  @IsOptional()
-  @IsString()
-  seoText: JSON;
 }

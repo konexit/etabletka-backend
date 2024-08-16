@@ -42,9 +42,5 @@ export class UpdatePost {
 
   @IsOptional()
   @IsString()
-  seoKeywords: JSON;
-
-  @IsOptional()
-  @IsString()
-  seoText: JSON;
+  categories: [];
 }

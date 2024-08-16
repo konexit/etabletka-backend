@@ -57,12 +57,6 @@ export class BlogPost {
   @Column({ name: 'seo_description', type: 'json', nullable: true })
   seoDescription: JSON;
 
-  @Column({ name: 'seo_text', type: 'json', nullable: true })
-  seoText: JSON;
-
-  @Column({ name: 'seo_keywords', type: 'json', nullable: true })
-  seoKeywords: JSON;
-
   @Column({ name: 'published', default: false })
   isPublished: boolean;
 

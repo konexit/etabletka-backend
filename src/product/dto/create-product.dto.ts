@@ -50,32 +50,11 @@ export class CreateProductDto {
   @IsJSON()
   seoH1: JSON;
 
-  @IsBoolean()
-  seoH1Auto: boolean;
-
   @IsJSON()
   seoTitle: JSON;
 
-  @IsBoolean()
-  seoTitleAuto: boolean;
-
   @IsJSON()
   seoDescription: JSON;
-
-  @IsBoolean()
-  seoDescriptionAuto: boolean;
-
-  @IsJSON()
-  seoKeywords: JSON;
-
-  @IsBoolean()
-  seoKeywordsAuto: boolean;
-
-  @IsJSON()
-  seoText: JSON;
-
-  @IsBoolean()
-  seoTextAuto: boolean;
 
   @IsNumber()
   @IsNotEmpty()

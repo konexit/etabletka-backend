@@ -119,31 +119,6 @@ export class BlogPostController {
         }
       }
 
-      if (
-        createPost.seoKeywords &&
-        typeof createPost.seoKeywords === 'string'
-      ) {
-        try {
-          createPost.seoKeywords = JSON.parse(createPost.seoKeywords);
-        } catch (error) {
-          throw new HttpException(
-            'Invalid JSON format in "seoDescription" property',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-
-      if (createPost.seoText && typeof createPost.seoText === 'string') {
-        try {
-          createPost.seoText = JSON.parse(createPost.seoText);
-        } catch (error) {
-          throw new HttpException(
-            'Invalid JSON format in "seoText" property',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-
       const post = await this.blogPostService.create(token, createPost);
 
       if (image) {

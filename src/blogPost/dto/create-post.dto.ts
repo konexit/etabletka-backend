@@ -42,13 +42,5 @@ export class CreatePost {
 
   @IsOptional()
   @IsString()
-  seoKeywords: JSON;
-
-  @IsOptional()
-  @IsString()
-  seoText: JSON;
-
-  @IsOptional()
-  @IsString()
   categories: [];
 }

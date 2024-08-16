@@ -64,26 +64,11 @@ export class Product {
   @Column({ name: 'seo_h1', type: 'json', nullable: true })
   seoH1: JSON;
 
-  @Column({ name: 'seo_h1_auto', default: true })
-  seoH1Auto: boolean;
-
   @Column({ name: 'seo_title', type: 'json', nullable: true })
   seoTitle: JSON;
 
-  @Column({ name: 'seo_title_auto', default: true })
-  seoTitleAuto: boolean;
-
   @Column({ name: 'seo_description', type: 'json', nullable: true })
   seoDescription: JSON;
-
-  @Column({ name: 'seo_description_auto', default: true })
-  seoDescriptionAuto: boolean;
-
-  @Column({ name: 'seo_keywords', type: 'json', nullable: true })
-  seoKeywords: JSON;
-
-  @Column({ name: 'seo_keywords_auto', default: true })
-  seoKeywordsAuto: boolean;
 
   @Column({ default: 0, type: 'float' })
   price: number;

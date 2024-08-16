@@ -93,36 +93,6 @@ export class BlogCategoryController {
         }
       }
 
-      if (
-        createBlogCategory.seoKeywords &&
-        typeof createBlogCategory.seoKeywords === 'string'
-      ) {
-        try {
-          createBlogCategory.seoKeywords = JSON.parse(
-            createBlogCategory.seoKeywords,
-          );
-        } catch (error) {
-          throw new HttpException(
-            'Invalid JSON format in "seoDescription" property',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-
-      if (
-        createBlogCategory.seoText &&
-        typeof createBlogCategory.seoText === 'string'
-      ) {
-        try {
-          createBlogCategory.seoText = JSON.parse(createBlogCategory.seoText);
-        } catch (error) {
-          throw new HttpException(
-            'Invalid JSON format in "seoText" property',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-
       return await this.blogCategoryService.create(token, createBlogCategory);
     } catch (error) {
       throw error;
@@ -194,36 +164,6 @@ export class BlogCategoryController {
         } catch (error) {
           throw new HttpException(
             'Invalid JSON format in "seoTitle" property',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-
-      if (
-        updateBlogCategory.seoKeywords &&
-        typeof updateBlogCategory.seoKeywords === 'string'
-      ) {
-        try {
-          updateBlogCategory.seoKeywords = JSON.parse(
-            updateBlogCategory.seoKeywords,
-          );
-        } catch (error) {
-          throw new HttpException(
-            'Invalid JSON format in "seoDescription" property',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-
-      if (
-        updateBlogCategory.seoText &&
-        typeof updateBlogCategory.seoText === 'string'
-      ) {
-        try {
-          updateBlogCategory.seoText = JSON.parse(updateBlogCategory.seoText);
-        } catch (error) {
-          throw new HttpException(
-            'Invalid JSON format in "seoText" property',
             HttpStatus.BAD_REQUEST,
           );
         }
