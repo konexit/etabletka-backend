@@ -37,7 +37,6 @@ export class BlogPostController {
     @Body() createPost: CreatePost,
   ) {
     const token = request.headers.authorization?.split(' ')[1] ?? [];
-    console.log('publishedAt', createPost.publishedAt);
     try {
       if (createPost.title && typeof createPost.title === 'string') {
         try {
