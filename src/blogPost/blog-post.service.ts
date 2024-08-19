@@ -1,12 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BlogPost } from './entities/blog-post.entity';
 import { In, Repository, SelectQueryBuilder } from 'typeorm';
 import { BlogCategory } from '../blogCategory/entities/blog-category.entity';
 import { PaginationDto } from '../common/dto/paginationDto';
-import { JwtService } from '@nestjs/jwt';
 import { CreatePost } from './dto/create-post.dto';
 import { UpdatePost } from './dto/update-post.dto';
+import { BlogPost } from './entities/blog-post.entity';
 
 @Injectable()
 export class BlogPostService {
@@ -215,41 +215,109 @@ export class BlogPostService {
   }
 
   async getLatestPosts(): Promise<BlogPost[]> {
-    const queryBuilder = this.blogPostRepository.createQueryBuilder('post');
+    const articles = await this.blogPostRepository.query(`
+      WITH CommentCounts AS (
+          SELECT
+              "post"."id" AS "post_id",
+              COUNT("blogComments"."id") AS "commentCount"
+          FROM
+              "blog_posts" "post"
+          LEFT JOIN 
+              "blog_comments" "blogComments" 
+              ON "blogComments"."post_id" = "post"."id"
+          WHERE
+              "post"."published" = true
+          GROUP BY
+              "post"."id"
+      ),
+      CategoryData AS (
+          SELECT 
+              "post_categories"."blogPostsId" AS "post_id",
+              JSON_AGG(
+                  JSON_BUILD_OBJECT(
+                      'id', "categories"."id",
+                      'title', "categories"."title",
+                      'slug', "categories"."slug"
+                  )
+              ) AS "categories"
+          FROM 
+              "cross_blog_categories_posts" "post_categories"
+          JOIN 
+              "blog_categories" "categories" 
+              ON "categories"."id" = "post_categories"."blogCategoriesId"
+          GROUP BY 
+              "post_categories"."blogPostsId"
+      ),
+      CommentData AS (
+          SELECT
+              "blogComments"."post_id" AS "post_id",
+              JSON_AGG(
+                  JSON_BUILD_OBJECT(
+                      'id', "blogComments"."id",
+                      'authorId', "blogComments"."user_id",
+                      'content', "blogComments"."comment",
+                      'createdAt', "blogComments"."created_at",
+                      'updatedAt', "blogComments"."updated_at"
+                  )
+              ) AS "comments"
+          FROM
+              "blog_comments" "blogComments"
+          GROUP BY
+              "blogComments"."post_id"
+      )
+      SELECT 
+          "post"."id" AS "id", 
+          "post"."author_id" AS "authorId",
+          "post"."censor_id" AS "censorId",
+          "post"."published_at" AS "publishedAt", 
+          "post"."title" AS "title", 
+          "post"."slug" AS "slug", 
+          "post"."excerpt" AS "excerpt",
+          "post"."content" AS "content",
+          "post"."alt" AS "alt", 
+          "post"."cdn_data" AS "cdnData",
+          COALESCE(CategoryData."categories", '[]') AS "categories",
+          "author"."id" AS "authorId", 
+          JSON_BUILD_OBJECT(
+              'id', "author"."id",
+              'firstName', "author"."first_name",
+              'lastName', "author"."last_name"
+          ) AS "author",
+          "censor"."id" AS "censorId", 
+          JSON_BUILD_OBJECT(
+              'id', "censor"."id",
+              'firstName', "censor"."first_name",
+              'lastName', "censor"."last_name"
+          ) AS "censor",
+          COALESCE(CommentData."comments", '[]') AS "blogComments",
+          "post"."seo_h1" AS "seoH1",
+          "post"."seo_title" AS "seoTitle",
+          "post"."seo_description" AS "seoDescription"
+      FROM 
+          "blog_posts" "post"
+      LEFT JOIN 
+          CategoryData 
+          ON CategoryData."post_id" = "post"."id"
+      LEFT JOIN 
+          "users" "author" 
+          ON "author"."id" = "post"."author_id"  
+      LEFT JOIN 
+          "users" "censor" 
+          ON "censor"."id" = "post"."censor_id"
+      LEFT JOIN
+          CommentData 
+          ON CommentData."post_id" = "post"."id"
+      LEFT JOIN
+          CommentCounts 
+          ON CommentCounts."post_id" = "post"."id"
+      WHERE 
+          "post"."published" = true
+      ORDER BY 
+          "publishedAt" DESC 
+      LIMIT 3;
+    `);
 
-    queryBuilder
-      .select('post.title')
-      .addSelect('post.id')
-      .addSelect('post.alt')
-      .addSelect('post.publishedAt')
-      .addSelect('post.cdnData')
-      .addSelect('post.slug')
-      .addSelect('COUNT(blogComments.id) | 0', 'commentCount')
-      .addSelect('author.id')
-      .addSelect('author.firstName')
-      .addSelect('author.lastName')
-      .addSelect('censor.id')
-      .addSelect('censor.firstName')
-      .addSelect('censor.lastName')
-      .addSelect('categories.id')
-      .addSelect('categories.slug')
-      .addSelect('categories.title')
-      .leftJoin('post.categories', 'categories')
-      .leftJoin('post.blogComments', 'blogComments')
-      .leftJoin('post.author', 'author')
-      .leftJoin('post.censor', 'censor')
-      .where('post.published = :published', { published: true })
-      .groupBy('post.id')
-      .addGroupBy('author.id')
-      .addGroupBy('categories.id')
-      .orderBy('post.publishedAt', 'DESC')
-      .offset(0)
-      .limit(3);
-
-    // const sql = queryBuilder.getQuery();
-    // console.log(sql);
-
-    return await queryBuilder.getMany();
+    return articles.map((article: BlogPost) => this.convertPost(article));
   }
 
   async getPost(category, slug): Promise<BlogPost> {
