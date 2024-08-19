@@ -1,21 +1,21 @@
-import {
-  MeiliSearch,
-  SearchParams,
-  SearchResponse,
-  CategoriesDistribution,
-  FacetStats,
-} from 'meilisearch';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   Logger,
-  Inject,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Cache } from 'cache-manager';
+import {
+  CategoriesDistribution,
+  FacetStats,
+  MeiliSearch,
+  SearchParams,
+  SearchResponse,
+} from 'meilisearch';
 import { Repository } from 'typeorm';
 import { Product } from '../product/entities/product.entity';
 import {
@@ -281,6 +281,8 @@ export class SearchService {
                 sync_id,
                 name->>'${lang}' as name,
                 rating,
+                cdn_data,
+                slug,
                 attributes->'category_path'->>'path' as category_path,
                 price
                 ${filters.map((f) => `,attributes->'${f}'->>'slug' as "${f}"`).join('')}
