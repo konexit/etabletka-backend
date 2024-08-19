@@ -2,9 +2,6 @@ import { IsOptional, IsString } from 'class-validator';
 
 export class UpdatePostComment {
   @IsString()
-  id: number;
-
-  @IsString()
   postId: number;
 
   @IsString()
@@ -18,5 +15,5 @@ export class UpdatePostComment {
   comment: string;
 
   @IsOptional()
-  isApproved:boolean;
+  isApproved: boolean;
 }
