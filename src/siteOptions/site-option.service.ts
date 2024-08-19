@@ -194,8 +194,8 @@ export class SiteOptionService {
     let builder = this.siteOptionRepository
       .createQueryBuilder('site_options')
       .where('site_options.key = :key', { key: this.productAttributeConfig.default.key });
-    if (key && key) {
-      builder = builder.andWhere(`site_options.json->'${targetKey}' ? :${key}`, { [key]: key });
+    if (targetKey && key) {
+      builder = builder.andWhere(`site_options.json->'${targetKey}' ? :key`, { key: key });
     }
     return !(await builder.getCount());
   }

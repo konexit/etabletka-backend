@@ -4,7 +4,6 @@ interface Characteristic {
   alias: string;
   filter: boolean;
   filterUI: boolean;
-  isPreview: boolean;
   name: JSON;
   order: number;
   type: string;
