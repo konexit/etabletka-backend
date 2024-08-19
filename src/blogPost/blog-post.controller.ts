@@ -1,27 +1,28 @@
 import {
+  BadRequestException,
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Get,
   HttpException,
   HttpStatus,
-  Get,
-  Post,
   Param,
-  UseInterceptors,
-  Req,
-  Query,
-  UploadedFile,
   Patch,
+  Post,
+  Query,
+  Req,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { BlogPostService } from './blog-post.service';
-import { BlogPost } from './entities/blog-post.entity';
-import { PaginationDto } from '../common/dto/paginationDto';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
-import { CreatePost } from './dto/create-post.dto';
 import slugify from 'slugify';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { PaginationDto } from '../common/dto/paginationDto';
+import { BlogPostService } from './blog-post.service';
+import { CreatePost } from './dto/create-post.dto';
 import { UpdatePost } from './dto/update-post.dto';
+import { BlogPost } from './entities/blog-post.entity';
 
 @ApiTags('post')
 @Controller('api/v1')
@@ -235,8 +236,7 @@ export class BlogPostController {
 
   @Get('/blogs')
   async getPosts(
-    @Req() request: Request,
-    @Query('pagination') pagination?: any,
+    @Query() pagination?: PaginationDto,
   ): Promise<{ posts: BlogPost[]; pagination: any }> {
     try {
       return await this.blogPostService.getPosts(pagination);
@@ -245,15 +245,19 @@ export class BlogPostController {
     }
   }
 
-  @Post('/blog/:category')
+  @Get('/blog/:category')
   async getCategoryPosts(
     @Param('category') category: string,
-    @Body('pagination') pagination?: PaginationDto,
+    @Query() pagination?: PaginationDto,
   ): Promise<{ posts: BlogPost[]; total: number }> {
     try {
       return await this.blogPostService.getCategoryPosts(category, pagination);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      if (error instanceof BadRequestException) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+
+      throw error;
     }
   }
 

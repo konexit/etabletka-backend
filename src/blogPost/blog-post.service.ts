@@ -166,7 +166,7 @@ export class BlogPostService {
     pagination: PaginationDto = {},
     lang: string = 'uk',
   ): Promise<{ posts: BlogPost[]; pagination: any }> {
-    const { take = 16, skip = 0 } = pagination;
+    const { take = 15, skip = 0 } = pagination;
 
     const queryBuilder = this.blogPostRepository.createQueryBuilder('post');
     const total = await queryBuilder.getCount();
@@ -185,10 +185,10 @@ export class BlogPostService {
   }
 
   async getCategoryPosts(
-    slug,
-    pagination,
+    slug: string,
+    pagination: PaginationDto = {},
   ): Promise<{ posts: BlogPost[]; total: number }> {
-    const { take = 16, skip = 0 } = pagination;
+    const { take = 15, skip = 0 } = pagination;
 
     const category = await this.blogCategoryRepository.findOne({
       where: { slug },
@@ -202,6 +202,7 @@ export class BlogPostService {
       );
     }
 
+    // BUG: Error occurs when postIds is empty
     const postIds = category?.posts.map((p: BlogPost) => p.id);
     const queryBuilder: SelectQueryBuilder<BlogPost> =
       this.blogPostRepository.createQueryBuilder('post');
@@ -210,6 +211,12 @@ export class BlogPostService {
       .getCount();
 
     const posts = await this.fetchData(queryBuilder, take, skip, postIds);
+
+    if (posts) {
+      for (const post of posts) {
+        Object.assign(post, this.convertPost(post));
+      }
+    }
 
     return { posts, total };
   }
