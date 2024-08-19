@@ -145,6 +145,31 @@ export class DiscountService {
     });
   }
 
+  async delete(token: string | any[], id: number) {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const discount: Discount = await this.discountRepository.findOne({
+      where: { id: id },
+      relations: ['discountGroups', 'products', 'products.categories'],
+    });
+    if (!discount) {
+      throw new HttpException(`Can\`t delete discount`, HttpStatus.BAD_REQUEST);
+    }
+
+    discount.discountGroups = [];
+    discount.products = [];
+    await this.discountRepository.save(discount);
+
+    return await this.discountRepository.delete(id);
+  }
+
   async setStatus(
     token: string | any[],
     id: number,

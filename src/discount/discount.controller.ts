@@ -1,7 +1,7 @@
 import {
   Body,
   ClassSerializerInterceptor,
-  Controller,
+  Controller, Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -10,8 +10,8 @@ import {
   Post,
   Req,
   UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
+  UseInterceptors
+} from "@nestjs/common";
 import slugify from 'slugify';
 import { DiscountService } from './discount.service';
 import { CreateDiscount } from './dto/create-discount.dto';
@@ -115,6 +115,16 @@ export class DiscountController {
       }
 
       return await this.discountService.update(token, +id, updateDiscount);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Delete('/discount/:id')
+  async delete(@Req() request: Request, @Param('id') id: number) {
+    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    try {
+      return await this.discountService.delete(token, id);
     } catch (error) {
       throw error;
     }
