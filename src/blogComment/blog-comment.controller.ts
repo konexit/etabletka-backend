@@ -21,7 +21,7 @@ import { UpdatePostComment } from './dto/update-post-comment.dto';
 export class BlogCommentController {
   constructor(private readonly blogCommentService: BlogCommentService) {}
 
-  @Post('/comments/post')
+  @Post('/comment/post')
   @UseInterceptors(ClassSerializerInterceptor)
   async create(
     @Req() request: Request,
@@ -31,7 +31,7 @@ export class BlogCommentController {
     return await this.blogCommentService.create(token, createPostComment);
   }
 
-  @Patch('/comments/post/:id')
+  @Patch('/comment/post/:id')
   @UseInterceptors(ClassSerializerInterceptor)
   async update(
     @Req() request: Request,
@@ -53,5 +53,10 @@ export class BlogCommentController {
   @Get('/comments/post/:id')
   async getPostComments(@Param('id') id: number): Promise<BlogComment[]> {
     return await this.blogCommentService.getPostComments(id);
+  }
+
+  @Get('/comment/:id/post')
+  async getPostCommentById(@Param('id') id: number): Promise<BlogComment> {
+    return await this.blogCommentService.getPostCommentById(id);
   }
 }

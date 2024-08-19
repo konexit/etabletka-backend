@@ -16,4 +16,7 @@ export class UpdatePostComment {
 
   @IsString()
   comment: string;
+
+  @IsOptional()
+  isApproved:boolean;
 }
