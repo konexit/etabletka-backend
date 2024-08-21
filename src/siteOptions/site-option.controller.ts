@@ -24,7 +24,7 @@ export class SiteOptionController {
     @Req() request: Request,
     @Body() createCharacteristic: CreateCharacteristic,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.siteOptionService.characteristicCreate(
       token,
       createCharacteristic,
@@ -37,7 +37,7 @@ export class SiteOptionController {
     @Param('key') key: string,
     @Body() updateCharacteristic: UpdateCharacteristic,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.siteOptionService.characteristicUpdate(
       token,
       key,
@@ -47,7 +47,7 @@ export class SiteOptionController {
 
   @Post('/value/create')
   async valueCreate(@Req() request: Request, @Body() createValue: CreateValue) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.siteOptionService.valueCreate(token, createValue);
   }
 
@@ -57,7 +57,7 @@ export class SiteOptionController {
     @Param('key') key: string,
     @Body() updateValue: UpdateValue,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.siteOptionService.valueUpdate(token, key, updateValue);
   }
 

@@ -29,7 +29,7 @@ export class ProductGroupController {
     @Body() createProductGroup: CreateProductGroup,
   ) {
     console.log('CreateProductGroup', createProductGroup);
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
 
     if (!createProductGroup.slug)
       createProductGroup.slug = slugify(createProductGroup.name);
@@ -57,7 +57,7 @@ export class ProductGroupController {
     @Body() updateProductGroup: UpdateProductGroup,
   ) {
     try {
-      const token = request.headers.authorization?.split(' ')[1] ?? [];
+      const token = request.headers.authorization?.split(' ')[1] ?? '';
 
       if (
         updateProductGroup.root &&

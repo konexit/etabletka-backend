@@ -14,7 +14,7 @@ export class BlogCommentService {
     private jwtService: JwtService,
   ) {}
 
-  async create(token: string | any[], createPostComment: CreatePostComment) {
+  async create(token: string, createPostComment: CreatePostComment) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
@@ -29,7 +29,7 @@ export class BlogCommentService {
   }
 
   async update(
-    token: string | any[],
+    token: string,
     id: number,
     updatePostComment: UpdatePostComment,
   ) {
@@ -57,7 +57,18 @@ export class BlogCommentService {
     return comment;
   }
 
-  async getPostComments(postId: number): Promise<BlogComment[]> {
+  async getPostComments(postId: number, token: string): Promise<BlogComment[]> {
+    if (token || typeof token === 'string') {
+      const payload = await this.jwtService.decode(token);
+      // TODO: get all for Admin
+      if (payload.roleId === 1) {
+        return await this.blogCommentRepository.find({
+          where: { postId },
+          relations: ['author', 'product'],
+        });
+      }
+    }
+
     const comments = await this.blogCommentRepository.find({
       where: { postId, isApproved: true },
       relations: ['author', 'blogPost'],

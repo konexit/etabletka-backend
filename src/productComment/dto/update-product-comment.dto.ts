@@ -1,8 +1,8 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class CreatePostComment {
+export class UpdateProductComment {
   @IsNotEmpty()
-  postId: number;
+  productId: number;
 
   @IsNotEmpty()
   userId: number;
@@ -12,4 +12,7 @@ export class CreatePostComment {
 
   @IsString()
   comment: string;
+
+  @IsOptional()
+  isApproved: boolean;
 }

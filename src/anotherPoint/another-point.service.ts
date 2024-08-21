@@ -14,7 +14,7 @@ export class AnotherPointService {
     private jwtService: JwtService,
   ) {}
 
-  async create(token: string | any[], createAnotherPoint: CreateAnotherPoint) {
+  async create(token: string, createAnotherPoint: CreateAnotherPoint) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
@@ -37,7 +37,7 @@ export class AnotherPointService {
   }
 
   async update(
-    token: string | any[],
+    token: string,
     id: number,
     updateAnotherPoint: UpdateAnotherPoint,
   ) {
@@ -63,7 +63,7 @@ export class AnotherPointService {
     return anotherPoint;
   }
 
-  async delete(token: string | any[], id: number) {
+  async delete(token: string, id: number) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
@@ -107,7 +107,7 @@ export class AnotherPointService {
     return anotherPoint;
   }
 
-  async setUseIcon(token: string | any[], id: number): Promise<AnotherPoint> {
+  async setUseIcon(token: string, id: number): Promise<AnotherPoint> {
     if (!token || typeof token !== 'string') {
       throw new HttpException('No access', HttpStatus.FORBIDDEN);
     }

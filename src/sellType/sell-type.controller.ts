@@ -31,7 +31,7 @@ export class SellTypeController {
     @Req() request: Request,
     @Body() createSellType: CreateSellTypeDto,
   ): Promise<SellType> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.sellTypeService.create(token, createSellType);
   }
 
@@ -43,14 +43,14 @@ export class SellTypeController {
     @Param('id') id: number,
     @Body() updateSellType: UpdateSellTypeDto,
   ): Promise<SellType> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.sellTypeService.update(token, id, updateSellType);
   }
 
   @UseGuards(AuthGuard)
   @Delete('/user/delete/:id')
   async remove(@Req() request: Request, @Param('id') id: number) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     await this.sellTypeService.remove(token, id);
   }
 

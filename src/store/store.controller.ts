@@ -57,7 +57,7 @@ export class StoreController {
           );
         }
       }
-      const token = request.headers.authorization?.split(' ')[1] ?? [];
+      const token = request.headers.authorization?.split(' ')[1] ?? '';
 
       return await this.storeService.update(token, +id, updateStore);
     } catch (error) {
@@ -70,7 +70,7 @@ export class StoreController {
     @Param('id') id: number,
     @Req() request: Request,
   ): Promise<Store> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.storeService.setStoreStatus(token, +id);
   }
 
@@ -81,7 +81,7 @@ export class StoreController {
     @Query('orderBy') orderBy?: any,
     @Query('where') where?: any,
   ): Promise<Store[]> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.storeService.getActiveStores(
       token,
       pagination,
@@ -100,7 +100,7 @@ export class StoreController {
     @Req() request: Request,
     @Param('id') id: number,
   ): Promise<Store> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.storeService.getStoreById(token, +id);
   }
 }

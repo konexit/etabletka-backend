@@ -37,7 +37,7 @@ export class BlogPostController {
     @UploadedFile() image: Express.Multer.File,
     @Body() createPost: CreatePost,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     try {
       if (createPost.title && typeof createPost.title === 'string') {
         try {
@@ -140,7 +140,7 @@ export class BlogPostController {
     @Param('id') id: number,
     @Body() updatePost: UpdatePost,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
 
     try {
       if (updatePost.title && typeof updatePost.title === 'string') {

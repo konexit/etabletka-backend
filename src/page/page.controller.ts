@@ -11,7 +11,7 @@ export class PageController {
 
   @Get('/pages')
   async getPages(@Req() request: Request): Promise<Page[]> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
 
     return await this.pageService.getPages(token);
   }

@@ -14,7 +14,7 @@ export class StoreBrandService {
     private jwtService: JwtService,
   ) {}
 
-  async create(token: string | any[], createStoreBrand: CreateStoreBrand) {
+  async create(token: string, createStoreBrand: CreateStoreBrand) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
@@ -36,7 +36,7 @@ export class StoreBrandService {
   }
 
   async update(
-    token: string | any[],
+    token: string,
     id: number,
     updateStoreBrand: UpdateStoreBrand,
   ) {
@@ -62,7 +62,7 @@ export class StoreBrandService {
   }
 
   async delete(
-    token: string | any[],
+    token: string,
     id: number,
   ) {
     if (!token || typeof token !== 'string') {

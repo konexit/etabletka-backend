@@ -48,7 +48,7 @@ export class SiteOptionService {
   }
 
   async characteristicCreate(
-    token: string | any[],
+    token: string,
     createCharacteristic: CreateCharacteristic,
   ) {
     if (!token || typeof token !== 'string') {
@@ -68,7 +68,7 @@ export class SiteOptionService {
     await this.moveFacetSearchMapToCache(this.productAttributeConfig.attrKeyCache);
   }
 
-  async valueCreate(token: string | any[], createValue: CreateValue) {
+  async valueCreate(token: string, createValue: CreateValue) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
@@ -87,7 +87,7 @@ export class SiteOptionService {
   }
 
   async characteristicUpdate(
-    token: string | any[],
+    token: string,
     key: string,
     updateCharacteristic: UpdateCharacteristic,
   ) {
@@ -105,7 +105,7 @@ export class SiteOptionService {
   }
 
   async valueUpdate(
-    token: string | any[],
+    token: string,
     key: string,
     updateValue: UpdateValue,
   ) {

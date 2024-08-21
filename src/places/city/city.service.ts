@@ -25,7 +25,7 @@ export class CityService {
   cacheDefaultCityKey = 'defaultCity';
   cacheCitiesTTL = 3600000; // 1Hour
 
-  async getCities(token: string | any[], lang: string = 'uk'): Promise<City[]> {
+  async getCities(token: string, lang: string = 'uk'): Promise<City[]> {
     if (!token || typeof token !== 'string') {
       return [];
     }
@@ -109,7 +109,7 @@ export class CityService {
   }
 
   async getCitiesWithStores(
-    token: string | any[],
+    token: string,
     pagination: PaginationDto = {},
     orderBy: any = {},
     lang: string = 'uk',

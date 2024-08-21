@@ -15,7 +15,7 @@ export class SellTypeService {
   ) {}
 
   async create(
-    token: string | any[],
+    token: string,
     createSellType: CreateSellTypeDto,
   ): Promise<SellType> {
     if (!token || typeof token !== 'string') {
@@ -39,7 +39,7 @@ export class SellTypeService {
   }
 
   async update(
-    token: string | any[],
+    token: string,
     id: number,
     updateSellType: UpdateSellTypeDto,
   ): Promise<SellType> {
@@ -64,7 +64,7 @@ export class SellTypeService {
     return sellType;
   }
 
-  async remove(token: string | any[], id: number) {
+  async remove(token: string, id: number) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }

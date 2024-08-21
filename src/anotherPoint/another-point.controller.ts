@@ -32,7 +32,7 @@ export class AnotherPointController {
     @UploadedFile() image: Express.Multer.File,
     @Body() createAnotherPoint: CreateAnotherPoint,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     const anotherPoint = await this.anotherPointService.create(
       token,
       createAnotherPoint,
@@ -54,7 +54,7 @@ export class AnotherPointController {
     @Body() updateAnotherPoint: UpdateAnotherPoint,
   ) {
     try {
-      const token = request.headers.authorization?.split(' ')[1] ?? [];
+      const token = request.headers.authorization?.split(' ')[1] ?? '';
 
       return await this.anotherPointService.update(
         token,
@@ -84,7 +84,7 @@ export class AnotherPointController {
 
   @Delete('/another-point/:id')
   async delete(@Req() request: Request, @Param('id') id: number) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     try {
       return await this.anotherPointService.delete(token, id);
     } catch (error) {
@@ -107,7 +107,7 @@ export class AnotherPointController {
     @Req() request: Request,
     @Param('id') id: number,
   ): Promise<AnotherPoint> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.anotherPointService.setUseIcon(token, id);
   }
 }

@@ -11,7 +11,7 @@ export class CityController {
 
   @Get('/cities')
   async findAll(@Req() request: Request): Promise<any> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
 
     return await this.cityService.getCities(token);
   }
@@ -32,7 +32,7 @@ export class CityController {
     @Query('pagination') pagination?: any,
     @Query('orderBy') orderBy?: any,
   ): Promise<City[]> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.cityService.getCitiesWithStores(
       token,
       pagination,

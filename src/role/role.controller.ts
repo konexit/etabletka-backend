@@ -11,7 +11,7 @@ export class RoleController {
 
   @Get('/roles')
   async getRoles(@Req() request: Request): Promise<Role[]> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.roleService.getRoles(token);
   }
 

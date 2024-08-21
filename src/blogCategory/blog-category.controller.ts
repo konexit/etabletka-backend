@@ -30,7 +30,7 @@ export class BlogCategoryController {
     @Req() request: Request,
     @Body() createBlogCategory: CreateBlogCategory,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     try {
       if (
         createBlogCategory.title &&
@@ -106,7 +106,7 @@ export class BlogCategoryController {
     @Param('id') id: number,
     @Body() updateBlogCategory: UpdateBlogCategory,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     try {
       if (
         updateBlogCategory.title &&

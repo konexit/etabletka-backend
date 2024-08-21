@@ -35,7 +35,7 @@ export class ProductRemnantController {
   @UseInterceptors(ClassSerializerInterceptor)
   @Get()
   findAll(@Req() request: Request) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return this.productRemnantService.findAll(token);
   }
 

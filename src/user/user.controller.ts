@@ -53,7 +53,7 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Get('/users')
   async findAll(@Req() request: Request): Promise<User[]> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.userService.findAll(token);
   }
 

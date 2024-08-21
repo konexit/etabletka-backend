@@ -19,7 +19,7 @@ export class CommunityController {
   @UseInterceptors(ClassSerializerInterceptor)
   @Get()
   async getCommunities(@Req() request: Request): Promise<Community[]> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
 
     return await this.communityService.getCommunities(token);
   }

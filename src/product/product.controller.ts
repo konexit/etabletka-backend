@@ -57,7 +57,7 @@ export class ProductController {
     @Query('orderBy') orderBy?: any,
     @Query('where') where?: any,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return this.productService.findAll(token, pagination, orderBy, where);
   }
 
@@ -94,7 +94,7 @@ export class ProductController {
     @Param('id') id: number,
     @Param('badgeId') badgeId: number,
   ): Promise<any> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
 
     return await this.productService.addBadgeToProduct(token, id, badgeId);
   }

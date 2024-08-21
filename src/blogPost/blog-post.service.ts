@@ -42,7 +42,7 @@ export class BlogPostService {
     });
   }
 
-  async create(token: string | any[], createPost: CreatePost) {
+  async create(token: string, createPost: CreatePost) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
@@ -74,7 +74,7 @@ export class BlogPostService {
     return this.convertPost(await queryBuilder.getOne());
   }
 
-  async update(token: string | any[], id: number, updatePost: UpdatePost) {
+  async update(token: string, id: number, updatePost: UpdatePost) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }

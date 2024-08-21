@@ -32,7 +32,7 @@ export class StoreBrandController {
     @UploadedFile() image: Express.Multer.File,
     @Body() createStoreBrand: CreateStoreBrand,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     const storeBrand = await this.storeBrandService.create(
       token,
       createStoreBrand,
@@ -53,13 +53,13 @@ export class StoreBrandController {
     @Param('id') id: number,
     @Body() updateStoreBrand: UpdateStoreBrand,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return this.storeBrandService.update(token, +id, updateStoreBrand);
   }
 
   @Delete('/store/brand/:id')
   async delete(@Req() request: Request, @Param('id') id: number) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     try {
       return await this.storeBrandService.delete(token, id);
     } catch (error) {

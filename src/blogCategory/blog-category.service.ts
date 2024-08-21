@@ -33,7 +33,7 @@ export class BlogCategoryService {
   }
 
   async create(
-    token: string | any[],
+    token: string,
     createBlogCategory: CreateBlogCategory,
   ): Promise<BlogCategory> {
     if (!token || typeof token !== 'string') {
@@ -63,7 +63,7 @@ export class BlogCategoryService {
   }
 
   async update(
-    token: string | any[],
+    token: string,
     id: number,
     updateBlogCategory: UpdateBlogCategory,
     lang: string = 'uk',

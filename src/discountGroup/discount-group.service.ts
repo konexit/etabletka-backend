@@ -15,7 +15,7 @@ export class DiscountGroupService {
   ) {}
 
   async create(
-    token: string | any[],
+    token: string,
     createDiscountGroup: CreateDiscountGroup,
   ) {
     if (!token || typeof token !== 'string') {
@@ -40,7 +40,7 @@ export class DiscountGroupService {
   }
 
   async update(
-    token: string | any[],
+    token: string,
     id: number,
     updateDiscountGroup: UpdateDiscountGroup,
   ) {
@@ -68,7 +68,7 @@ export class DiscountGroupService {
   }
 
   async setStatus(
-    token: string | any[],
+    token: string,
     id: number,
     lang: string = 'uk',
   ): Promise<DiscountGroup> {
@@ -149,7 +149,7 @@ export class DiscountGroupService {
     return discountGroups;
   }
 
-  async getAllDiscountGroups(token: string | any[], lang: string = 'uk') {
+  async getAllDiscountGroups(token: string, lang: string = 'uk') {
     if (!token || typeof token !== 'string') {
       return await this.getAllDiscountGroupsForUser(lang);
     }
@@ -178,7 +178,7 @@ export class DiscountGroupService {
   }
 
   async getDiscountGroupById(
-    token: string | any[],
+    token: string,
     id: number,
     lang: string = 'uk',
   ): Promise<DiscountGroup> {

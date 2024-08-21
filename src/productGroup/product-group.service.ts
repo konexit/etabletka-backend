@@ -23,7 +23,7 @@ export class ProductGroupService {
     });
   }
 
-  async create(token: string | any[], createProductGroup: CreateProductGroup) {
+  async create(token: string, createProductGroup: CreateProductGroup) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
@@ -59,7 +59,7 @@ export class ProductGroupService {
   }
 
   async update(
-    token: string | any[],
+    token: string,
     id: number,
     updateProductGroup: UpdateProductGroup,
   ) {
@@ -110,7 +110,7 @@ export class ProductGroupService {
     });
   }
 
-  async delete(token: string | any[], id: number) {
+  async delete(token: string, id: number) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }

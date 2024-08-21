@@ -22,7 +22,7 @@ export class StoreService {
   cacheActiveStoresTTL = 3600000; // 1Hour
 
   async update(
-    token: string | any[],
+    token: string,
     id: number,
     updateStore: UpdateStoreDto,
     lang: string = 'uk',
@@ -50,7 +50,7 @@ export class StoreService {
   }
 
   async setStoreStatus(
-    token: string | any[],
+    token: string,
     id: number,
     lang: string = 'uk',
   ): Promise<Store> {
@@ -70,7 +70,7 @@ export class StoreService {
   }
 
   async getActiveStores(
-    token: string | any[],
+    token: string,
     pagination: PaginationDto = {},
     orderBy: any = {},
     where: any = {},
@@ -189,7 +189,7 @@ export class StoreService {
   }
 
   async getStoreById(
-    token: string | any[],
+    token: string,
     id: number,
     lang: string = 'uk',
   ): Promise<Store> {

@@ -34,7 +34,7 @@ export class DiscountController {
     @UploadedFile() image: Express.Multer.File,
     @Body() createDiscount: CreateDiscount,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     try {
       if (createDiscount.name && typeof createDiscount.name === 'string') {
         try {
@@ -82,7 +82,7 @@ export class DiscountController {
     @Param('id') id: number,
     @Body() updateDiscount: UpdateDiscount,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
 
     try {
       if (updateDiscount.name && typeof updateDiscount.name === 'string') {
@@ -122,7 +122,7 @@ export class DiscountController {
 
   @Delete('/discount/:id')
   async delete(@Req() request: Request, @Param('id') id: number) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     try {
       return await this.discountService.delete(token, id);
     } catch (error) {
@@ -137,7 +137,7 @@ export class DiscountController {
     @Param('id') id: number,
     @UploadedFile() image: Express.Multer.File,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
 
     // TODO: Upload file to CDN
     if (image) {
@@ -153,19 +153,19 @@ export class DiscountController {
     @Param('id') id: number,
     @Req() request: Request,
   ): Promise<Discount> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.discountService.setStatus(token, +id);
   }
 
   @Get('/discounts')
   async getAllDiscounts(@Req() request: Request): Promise<Discount[]> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.discountService.getAllDiscounts(token);
   }
 
   @Get('/discount/:id')
   async getDiscountById(@Req() request: Request, @Param('id') id: number) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.discountService.getDiscountById(token, +id);
   }
 }

@@ -91,7 +91,7 @@ export class ProductService {
   }
 
   async findAll(
-    token: string | any[],
+    token: string,
     pagination: PaginationDto = {},
     orderBy: any = {},
     where: any = {},
@@ -361,7 +361,7 @@ export class ProductService {
   }
 
   async addBadgeToProduct(
-    token: string | any[],
+    token: string,
     id: number,
     badgeId: number,
   ): Promise<any> {

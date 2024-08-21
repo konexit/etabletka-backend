@@ -17,7 +17,7 @@ export class DistrictController {
   @UseInterceptors(ClassSerializerInterceptor)
   @Get()
   async getAllDistricts(@Req() request: Request): Promise<any> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.districtService.getAllDistricts(token);
   }
 }

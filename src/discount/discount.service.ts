@@ -33,7 +33,7 @@ export class DiscountService {
   }
 
   async create(
-    token: string | any[],
+    token: string,
     createDiscount: CreateDiscount,
   ): Promise<Discount> {
     if (!token || typeof token !== 'string') {
@@ -77,7 +77,7 @@ export class DiscountService {
   }
 
   async update(
-    token: string | any[],
+    token: string,
     id: number,
     updateDiscount: UpdateDiscount,
   ) {
@@ -145,7 +145,7 @@ export class DiscountService {
     });
   }
 
-  async delete(token: string | any[], id: number) {
+  async delete(token: string, id: number) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
@@ -171,7 +171,7 @@ export class DiscountService {
   }
 
   async setStatus(
-    token: string | any[],
+    token: string,
     id: number,
     lang: string = 'uk',
   ): Promise<Discount> {
@@ -234,7 +234,7 @@ export class DiscountService {
     return discounts;
   }
 
-  async getAllDiscounts(token: string | any[], lang: string = 'uk') {
+  async getAllDiscounts(token: string, lang: string = 'uk') {
     if (!token || typeof token !== 'string') {
       return await this.getAllDiscountsForUser(lang);
     }
@@ -256,7 +256,7 @@ export class DiscountService {
   }
 
   async getDiscountById(
-    token: string | any[],
+    token: string,
     id: number,
     lang: string = 'uk',
   ) {

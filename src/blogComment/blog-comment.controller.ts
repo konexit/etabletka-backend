@@ -27,7 +27,7 @@ export class BlogCommentController {
     @Req() request: Request,
     @Body() createPostComment: CreatePostComment,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.blogCommentService.create(token, createPostComment);
   }
 
@@ -38,7 +38,7 @@ export class BlogCommentController {
     @Param('id') id: number,
     @Body() updatePostComment: UpdatePostComment,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     try {
       return await this.blogCommentService.update(
         token,
@@ -51,8 +51,12 @@ export class BlogCommentController {
   }
 
   @Get('/comments/post/:id')
-  async getPostComments(@Param('id') id: number): Promise<BlogComment[]> {
-    return await this.blogCommentService.getPostComments(id);
+  async getPostComments(
+    @Param('id') id: number,
+    @Req() request: Request,
+  ): Promise<BlogComment[]> {
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
+    return await this.blogCommentService.getPostComments(id, token);
   }
 
   @Get('/comment/:id/post')

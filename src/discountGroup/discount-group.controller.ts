@@ -34,7 +34,7 @@ export class DiscountGroupController {
     @UploadedFile() image: Express.Multer.File,
     @Body() createDiscountGroup: CreateDiscountGroup,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     try {
       if (
         createDiscountGroup.name &&
@@ -80,7 +80,7 @@ export class DiscountGroupController {
     @Param('id') id: number,
     @Body() updateDiscountGroup: UpdateDiscountGroup,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     try {
       if (
         updateDiscountGroup.name &&
@@ -113,7 +113,7 @@ export class DiscountGroupController {
     @Param('id') id: number,
     @UploadedFile() image: Express.Multer.File,
   ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
 
     // TODO: Upload file to CDN
     if (image) {
@@ -129,7 +129,7 @@ export class DiscountGroupController {
     @Param('id') id: number,
     @Req() request: Request,
   ): Promise<DiscountGroup> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.discountGroupService.setStatus(token, +id);
   }
 
@@ -138,7 +138,7 @@ export class DiscountGroupController {
     @Req() request: Request,
     @Query('format') format: string = 'all',
   ): Promise<any> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     if (format) {
       switch (format) {
         case 'main':
@@ -153,7 +153,7 @@ export class DiscountGroupController {
     @Req() request: Request,
     @Param('id') id: number,
   ): Promise<DiscountGroup> {
-    const token = request.headers.authorization?.split(' ')[1] ?? [];
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.discountGroupService.getDiscountGroupById(token, +id);
   }
 }
