@@ -36,6 +36,7 @@ import { StoreBrandModule } from './storeBrand/store-brand.module';
 import { SellTypeModule } from './sellType/sell-type.module';
 import { SearchModule } from './search/search.module';
 import { ProductGroupModule } from './productGroup/product-group.module';
+import { ProductCommentModule } from './productComment/product-comment.module';
 
 @Module({
   imports: [
@@ -49,7 +50,7 @@ import { ProductGroupModule } from './productGroup/product-group.module';
     }),
     CacheModule.register({
       isGlobal: true,
-      ttl: 0
+      ttl: 0,
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
     AuthModule,
@@ -63,6 +64,7 @@ import { ProductGroupModule } from './productGroup/product-group.module';
     ProductTypeModule,
     ProductRemnantModule,
     ProductGroupModule,
+    ProductCommentModule,
     CityModule,
     AnotherPointModule,
     CommunityModule,
@@ -87,4 +89,4 @@ import { ProductGroupModule } from './productGroup/product-group.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
