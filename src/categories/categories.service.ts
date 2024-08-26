@@ -95,7 +95,7 @@ export class CategoriesService {
 
     return {
       ...category,
-      children: this.getCategoryTree(category.id, categories, 1),
+      children: this.getCategoryTree(category.id, categories, 3),
     };
   }
 
