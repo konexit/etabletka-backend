@@ -1,19 +1,20 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  ClassSerializerInterceptor,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
   Query,
   UseInterceptors,
-  ClassSerializerInterceptor,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { ResponseCategoryDto } from './dto/response-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('categories')
 @Controller('api/v1')
@@ -33,26 +34,38 @@ export class CategoriesController {
         case 'menu':
           return await this.categoriesService.formatMenu();
         case 'menu-root':
-          return await this.categoriesService.formatMenuRoot();
+          return (await this.categoriesService.formatMenuRoot()).map(
+            (category) => new ResponseCategoryDto(category, 'uk'),
+          );
       }
     }
     return await this.categoriesService.findAll();
   }
 
   @Get('/categories/filter')
+  @UseInterceptors(ClassSerializerInterceptor)
   async findByFilter(
     @Query('root') root: boolean,
     @Query('parent_id') parentId: number,
     @Query('id') id: number,
     @Query('slug') slug: string,
     @Query('path') path: string,
+    @Query('lang') lang: string = 'uk',
   ) {
-    if (root) return await this.categoriesService.findByRoot();
-    if (id) return await this.categoriesService.findById(id);
-    if (parentId) return await this.categoriesService.findByParentId(parentId);
-    if (slug) return await this.categoriesService.findBySlug(slug);
-    if (path) return await this.categoriesService.findByPath(path);
-    return [];
+    if (root) {
+      return await this.categoriesService.findByRoot();
+    } else if (id) {
+      return new ResponseCategoryDto(
+        await this.categoriesService.findById(id),
+        lang,
+      );
+    } else if (parentId) {
+      return await this.categoriesService.findByParentId(parentId);
+    } else if (slug) {
+      return await this.categoriesService.findBySlug(slug);
+    } else if (path) {
+      return await this.categoriesService.findByPath(path);
+    }
   }
 
   @Patch('/categories/:id')
