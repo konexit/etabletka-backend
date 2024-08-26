@@ -3,6 +3,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
 import { LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'typeorm';
+import { CategoryNode } from './categories.module';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
@@ -32,7 +33,8 @@ export class CategoriesService {
   }
 
   async formatMenu(depth: number = 3) {
-    const cacheCategoryMenu: ReturnType<typeof this.buildMenuTree> = await this.cacheManager.get(this.cacheMenuKey);
+    const cacheCategoryMenu: ReturnType<typeof this.buildMenuTree> =
+      await this.cacheManager.get(this.cacheMenuKey);
 
     if (cacheCategoryMenu) return cacheCategoryMenu;
 
@@ -78,7 +80,7 @@ export class CategoriesService {
     });
   }
 
-  async findById(id: number): Promise<Category> {
+  async findById(id: number) {
     const category = await this.categoryRepository.findOneBy({
       id,
       active: true,
@@ -86,18 +88,15 @@ export class CategoriesService {
 
     const categories = await this.categoryRepository.find({
       where: {
-        lft: MoreThanOrEqual(category.lft),
-        rgt: LessThanOrEqual(category.rgt),
         active: true,
         id: Not(category.id),
       },
     });
 
-    const resultCategory = Object.assign({}, category, {
-      children: categories,
-    });
-
-    return resultCategory;
+    return {
+      ...category,
+      children: this.getCategoryTree(category.id, categories, 1),
+    };
   }
 
   async findByParentId(id: number): Promise<Category[]> {
@@ -151,18 +150,41 @@ export class CategoriesService {
     return { formatCategory: category, idMap };
   }
 
+  private getCategoryTree(
+    categoryId: Category['id'],
+    categories: CategoryNode[] | Category[],
+    depthLimit: number,
+    depth: number = 1,
+  ): CategoryNode[] {
+    if (depth >= depthLimit) {
+      return [];
+    }
+
+    const filteredCategories = categories.filter(
+      (node) => node.parentId === categoryId,
+    ) as CategoryNode[];
+
+    return filteredCategories.map((node) => {
+      const children = this.getCategoryTree(
+        node.id,
+        categories,
+        depthLimit,
+        depth + 1,
+      );
+
+      node.children = children.length > 0 ? children : [];
+
+      return node;
+    });
+  }
+
   private buildMenuTree(
     categories: Category[],
     depth: number,
     fromCategory: Category = null,
   ) {
-    type TreeCategory = Category & {
-      depth: number;
-      children: Category[];
-    };
-
-    const idMap: Map<number, TreeCategory> = new Map();
-    const rootNodes: TreeCategory[] = [];
+    const idMap: Map<number, CategoryNode & { depth: number }> = new Map();
+    const rootNodes: CategoryNode[] = [];
 
     for (let i = 0; i < categories.length; i++) {
       idMap.set(
