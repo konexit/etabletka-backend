@@ -3,8 +3,18 @@ import { Category } from '../entities/category.entity';
 
 @Exclude()
 export class ResponseCategoryDto {
-  constructor(partial: Partial<Category>, langKey: string) {
+  constructor(
+    partial: Category & { children?: Category[] } & Record<string, any>,
+    langKey: string,
+  ) {
     partial.name = partial.name?.[langKey] || null;
+
+    if (Array.isArray(partial.children)) {
+      for (const children of partial.children) {
+        children.name = children.name?.[langKey] || null;
+      }
+    }
+
     return Object.assign(this, partial);
   }
 
