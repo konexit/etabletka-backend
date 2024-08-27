@@ -8,8 +8,11 @@ export class ResponseCategoryDto {
     partial: (CategoryNode | Category) & Record<string, any>,
     langKey: string = 'uk',
   ) {
-    this.assignLocalizedName(partial, langKey);
-    return Object.assign(this, partial);
+    const categoryObject = Object.assign({}, partial);
+
+    this.assignLocalizedName(categoryObject, langKey);
+
+    return Object.assign(this, categoryObject);
   }
 
   private assignLocalizedName(
