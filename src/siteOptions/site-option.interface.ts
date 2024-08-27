@@ -17,7 +17,7 @@ interface FacetSearchMap {
   isActive: 0,
   value: any,
   json: {
-    attributes: [],
-    attributesValue: []
+    attributes: {},
+    attributesValue: {}
   }
 }
