@@ -257,9 +257,8 @@ export class ProductService {
     return products;
   }
 
-  // @TransformAttributes('uk')
-  async findProductById(id: number, lang: string = 'uk'): Promise<Product> {
-    const product = await this.productRepository.findOne({
+  async getProductByIdForUser(id) {
+    return await this.productRepository.findOne({
       where: { id, isActive: true },
       relations: [
         'productGroups',
@@ -272,6 +271,32 @@ export class ProductService {
         'brand',
       ],
     });
+  }
+
+  @TransformAttributes('uk')
+  async findProductById(
+    token: string,
+    id: number,
+    lang: string = 'uk',
+  ): Promise<Product> {
+    let product = await this.getProductByIdForUser(id);
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId === 1) {
+      product = await this.productRepository.findOne({
+        where: { id },
+        relations: [
+          'productGroups',
+          'productRemnants',
+          'productRemnants.store',
+          'productType',
+          'categories',
+          'discounts',
+          'badges',
+          'brand',
+        ],
+      });
+    }
 
     if (!product) {
       throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
@@ -299,6 +324,11 @@ export class ProductService {
 
     product.name = product?.name[lang];
     product.shortName = product?.shortName[lang];
+    if (product.seoTitle) product.seoTitle = product.seoTitle[lang];
+    if (product.seoDescription)
+      product.seoDescription = product.seoDescription[lang];
+    if (product.brand) product.brand.name = product.brand?.name[lang];
+
     return product;
   }
 

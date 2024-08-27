@@ -33,8 +33,9 @@ export class ProductController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('/product/:id')
-  async findOne(@Param('id') id: number) {
-    return await this.productService.findProductById(+id);
+  async findProductById(@Req() request: Request, @Param('id') id: number) {
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
+    return await this.productService.findProductById(token, +id);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
