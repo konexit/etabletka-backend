@@ -11,7 +11,16 @@ export class UpdateProduct {
   brandId: number;
 
   @IsOptional()
+  name: JSON;
+
+  @IsOptional()
+  shortName: JSON;
+
+  @IsOptional()
   atc: string;
+
+  @IsOptional()
+  slug: string;
 
   @IsOptional()
   price: number;

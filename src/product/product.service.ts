@@ -52,10 +52,20 @@ export class ProductService {
   }
 
   async update(
+    token: string,
     id: number,
     updateProduct: UpdateProduct,
     lang: string = 'uk',
   ): Promise<Product> {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
     const productBadgeIds = updateProduct.badges;
     delete updateProduct.badges;
 
