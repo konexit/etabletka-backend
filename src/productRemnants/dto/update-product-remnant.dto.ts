@@ -1,1 +1,1 @@
-export class UpdateProductRemnantDto {}
+export class UpdateProductRemnant {}

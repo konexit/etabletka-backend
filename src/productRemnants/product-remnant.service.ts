@@ -2,9 +2,9 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ProductRemnant } from './entities/product-remnant.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import CreateProductRemnantDto from './dto/create-product-remnant.dto';
-import { UpdateProductRemnantDto } from './dto/update-product-remnant.dto';
 import { Store } from '../store/entities/store.entity';
+import { CreateProductRemnant } from './dto/create-product-remnant.dto';
+import { UpdateProductRemnant } from './dto/update-product-remnant.dto';
 
 @Injectable()
 export class ProductRemnantService {
@@ -14,6 +14,40 @@ export class ProductRemnantService {
     @InjectRepository(Store)
     private storeRepository: Repository<Store>,
   ) {}
+
+  async create(
+    createProductRemnantsDto: CreateProductRemnant,
+  ): Promise<ProductRemnant> {
+    const productRemnant = this.productRemnantsRepository.create(
+      createProductRemnantsDto,
+    );
+    await this.productRemnantsRepository.save(productRemnant);
+    console.log('ProductRemnant', productRemnant);
+    return productRemnant;
+  }
+
+  async update(
+    id: number,
+    updateProductRemnantDto: UpdateProductRemnant,
+  ): Promise<ProductRemnant> {
+    await this.productRemnantsRepository.update(id, updateProductRemnantDto);
+    const productRemnant = await this.productRemnantsRepository.findOneBy({
+      id: id,
+    });
+
+    if (!productRemnant) {
+      throw new HttpException(
+        'Product remnant not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return productRemnant;
+  }
+
+  remove(id: number) {
+    return `This action removes the #${id} product remnant`;
+  }
 
   async getProductRemnantsByProductId(productId: number) {
     if (!productId)
@@ -34,17 +68,6 @@ export class ProductRemnantService {
     }
 
     return productRemnants;
-  }
-
-  async create(
-    createProductRemnantsDto: CreateProductRemnantDto,
-  ): Promise<ProductRemnant> {
-    const productRemnant = this.productRemnantsRepository.create(
-      createProductRemnantsDto,
-    );
-    await this.productRemnantsRepository.save(productRemnant);
-    console.log('ProductRemnant', productRemnant);
-    return productRemnant;
   }
 
   async findAll(token: string | any[]): Promise<ProductRemnant[]> {
@@ -121,28 +144,5 @@ export class ProductRemnantService {
     }
 
     return productRemnants;
-  }
-
-  async update(
-    id: number,
-    updateProductRemnantDto: UpdateProductRemnantDto,
-  ): Promise<ProductRemnant> {
-    await this.productRemnantsRepository.update(id, updateProductRemnantDto);
-    const productRemnant = await this.productRemnantsRepository.findOneBy({
-      id: id,
-    });
-
-    if (!productRemnant) {
-      throw new HttpException(
-        'Product remnant not found',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    return productRemnant;
-  }
-
-  remove(id: number) {
-    return `This action removes the #${id} product remnant`;
   }
 }

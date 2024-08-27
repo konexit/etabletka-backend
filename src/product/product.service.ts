@@ -5,13 +5,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { TransformAttributes } from 'src/common/decorators/transform-attributes';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Badge } from '../badge/entities/badge.entity';
 import { PaginationDto } from '../common/dto/paginationDto';
 import { Discount } from '../discount/entities/discount.entity';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
+import { CreateProduct } from './dto/create-product.dto';
+import { UpdateProduct } from './dto/update-product.dto';
+import { Category } from '../categories/entities/category.entity';
+import { ProductGroup } from '../productGroup/entities/product-group.entity';
+import { ProductRemnant } from "../productRemnants/entities/product-remnant.entity";
 
 @Injectable()
 export class ProductService {
@@ -19,11 +22,17 @@ export class ProductService {
 
   constructor(
     @InjectRepository(Product)
-    private productRepository: Repository<Product>,
+    private readonly productRepository: Repository<Product>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
     @InjectRepository(Discount)
-    private discountRepository: Repository<Discount>,
+    private readonly discountRepository: Repository<Discount>,
     @InjectRepository(Badge)
     private readonly badgeRepository: Repository<Badge>,
+    @InjectRepository(ProductGroup)
+    private readonly productGroupRepository: Repository<ProductGroup>,
+    @InjectRepository(ProductRemnant)
+    private readonly productRemnantRepository: Repository<ProductRemnant>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private jwtService: JwtService,
@@ -34,6 +43,143 @@ export class ProductService {
 
   cacheSalesProductsKey = 'salesProducts';
   cacheProductsTTL = 7200000; // 2Hour
+
+  async create(createProduct: CreateProduct): Promise<Product> {
+    const product = this.productRepository.create(createProduct);
+    await this.productRepository.save(product);
+    console.log('PRODUCT', product);
+    return product;
+  }
+
+  async update(
+    id: number,
+    updateProduct: UpdateProduct,
+    lang: string = 'uk',
+  ): Promise<Product> {
+    const productBadgeIds = updateProduct.badges;
+    delete updateProduct.badges;
+
+    const productCategoryIds = updateProduct.categories;
+    delete updateProduct.categories;
+
+    const productDiscountIds = updateProduct.discounts;
+    delete updateProduct.discounts;
+
+    const productGroupIds = updateProduct.productGroups;
+    delete updateProduct.productGroups;
+
+    const productRemnantIds = updateProduct.productRemnants;
+    delete updateProduct.productRemnants;
+
+    await this.productRepository.update(id, updateProduct);
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: ['badges', 'categories', 'discounts', 'productGroups'],
+    });
+    if (!product) {
+      throw new HttpException(
+        `Can't update product with data: ${updateProduct}`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (productBadgeIds) {
+      if (!Array.isArray(productBadgeIds)) {
+        const ids: Array<number> = String(productBadgeIds)
+          .split(',')
+          .map(Number);
+
+        product.badges = await this.addBadges(ids);
+      } else {
+        product.badges = await this.addBadges(productBadgeIds);
+      }
+    } else {
+      product.badges = [];
+    }
+
+    if (productCategoryIds) {
+      if (!Array.isArray(productCategoryIds)) {
+        const ids: Array<number> = String(productCategoryIds)
+          .split(',')
+          .map(Number);
+
+        product.categories = await this.addCategories(ids);
+      } else {
+        product.categories = await this.addCategories(productCategoryIds);
+      }
+    } else {
+      product.categories = [];
+    }
+
+    if (productDiscountIds) {
+      if (!Array.isArray(productDiscountIds)) {
+        const ids: Array<number> = String(productDiscountIds)
+          .split(',')
+          .map(Number);
+
+        product.discounts = await this.addDiscounts(ids);
+      } else {
+        product.discounts = await this.addDiscounts(productDiscountIds);
+      }
+    } else {
+      product.discounts = [];
+    }
+
+    if (productGroupIds) {
+      if (!Array.isArray(productGroupIds)) {
+        const ids: Array<number> = String(productGroupIds)
+          .split(',')
+          .map(Number);
+
+        product.productGroups = await this.addProductGroups(ids);
+      } else {
+        product.productGroups = await this.addProductGroups(productGroupIds);
+      }
+    } else {
+      product.productGroups = [];
+    }
+
+    if (productRemnantIds) {
+      //TODO
+    } else {
+      product.productRemnants = [];
+    }
+
+    const productUpd: Product = await this.productRepository.save(product);
+
+    productUpd.name = productUpd?.name[lang];
+    productUpd.shortName = productUpd?.shortName[lang];
+
+    return productUpd;
+  }
+
+  remove(id: number) {
+    return `This action removes the #${id} product`;
+  }
+
+  async addBadges(ids: Array<number>) {
+    return await this.badgeRepository.find({
+      where: { id: In(ids) },
+    });
+  }
+
+  async addCategories(ids: Array<number>) {
+    return await this.categoryRepository.find({
+      where: { id: In(ids) },
+    });
+  }
+
+  async addDiscounts(ids: Array<number>) {
+    return await this.discountRepository.find({
+      where: { id: In(ids) },
+    });
+  }
+
+  async addProductGroups(ids: Array<number>) {
+    return await this.productGroupRepository.find({
+      where: { id: In(ids) },
+    });
+  }
 
   async getProductBySyncId(
     syncId: number,
@@ -81,13 +227,6 @@ export class ProductService {
       product.shortName = product?.shortName[lang];
     }
     return products;
-  }
-
-  async create(createProductDto: CreateProductDto): Promise<Product> {
-    const product = this.productRepository.create(createProductDto);
-    await this.productRepository.save(product);
-    console.log('PRODUCT', product);
-    return product;
   }
 
   async findAll(
@@ -373,23 +512,6 @@ export class ProductService {
     return product;
   }
 
-  async update(
-    id: number,
-    updateProductDto: UpdateProductDto,
-  ): Promise<Product> {
-    await this.productRepository.update(id, updateProductDto);
-    const product = await this.productRepository.findOneBy({ id: id });
-    if (!product) {
-      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
-    }
-
-    return product;
-  }
-
-  remove(id: number) {
-    return `This action removes the #${id} product`;
-  }
-
   async addBadgeToProduct(
     token: string,
     id: number,
@@ -446,15 +568,15 @@ export class ProductService {
     discountValue: number,
     discountActive: boolean,
   ): number {
-    if (productPrice > 0 && discountActive) {
-      if (discountType === 1) {
-        return productPrice - (productPrice * discountValue) / 100;
-      }
-
-      if (discountType === 2) {
-        return productPrice - discountValue;
-      }
-    }
+    // if (productPrice > 0 && discountActive) {
+    //   if (discountType === 1) {
+    //     return productPrice - (productPrice * discountValue) / 100;
+    //   }
+    //
+    //   if (discountType === 2) {
+    //     return productPrice - discountValue;
+    //   }
+    // }
     return 0;
   }
 }

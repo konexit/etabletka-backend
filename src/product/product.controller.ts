@@ -14,9 +14,9 @@ import {
 } from '@nestjs/common';
 import { Product } from './entities/product.entity';
 import { ProductService } from './product.service';
-import { CreateProductDto } from './dto/create-product.dto';
+import { CreateProduct } from './dto/create-product.dto';
 import { AuthGuard } from '../auth/auth.guard';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdateProduct } from './dto/update-product.dto';
 import { Request } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -27,7 +27,7 @@ export class ProductController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('product/create')
-  async create(@Body() createProductDto: CreateProductDto): Promise<Product> {
+  async create(@Body() createProductDto: CreateProduct): Promise<Product> {
     return await this.productService.create(createProductDto);
   }
 
@@ -77,7 +77,7 @@ export class ProductController {
   @UseGuards(AuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @Patch('/product/:id')
-  update(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto) {
+  update(@Param('id') id: number, @Body() updateProductDto: UpdateProduct) {
     return this.productService.update(id, updateProductDto);
   }
 

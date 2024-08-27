@@ -6,7 +6,7 @@ import {
   IsBoolean,
 } from 'class-validator';
 
-export class CreateProductDto {
+export class CreateProduct {
   @IsNumber()
   @IsNotEmpty()
   syncId: number;
@@ -84,4 +84,3 @@ export class CreateProductDto {
   @IsNumber()
   productTypeId: number;
 }
-export default CreateProductDto;

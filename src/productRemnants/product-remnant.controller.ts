@@ -13,9 +13,9 @@ import {
 } from '@nestjs/common';
 import { ProductRemnant } from './entities/product-remnant.entity';
 import { ProductRemnantService } from './product-remnant.service';
-import CreateProductRemnantDto from './dto/create-product-remnant.dto';
+import { CreateProductRemnant } from './dto/create-product-remnant.dto';
+import { UpdateProductRemnant } from './dto/update-product-remnant.dto';
 import { AuthGuard } from '../auth/auth.guard';
-import { UpdateProductDto } from '../product/dto/update-product.dto';
 import { Request } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -27,9 +27,25 @@ export class ProductRemnantController {
   @UseInterceptors(ClassSerializerInterceptor)
   @Post()
   create(
-    @Body() createProductRemnantDto: CreateProductRemnantDto,
+    @Body() createProductRemnant: CreateProductRemnant,
   ): Promise<ProductRemnant> {
-    return this.productRemnantService.create(createProductRemnantDto);
+    return this.productRemnantService.create(createProductRemnant);
+  }
+
+  @UseGuards(AuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Patch(':id')
+  update(
+    @Param('id') id: number,
+    @Body() updateProductRemnant: UpdateProductRemnant,
+  ) {
+    return this.productRemnantService.update(id, updateProductRemnant);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete(':id')
+  remove(@Param('id') id: number) {
+    return this.productRemnantService.remove(id);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
@@ -64,18 +80,5 @@ export class ProductRemnantController {
       productId,
       cityId,
     );
-  }
-
-  @UseGuards(AuthGuard)
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Patch(':id')
-  update(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto) {
-    return this.productRemnantService.update(id, updateProductDto);
-  }
-
-  @UseGuards(AuthGuard)
-  @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.productRemnantService.remove(id);
   }
 }

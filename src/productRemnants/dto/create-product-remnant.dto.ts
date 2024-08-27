@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsNumber, IsBoolean } from 'class-validator';
-export class CreateProductRemnantDto {
+export class CreateProductRemnant {
   @IsNumber()
   @IsNotEmpty()
   productId: number;
@@ -16,4 +16,3 @@ export class CreateProductRemnantDto {
   @IsNotEmpty()
   isActive: boolean;
 }
-export default CreateProductRemnantDto;
