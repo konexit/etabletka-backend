@@ -257,7 +257,7 @@ export class ProductService {
     return products;
   }
 
-  @TransformAttributes('uk')
+  // @TransformAttributes('uk')
   async findProductById(id: number, lang: string = 'uk'): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id, isActive: true },
