@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -32,7 +33,9 @@ export class CategoriesController {
     if (format) {
       switch (format) {
         case 'menu':
-          return await this.categoriesService.formatMenu();
+          return (await this.categoriesService.formatMenu()).map(
+            (category) => new ResponseCategoryDto(category, 'uk'),
+          );
         case 'menu-root':
           return (await this.categoriesService.formatMenuRoot()).map(
             (category) => new ResponseCategoryDto(category, 'uk'),
@@ -50,15 +53,9 @@ export class CategoriesController {
     @Query('id') id: number,
     @Query('slug') slug: string,
     @Query('path') path: string,
-    @Query('lang') lang: string = 'uk',
   ) {
     if (root) {
       return await this.categoriesService.findByRoot();
-    } else if (id) {
-      return new ResponseCategoryDto(
-        await this.categoriesService.findById(id),
-        lang,
-      );
     } else if (parentId) {
       return await this.categoriesService.findByParentId(parentId);
     } else if (slug) {
@@ -66,6 +63,16 @@ export class CategoriesController {
     } else if (path) {
       return await this.categoriesService.findByPath(path);
     }
+  }
+
+  @Get('/categories/:id')
+  @UseInterceptors(ClassSerializerInterceptor)
+  async getCategoryById(@Param('id') id: number, @Query('lang') lang: string) {
+    const category = await this.categoriesService.findById(id);
+
+    if (!category) throw new NotFoundException();
+
+    return new ResponseCategoryDto(category, lang);
   }
 
   @Patch('/categories/:id')

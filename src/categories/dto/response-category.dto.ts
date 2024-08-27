@@ -1,21 +1,28 @@
 import { Exclude, Expose, Type } from 'class-transformer';
+import { CategoryNode } from '../categories.module';
 import { Category } from '../entities/category.entity';
 
 @Exclude()
 export class ResponseCategoryDto {
   constructor(
-    partial: Category & { children?: Category[] } & Record<string, any>,
+    partial: (CategoryNode | Category) & Record<string, any>,
+    langKey: string = 'uk',
+  ) {
+    this.assignLocalizedName(partial, langKey);
+    return Object.assign(this, partial);
+  }
+
+  private assignLocalizedName(
+    node: (CategoryNode | Category) & Record<string, any>,
     langKey: string,
   ) {
-    partial.name = partial.name?.[langKey] || null;
+    node.name = node.name?.[langKey] || null;
 
-    if (Array.isArray(partial.children)) {
-      for (const children of partial.children) {
-        children.name = children.name?.[langKey] || null;
+    if (Array.isArray(node.children)) {
+      for (const child of node.children) {
+        this.assignLocalizedName(child, langKey);
       }
     }
-
-    return Object.assign(this, partial);
   }
 
   parentId: number;
