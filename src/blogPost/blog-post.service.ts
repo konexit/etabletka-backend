@@ -202,8 +202,12 @@ export class BlogPostService {
       );
     }
 
-    // BUG: Error occurs when postIds is empty
-    const postIds = category?.posts.map((p: BlogPost) => p.id);
+    const postIds = category?.posts.map((p: BlogPost) => p.id) || [];
+
+    if (postIds.length === 0) {
+      return { posts: [], total: 0 };
+    }
+
     const queryBuilder: SelectQueryBuilder<BlogPost> =
       this.blogPostRepository.createQueryBuilder('post');
     const total = await queryBuilder
