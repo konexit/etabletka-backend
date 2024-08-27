@@ -8,7 +8,7 @@ export class ResponseCategoryDto {
     partial: (CategoryNode | Category) & Record<string, any>,
     langKey: string = 'uk',
   ) {
-    const categoryObject = Object.assign({}, partial);
+    const categoryObject = JSON.parse(JSON.stringify(partial));
 
     this.assignLocalizedName(categoryObject, langKey);
 
