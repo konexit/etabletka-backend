@@ -118,21 +118,19 @@ export class SearchService {
    * Supported filter types:
    * - `range` [key:value1&value2] - separator `&`;
    * - `checkbox` [key:value1_value2_value3] - separator `_`;
-   * 
+   *
    * Filter merging template: filter1/filter2/filter... - separator `/`;
-   * 
+   *
    * Example:
-   * @param filter price:50&1000/production-form:kapsuly_klipsa_shampun 
+   * @param filter price:50&1000/production-form:kapsuly_klipsa_shampun
    */
   extractFacetFilter(filter: string): string {
     const sqlParts = [];
-    filter
-      .split('/')
-      .forEach(param => {
-        const [key, value] = param.split(':');
-        if (!key || !value) return;
-        sqlParts.push(this.buildSQL(key, value));
-      });
+    filter.split('/').forEach((param) => {
+      const [key, value] = param.split(':');
+      if (!key || !value) return;
+      sqlParts.push(this.buildSQL(key, value));
+    });
     if (!sqlParts.length) return '';
     return sqlParts.join(' AND ');
   }
@@ -178,7 +176,8 @@ export class SearchService {
   ): Promise<FacetSearchFilterDto> {
     const facetSearchMap: Search.FacetSearchMap = {
       attributes: (await this.cacheManager.get('product_attributes')) ?? {},
-      attributesValue: (await this.cacheManager.get('product_attributes_value')) ?? {},
+      attributesValue:
+        (await this.cacheManager.get('product_attributes_value')) ?? {},
     };
     return {
       filters: Object.keys(res.facetDistribution)
@@ -268,7 +267,8 @@ export class SearchService {
     return (
       await this.productRepository.query(`SELECT key
               FROM jsonb_each((SELECT json->'attributes' FROM site_options WHERE key = 'product_attributes_map')) AS kv(key, value) 
-              WHERE (value->'${typeFilter}')::boolean = true`)).map(({ key }) => key);
+              WHERE (value->'${typeFilter}')::boolean = true`)
+    ).map(({ key }) => key);
   }
 
   private productIndexQuery(
@@ -295,7 +295,7 @@ export class SearchService {
       const [min, max] = value.split('&').map(Number);
       return `${key} ${min} TO ${max}`;
     } else if (value.includes('_')) {
-      const items = value.split('_').map(v => `'${v}'`);
+      const items = value.split('_').map((v) => `'${v}'`);
       return `${key} IN [${items.join(',')}]`;
     } else {
       return `${key} = '${value}'`;
