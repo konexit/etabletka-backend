@@ -14,7 +14,7 @@ import { CreateProduct } from './dto/create-product.dto';
 import { UpdateProduct } from './dto/update-product.dto';
 import { Category } from '../categories/entities/category.entity';
 import { ProductGroup } from '../productGroup/entities/product-group.entity';
-import { ProductRemnant } from "../productRemnants/entities/product-remnant.entity";
+import { ProductRemnant } from '../productRemnants/entities/product-remnant.entity';
 
 @Injectable()
 export class ProductService {
