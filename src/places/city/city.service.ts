@@ -74,7 +74,10 @@ export class CityService {
     id: number,
     lang: string = 'uk',
   ): Promise<City | undefined> {
-    const city = await this.cityRepository.findOneBy({ id });
+    const city = await this.cityRepository.findOne({
+      where: { id },
+      relations: ['stores'],
+    });
 
     if (!city) {
       throw new HttpException('City not found', HttpStatus.NOT_FOUND);

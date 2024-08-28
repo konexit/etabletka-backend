@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Req } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Query, Req } from "@nestjs/common";
 import { CityService } from './city.service';
 import { City } from './entities/city.entity';
 import { Request } from 'express';
@@ -8,6 +8,16 @@ import { ApiTags } from '@nestjs/swagger';
 @Controller('api/v1')
 export class CityController {
   constructor(private readonly cityService: CityService) {}
+
+  @Patch('/city/:id')
+  async update(@Req() request: Request, @Param('id') id: number) {
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
+    try {
+
+    } catch (e) {
+      throw e;
+    }
+  }
 
   @Get('/cities')
   async findAll(@Req() request: Request): Promise<any> {
