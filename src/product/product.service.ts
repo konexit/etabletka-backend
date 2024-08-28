@@ -431,7 +431,7 @@ export class ProductService {
     let product = await this.getProductByIdForUser(id);
 
     const payload = await this.jwtService.decode(token);
-    if (payload.roleId === 1) {
+    if (payload?.roleId === 1) {
       product = await this.productRepository.findOne({
         where: { id },
         relations: [

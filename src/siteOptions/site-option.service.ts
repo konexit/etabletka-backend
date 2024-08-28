@@ -29,8 +29,8 @@ export class SiteOptionService {
       isActive: 0,
       value: null,
       json: {
-        attributes: [],
-        attributesValue: []
+        attributes: {},
+        attributesValue: {}
       }
     }
   }
@@ -195,7 +195,7 @@ export class SiteOptionService {
       .createQueryBuilder('site_options')
       .where('site_options.key = :key', { key: this.productAttributeConfig.default.key });
     if (targetKey && key) {
-      builder = builder.andWhere(`site_options.json->'${targetKey}' ? :key`, { key: key });
+      builder = builder.andWhere(`site_options.json->'${targetKey}' ? :key`, { key });
     }
     return !(await builder.getCount());
   }
@@ -205,9 +205,10 @@ export class SiteOptionService {
       .createQueryBuilder()
       .update('site_options')
       .set({
-        json: () => `jsonb_set(json, '{${targetKey},${key}}', '${JSON.stringify(value)}', true)`
+        json: () => `jsonb_set(json, '{${targetKey},${key}}', :value, true)`
       })
-      .where("key = :key", { key: this.productAttributeConfig.default.key })
+      .where('key = :key', { key: this.productAttributeConfig.default.key })
+      .setParameter('value', value)
       .execute();
   }
 }
