@@ -8,6 +8,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { In } from 'typeorm';
 import { PaginationDto } from '../../common/dto/paginationDto';
+import { UpdateCity } from './dto/update-city.dto';
 
 @Injectable()
 export class CityService {
@@ -24,6 +25,42 @@ export class CityService {
   cacheCitiesKey = 'cities';
   cacheDefaultCityKey = 'defaultCity';
   cacheCitiesTTL = 3600000; // 1Hour
+
+  async update(
+    token: string,
+    id: number,
+    updateCity: UpdateCity,
+    lang: string = 'uk',
+  ): Promise<City> {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload?.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    delete updateCity.stores;
+
+    await this.cityRepository.update(id, updateCity);
+    const city = await this.cityRepository.findOne({
+      where: { id },
+      relations: ['stores'],
+    });
+
+    if (!city) {
+      throw new HttpException(
+        `Can't update city with data: ${updateCity}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    city.name = city.name[lang];
+    if (city.prefix) city.prefix = city.prefix[lang];
+
+    return city;
+  }
 
   async getCities(token: string, lang: string = 'uk'): Promise<City[]> {
     if (!token || typeof token !== 'string') {
@@ -74,7 +111,10 @@ export class CityService {
     id: number,
     lang: string = 'uk',
   ): Promise<City | undefined> {
-    const city = await this.cityRepository.findOneBy({ id });
+    const city = await this.cityRepository.findOne({
+      where: { id },
+      relations: ['stores'],
+    });
 
     if (!city) {
       throw new HttpException('City not found', HttpStatus.NOT_FOUND);
@@ -118,7 +158,7 @@ export class CityService {
       return await this.getCitiesWithStoresForUser(lang);
     } else {
       const payload = await this.jwtService.decode(token);
-      if (payload.roleId !== 1) {
+      if (payload?.roleId !== 1) {
         return await this.getCitiesWithStoresForUser(lang);
       }
 

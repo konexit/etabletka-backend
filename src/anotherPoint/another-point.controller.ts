@@ -61,8 +61,8 @@ export class AnotherPointController {
         +id,
         updateAnotherPoint,
       );
-    } catch (error) {
-      throw error;
+    } catch (e) {
+      throw e;
     }
   }
 

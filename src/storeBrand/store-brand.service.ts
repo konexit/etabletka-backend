@@ -20,7 +20,7 @@ export class StoreBrandService {
     }
 
     const payload = await this.jwtService.decode(token);
-    if (payload.roleId !== 1) {
+    if (payload?.roleId !== 1) {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
 
@@ -45,7 +45,7 @@ export class StoreBrandService {
     }
 
     const payload = await this.jwtService.decode(token);
-    if (payload.roleId !== 1) {
+    if (payload?.roleId !== 1) {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
 
@@ -70,7 +70,7 @@ export class StoreBrandService {
     }
 
     const payload = await this.jwtService.decode(token);
-    if (payload.roleId !== 1) {
+    if (payload?.roleId !== 1) {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
 

@@ -39,7 +39,7 @@ export class BlogCommentService {
 
     // TODO: only admin can approve comments
     const payload = await this.jwtService.decode(token);
-    if (payload.roleId !== 1) {
+    if (payload?.roleId !== 1) {
       updatePostComment.isApproved = false;
     }
 
