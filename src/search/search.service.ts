@@ -25,6 +25,7 @@ import {
 } from './dto/facet-search-filters.dto';
 import { SearchDto } from './dto/search.dto';
 import { isEmpty } from './utils';
+import { SearchEngineKeys } from 'src/refresh/refresh-keys';
 // Documentation:  https://www.npmjs.com/package/meilisearch
 @Injectable()
 export class SearchService {
@@ -64,7 +65,7 @@ export class SearchService {
     this.makeIndex(this.indexesConfig.products.name);
   }
 
-  async makeIndex(index: string, lang: string = 'uk') {
+  async makeIndex(index: string, primaryKey: string = 'id', lang: string = 'uk',) {
     let document: Array<any> = [];
     switch (index) {
       case this.indexesConfig.products.name:
@@ -76,13 +77,45 @@ export class SearchService {
           HttpStatus.NOT_FOUND,
         );
     }
-    return await this.addDocumentsToIndex(document, index);
+    return await this.addDocumentsToIndex(document, index, primaryKey);
   }
 
-  async makeProductsIndex(lang: string): Promise<Array<any>> {
+  async makePartialIndex(
+    index: string,
+    primaryKey: string = 'id',
+    primaryKeys: string[],
+    lang: string = 'uk',
+    fullReplace: boolean = false) {
+    let document: Array<any> = [];
+    switch (index) {
+      case this.indexesConfig.products.name:
+        document = await this.makeProductsIndex(lang, primaryKeys);
+        break;
+      default:
+        throw new HttpException(
+          `index '${index}' not supported`,
+          HttpStatus.NOT_FOUND,
+        );
+    }
+    return fullReplace ? await this.updateDocumentsInIndex(document, index, primaryKey) : await this.addDocumentsToIndex(document, index, primaryKey);
+  }
+
+  async deleteDocsByIndex(index: string, primaryKeys?: string[]) {
+    switch (index) {
+      case this.indexesConfig.products.name:
+        return primaryKeys ? await this.client.index(index).deleteDocuments(primaryKeys) : await this.client.index(index).deleteAllDocuments();
+      default:
+        throw new HttpException(
+          `index '${index}' not supported`,
+          HttpStatus.NOT_FOUND,
+        );
+    }
+  }
+
+  async makeProductsIndex(lang: string, productIds?: string[]): Promise<Array<any>> {
     const start = performance.now();
     const products = await this.productRepository.query(
-      this.productIndexQuery(lang, await this.getFilters()),
+      this.productIndexQuery(lang, await this.getFilters(), productIds),
     );
     if (!products) {
       throw new HttpException('Products does not exist', HttpStatus.NOT_FOUND);
@@ -161,11 +194,25 @@ export class SearchService {
   private async addDocumentsToIndex(
     documents: Array<any>,
     index: string,
+    primaryKey: string
   ): Promise<any> {
     try {
-      return await this.client.index(index).addDocuments(documents);
+      return await this.client.index(index).addDocuments(documents, { primaryKey });
     } catch (error) {
       this.logger.error('Error adding documents:', error);
+      throw error;
+    }
+  }
+
+  private async updateDocumentsInIndex(
+    documents: Array<any>,
+    index: string,
+    primaryKey: string
+  ): Promise<any> {
+    try {
+      return await this.client.index(index).updateDocuments(documents, { primaryKey });
+    } catch (error) {
+      this.logger.error('Error updating documents:', error);
       throw error;
     }
   }
@@ -176,8 +223,7 @@ export class SearchService {
   ): Promise<FacetSearchFilterDto> {
     const facetSearchMap: Search.FacetSearchMap = {
       attributes: (await this.cacheManager.get('product_attributes')) ?? {},
-      attributesValue:
-        (await this.cacheManager.get('product_attributes_value')) ?? {},
+      attributesValue: (await this.cacheManager.get('product_attributes_value')) ?? {},
     };
     return {
       filters: Object.keys(res.facetDistribution)
@@ -274,7 +320,7 @@ export class SearchService {
   private productIndexQuery(
     lang: string,
     filters: string[],
-    productId?: number,
+    productIds?: string[],
   ): string {
     return `SELECT
                 id,
@@ -287,7 +333,7 @@ export class SearchService {
                 price
                 ${filters.map((f) => `,attributes->'${f}'->>'slug' as "${f}"`).join('')}
             FROM products p
-            WHERE p.attributes IS NOT NULL AND p.active = true ${productId ? `AND p.id = ${productId}` : ''}`;
+            WHERE p.attributes IS NOT NULL AND p.active = true ${productIds ? `AND p.id IN(${productIds.join(',')})` : ''}`;
   }
 
   private buildSQL(key: string, value: string): string {

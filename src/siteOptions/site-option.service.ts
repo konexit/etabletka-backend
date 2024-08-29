@@ -163,15 +163,7 @@ export class SiteOptionService {
     });
   }
 
-  private async initFacetSearchMap(): Promise<void> {
-    if (await this.unique()) {
-      await this.siteOptionRepository.save(this.siteOptionRepository.create(<FacetSearchMap>this.productAttributeConfig.default));
-    }
-
-    await this.moveFacetSearchMapToCache();
-  }
-
-  private async moveFacetSearchMapToCache(key: string = 'all'): Promise<void> {
+  async moveFacetSearchMapToCache(key: string = 'all'): Promise<void> {
     const {
       json: { attributes, attributesValue },
     } = await this.siteOptionRepository.findOne({
@@ -188,6 +180,14 @@ export class SiteOptionService {
     }
 
     this.logger.log(`facet-search key: '${key}' successfully added to cache`);
+  }
+
+  private async initFacetSearchMap(): Promise<void> {
+    if (await this.unique()) {
+      await this.siteOptionRepository.save(this.siteOptionRepository.create(<FacetSearchMap>this.productAttributeConfig.default));
+    }
+
+    await this.moveFacetSearchMapToCache();
   }
 
   private async unique(targetKey?, key?: string): Promise<boolean> {
