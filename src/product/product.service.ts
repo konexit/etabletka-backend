@@ -62,7 +62,7 @@ export class ProductService {
     }
 
     const payload = await this.jwtService.decode(token);
-    if (payload.roleId !== 1) {
+    if (payload?.roleId !== 1) {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
 
@@ -267,7 +267,7 @@ export class ProductService {
       return products;
     }
     const payload = await this.jwtService.decode(token);
-    if (payload.roleId !== 1) {
+    if (payload?.roleId !== 1) {
       return await this.productRepository.find({
         where: { isActive: true },
         relations: [
