@@ -126,8 +126,8 @@ export class BlogCategoryService {
       );
     }
 
-    for (const blogCategory of blogCategories) {
-      blogCategory.title = blogCategory.title[lang];
+    for (let blogCategory of blogCategories) {
+      blogCategory = this.convertRecord(blogCategory, lang);
     }
 
     await this.cacheManager.set(
