@@ -3,11 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BlogComment } from './entities/blog-comment.entity';
 import { BlogCommentController } from './blog-comment.controller';
 import { BlogCommentService } from './blog-comment.service';
+import { WsGateway } from '../ws/ws.gateway';
 
 @Module({
   imports: [TypeOrmModule.forFeature([BlogComment])],
   controllers: [BlogCommentController],
-  providers: [BlogCommentService],
+  providers: [BlogCommentService, WsGateway],
   exports: [BlogCommentService, BlogCommentModule],
 })
 export class BlogCommentModule {}

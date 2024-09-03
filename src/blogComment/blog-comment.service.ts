@@ -5,12 +5,14 @@ import { Repository } from 'typeorm';
 import { CreatePostComment } from './dto/create-post-comment.dto';
 import { UpdatePostComment } from './dto/update-post-comment.dto';
 import { JwtService } from '@nestjs/jwt';
+import { WsGateway } from '../ws/ws.gateway';
 
 @Injectable()
 export class BlogCommentService {
   constructor(
     @InjectRepository(BlogComment)
     private readonly blogCommentRepository: Repository<BlogComment>,
+    private readonly wsGateway: WsGateway,
     private jwtService: JwtService,
   ) {}
 
@@ -25,6 +27,8 @@ export class BlogCommentService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    this.wsGateway.handleEmit({ event: 'new_post_comment', data: comment });
     return await this.blogCommentRepository.save(comment);
   }
 
