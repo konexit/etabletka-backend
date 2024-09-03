@@ -58,6 +58,9 @@ export class Brand {
   @Column({ name: 'seo_keywords', type: 'json', nullable: true })
   seoKeywords: JSON;
 
+  @Column({ name: 'seo_text', type: 'json', nullable: true })
+  seoText: JSON;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   @Exclude()
   createdAt: Date;
