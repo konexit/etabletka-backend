@@ -5,8 +5,9 @@ import {
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 
-@WebSocketGateway(3080, {
+@WebSocketGateway({
   namespace: 'events',
+  cors: true,
 })
 export class WsGateway {
   @WebSocketServer()
@@ -21,8 +22,8 @@ export class WsGateway {
   }
 
   @SubscribeMessage('notifications')
-  handleMessage(client: any, payload: any): void {
+  handleEmit(payload: any): void {
     console.log('Received data:', payload);
-    this.server.emit(payload.event, payload);
+    this.server.emit('notifications', payload);
   }
 }
