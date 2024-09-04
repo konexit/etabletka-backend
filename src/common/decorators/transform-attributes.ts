@@ -22,8 +22,9 @@ const initialValueTypeViewsObject = () => ({
   attributes: [],
 });
 
-interface TransformAttributesOptions {
-  paramLangIndex: number;
+export interface TransformAttributesOptions {
+  lang?: string,
+  paramLangIndex?: number;
   typeViews: TypeViews | string;
 }
 
@@ -40,7 +41,7 @@ export function TransformAttributes(
 
     descriptor.value = async function (...args: any[]) {
       const options = args[optionParamIndex] ?? defaultOptions;
-      const lang = args[options.paramLangIndex] ?? defaultLang;
+      const lang = args[options.paramLangIndex] ? args[options.paramLangIndex] : options.lang ?? defaultLang;
       const result = await originalMethod.apply(this, args);
 
       if (result && result.attributes) {

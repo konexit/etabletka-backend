@@ -25,7 +25,7 @@ import { ApiTags } from '@nestjs/swagger';
 @ApiTags('products')
 @Controller('api/v1')
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+  constructor(private readonly productService: ProductService) { }
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('product/create')
@@ -37,7 +37,10 @@ export class ProductController {
   @Get('/product/:id')
   async findProductById(@Req() request: Request, @Param('id') id: number) {
     const token = request.headers.authorization?.split(' ')[1] ?? '';
-    return await this.productService.findProductById(token, +id);
+    return await this.productService.findProductById(token, +id, {
+      lang: 'uk',
+      typeViews: 'object'
+    });
   }
 
   @UseInterceptors(ClassSerializerInterceptor)

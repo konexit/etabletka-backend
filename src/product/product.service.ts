@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
-import { TransformAttributes } from 'src/common/decorators/transform-attributes';
+import { TransformAttributes, TransformAttributesOptions } from 'src/common/decorators/transform-attributes';
 import { In, Repository } from 'typeorm';
 import { Badge } from '../badge/entities/badge.entity';
 import { PaginationDto } from '../common/dto/paginationDto';
@@ -422,11 +422,11 @@ export class ProductService {
     });
   }
 
-  @TransformAttributes('uk')
+  @TransformAttributes('uk', 2)
   async findProductById(
     token: string,
     id: number,
-    lang: string = 'uk',
+    options: TransformAttributesOptions
   ): Promise<Product> {
     let product = await this.getProductByIdForUser(id);
 
@@ -461,22 +461,22 @@ export class ProductService {
           discount.isActive,
         );
 
-        discount.name = discount.name[lang];
+        discount.name = discount.name[options.lang];
       }
     }
 
     if (product.categories) {
       for (const category of product.categories) {
-        category.name = category?.name[lang];
+        category.name = category?.name[options.lang];
       }
     }
 
-    product.name = product?.name[lang];
-    product.shortName = product?.shortName[lang];
-    if (product.seoTitle) product.seoTitle = product.seoTitle[lang];
+    product.name = product?.name[options.lang];
+    product.shortName = product?.shortName[options.lang];
+    if (product.seoTitle) product.seoTitle = product.seoTitle[options.lang];
     if (product.seoDescription)
-      product.seoDescription = product.seoDescription[lang];
-    if (product.brand) product.brand.name = product.brand?.name[lang];
+      product.seoDescription = product.seoDescription[options.lang];
+    if (product.brand) product.brand.name = product.brand?.name[options.lang];
 
     return product;
   }
