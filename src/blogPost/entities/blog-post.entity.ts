@@ -75,7 +75,6 @@ export class BlogPost {
   censor: User;
 
   @OneToMany(() => BlogComment, (blogComment) => blogComment.blogPost)
-  @JoinColumn({ name: 'id', referencedColumnName: 'post_id' })
   blogComments: BlogComment[];
 
   @ManyToMany(() => BlogCategory)

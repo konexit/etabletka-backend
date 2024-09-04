@@ -23,7 +23,6 @@ export class WsGateway {
 
   @SubscribeMessage('notifications')
   handleEmit(payload: any): void {
-    console.log('Received data:', payload);
     this.server.emit('notifications', payload);
   }
 }

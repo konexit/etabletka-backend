@@ -38,7 +38,7 @@ import { SearchModule } from './search/search.module';
 import { ProductGroupModule } from './productGroup/product-group.module';
 import { ProductCommentModule } from './productComment/product-comment.module';
 import { RefreshModule } from './refresh/refresh.module';
-import { WsModule } from "./ws/ws.module";
+import { WsModule } from './ws/ws.module';
 
 @Module({
   imports: [

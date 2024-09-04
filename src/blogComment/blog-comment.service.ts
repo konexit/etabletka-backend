@@ -28,8 +28,9 @@ export class BlogCommentService {
       );
     }
 
-    this.wsGateway.handleEmit({ event: 'new_post_comment', data: comment });
-    return await this.blogCommentRepository.save(comment);
+    const result: BlogComment = await this.blogCommentRepository.save(comment);
+    this.wsGateway.handleEmit({ event: 'new_post_comment', data: result });
+    return result;
   }
 
   async update(
@@ -58,6 +59,14 @@ export class BlogCommentService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    if (!comment.isApproved) {
+      this.wsGateway.handleEmit({
+        event: 'update_post_comment',
+        data: comment,
+      });
+    }
+
     return comment;
   }
 
@@ -68,7 +77,7 @@ export class BlogCommentService {
       if (payload.roleId === 1) {
         return await this.blogCommentRepository.find({
           where: { postId },
-          relations: ['author', 'product'],
+          relations: ['author', 'blogPost'],
         });
       }
     }
