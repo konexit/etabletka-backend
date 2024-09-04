@@ -42,6 +42,5 @@ export class BlogComment {
   author: User;
 
   @ManyToOne(() => BlogPost, (blogPost) => blogPost.blogComments)
-  @JoinColumn({ name: 'post_id', referencedColumnName: 'id' })
   blogPost: BlogPost;
 }
