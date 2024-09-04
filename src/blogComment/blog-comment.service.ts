@@ -6,6 +6,7 @@ import { CreatePostComment } from './dto/create-post-comment.dto';
 import { UpdatePostComment } from './dto/update-post-comment.dto';
 import { JwtService } from '@nestjs/jwt';
 import { WsGateway } from '../ws/ws.gateway';
+import { PaginationDto } from '../common/dto/paginationDto';
 
 @Injectable()
 export class BlogCommentService {
@@ -68,6 +69,41 @@ export class BlogCommentService {
     }
 
     return comment;
+  }
+
+  async getComments(pagination: PaginationDto = {}, lang: string = 'uk') {
+    const { take = 15, skip = 0 } = pagination;
+
+    const queryBuilder =
+      this.blogCommentRepository.createQueryBuilder('blogComment');
+    const total = await queryBuilder.getCount();
+
+    queryBuilder
+      .select('blogComment')
+      // .addSelect(`(blog_posts.title->'${lang}')::varchar`, 'postTitle')
+      .addSelect('blogPost.title')
+      .addSelect('author.id')
+      .addSelect('author.firstName')
+      .addSelect('author.lastName')
+      .leftJoin('blogComment.author', 'author')
+      .leftJoin('blogComment.blogPost', 'blogPost')
+      .orderBy('blogComment.createdAt', 'DESC')
+      .take(take)
+      .skip(skip);
+
+    //console.log('SQL', queryBuilder.getQuery());
+
+    const comments = await queryBuilder.getMany();
+    if (comments) {
+      for (const comment of comments) {
+        comment.blogPost.title = comment.blogPost.title[lang];
+      }
+    }
+
+    return {
+      comments,
+      pagination: { total, take, skip },
+    };
   }
 
   async getPostComments(postId: number, token: string): Promise<BlogComment[]> {

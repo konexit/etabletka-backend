@@ -2,19 +2,21 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
-  Get,
+  Get, HttpException, HttpStatus,
   Param,
   Patch,
   Post,
+  Query,
   Req,
-  UseInterceptors,
-} from '@nestjs/common';
+  UseInterceptors
+} from "@nestjs/common";
 import { BlogCommentService } from './blog-comment.service';
 import { BlogComment } from './entities/blog-comment.entity';
 import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { CreatePostComment } from './dto/create-post-comment.dto';
 import { UpdatePostComment } from './dto/update-post-comment.dto';
+import { PaginationDto } from '../common/dto/paginationDto';
 
 @ApiTags('comments/post')
 @Controller('api/v1')
@@ -47,6 +49,16 @@ export class BlogCommentController {
       );
     } catch (e) {
       throw e;
+    }
+  }
+
+  @Get('/comments/posts')
+  async getComments(@Query() pagination?: PaginationDto) {
+    try {
+      return await this.blogCommentService.getComments(pagination);
+    } catch (error) {
+      console.error(error.message);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 

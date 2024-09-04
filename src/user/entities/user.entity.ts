@@ -4,6 +4,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -11,6 +12,7 @@ import {
 import { Exclude } from 'class-transformer';
 import { Role } from '../../role/entities/role.entity';
 import { UserProfile } from '../../userProfile/entities/user-prolile.entity';
+import { BlogComment } from '../../blogComment/entities/blog-comment.entity';
 
 @Entity({
   name: 'users',
@@ -57,6 +59,9 @@ export class User {
 
   @OneToOne(() => UserProfile)
   userProfile: UserProfile;
+
+  @OneToMany(() => BlogComment, (blogComment) => blogComment.author)
+  blogComments: BlogComment[];
 
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);

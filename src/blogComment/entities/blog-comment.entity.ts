@@ -37,10 +37,11 @@ export class BlogComment {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToOne(() => User)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  @ManyToOne(() => User, (user) => user.blogComments)
+  @JoinColumn({ name: 'user_id' })
   author: User;
 
   @ManyToOne(() => BlogPost, (blogPost) => blogPost.blogComments)
+  @JoinColumn({ name: 'post_id' })
   blogPost: BlogPost;
 }
