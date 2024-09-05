@@ -2,14 +2,16 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
-  Get, HttpException, HttpStatus,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   Patch,
   Post,
   Query,
   Req,
-  UseInterceptors
-} from "@nestjs/common";
+  UseInterceptors,
+} from '@nestjs/common';
 import { BlogCommentService } from './blog-comment.service';
 import { BlogComment } from './entities/blog-comment.entity';
 import { ApiTags } from '@nestjs/swagger';
@@ -41,6 +43,14 @@ export class BlogCommentController {
     @Body() updatePostComment: UpdatePostComment,
   ) {
     const token = request.headers.authorization?.split(' ')[1] ?? '';
+
+    if (
+      updatePostComment.isApproved &&
+      typeof updatePostComment.isApproved === 'string'
+    ) {
+      updatePostComment.isApproved = updatePostComment.isApproved === 'true';
+    }
+
     try {
       return await this.blogCommentService.update(
         token,
@@ -48,14 +58,18 @@ export class BlogCommentController {
         updatePostComment,
       );
     } catch (e) {
+      console.error(e.message);
       throw e;
     }
   }
 
   @Get('/comments/posts')
-  async getComments(@Query() pagination?: PaginationDto) {
+  async getComments(
+    @Query() pagination?: PaginationDto,
+    @Query('where') where?: any,
+  ) {
     try {
-      return await this.blogCommentService.getComments(pagination);
+      return await this.blogCommentService.getComments(pagination, where);
     } catch (error) {
       console.error(error.message);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);

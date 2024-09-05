@@ -61,17 +61,21 @@ export class BlogCommentService {
       );
     }
 
-    if (!comment.isApproved) {
+    if (!comment.isApproved && payload?.roleId !== 1) {
       this.wsGateway.handleEmit({
         event: 'update_post_comment',
         data: comment,
       });
     }
 
-    return comment;
+    return await this.blogCommentRepository.save(comment);
   }
 
-  async getComments(pagination: PaginationDto = {}, lang: string = 'uk') {
+  async getComments(
+    pagination: PaginationDto = {},
+    where: any = {},
+    lang: string = 'uk',
+  ) {
     const { take = 15, skip = 0 } = pagination;
 
     const queryBuilder =
@@ -89,7 +93,17 @@ export class BlogCommentService {
       .leftJoin('blogComment.blogPost', 'blogPost')
       .orderBy('blogComment.createdAt', 'DESC')
       .take(take)
-      .skip(skip);
+      .skip(skip)
+      .where('blogComment.id is not null');
+
+    /** Where statements **/
+    if (where) {
+      if (where?.approved) {
+        queryBuilder.andWhere('blogComment.isApproved = :isApproved', {
+          isApproved: where.approved,
+        });
+      }
+    }
 
     //console.log('SQL', queryBuilder.getQuery());
 

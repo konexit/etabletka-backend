@@ -10,6 +10,7 @@ export class UpdatePostComment {
   @IsOptional()
   parentId: number;
 
+  @IsOptional()
   @IsString()
   comment: string;
 
