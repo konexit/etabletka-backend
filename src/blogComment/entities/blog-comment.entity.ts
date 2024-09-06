@@ -37,7 +37,7 @@ export class BlogComment {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, (user) => user.blogComments)
   @JoinColumn({ name: 'user_id' })
   author: User;
 

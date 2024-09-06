@@ -13,6 +13,7 @@ import { Exclude } from 'class-transformer';
 import { Role } from '../../role/entities/role.entity';
 import { UserProfile } from '../../userProfile/entities/user-prolile.entity';
 import { BlogComment } from '../../blogComment/entities/blog-comment.entity';
+import { ProductComment } from "../../productComment/entities/product-comment.entity";
 
 @Entity({
   name: 'users',
@@ -60,8 +61,11 @@ export class User {
   @OneToOne(() => UserProfile)
   userProfile: UserProfile;
 
-  // @OneToMany(() => BlogComment, (blogComment) => blogComment.author)
-  // blogComments: BlogComment[];
+  @OneToMany(() => BlogComment, (blogComment) => blogComment.author)
+  blogComments: BlogComment[];
+
+  @OneToMany(() => ProductComment, (productComment) => productComment.author)
+  productComments: ProductComment[];
 
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);

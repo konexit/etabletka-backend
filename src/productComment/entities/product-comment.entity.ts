@@ -36,11 +36,11 @@ export class ProductComment {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, (user) => user.productComments)
   @JoinColumn({ name: 'user_id' })
   author: User;
 
   @ManyToOne(() => Product, (product: Product) => product.productComments)
-  @JoinColumn({ name: 'product_id', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'product_id' })
   product: Product;
 }
