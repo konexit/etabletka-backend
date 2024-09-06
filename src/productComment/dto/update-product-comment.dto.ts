@@ -2,7 +2,7 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpdateProductComment {
   @IsNotEmpty()
-  postId: number;
+  productId: number;
 
   @IsNotEmpty()
   userId: number;
