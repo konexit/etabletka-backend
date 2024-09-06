@@ -148,7 +148,7 @@ export class ProductCommentService {
 
   async getProductCommentById(id: number) {
     const comment = await this.productCommentRepository.findOne({
-      where: { id, isApproved: true },
+      where: { id },
       relations: ['author', 'product'],
     });
 
