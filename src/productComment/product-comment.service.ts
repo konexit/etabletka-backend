@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateProductComment } from './dto/create-product-comment.dto';
 import { UpdateProductComment } from './dto/update-product-comment.dto';
 import { WsGateway } from '../ws/ws.gateway';
+import { PaginationDto } from '../common/dto/paginationDto';
 
 @Injectable()
 export class ProductCommentService {
@@ -70,6 +71,52 @@ export class ProductCommentService {
     }
 
     return comment;
+  }
+
+  async getComments(
+    pagination: PaginationDto = {},
+    where: any = {},
+    lang: string = 'uk',
+  ) {
+    const { take = 15, skip = 0 } = pagination;
+
+    const queryBuilder =
+      this.productCommentRepository.createQueryBuilder('productComment');
+    const total = await queryBuilder.getCount();
+
+    queryBuilder
+      .select('productComment')
+      .addSelect('product.name')
+      .addSelect('author.id')
+      .addSelect('author.firstName')
+      .addSelect('author.lastName')
+      .leftJoin('productComment.author', 'author')
+      .leftJoin('productComment.product', 'product')
+      .orderBy('productComment.createdAt', 'DESC')
+      .take(take)
+      .skip(skip)
+      .where('productComment.id is not null');
+
+    /** Where statements **/
+    if (where) {
+      if (where?.approved) {
+        queryBuilder.andWhere('blogComment.isApproved = :isApproved', {
+          isApproved: where.approved,
+        });
+      }
+    }
+
+    const comments = await queryBuilder.getMany();
+    if (comments) {
+      for (const comment of comments) {
+        comment.product.name = comment.product.name[lang];
+      }
+    }
+
+    return {
+      comments,
+      pagination: { total, take, skip },
+    };
   }
 
   async getProductComments(productId: number, token: string) {

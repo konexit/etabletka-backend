@@ -2,17 +2,18 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
-  Get,
+  Get, HttpException, HttpStatus,
   Param,
   Patch,
-  Post,
+  Post, Query,
   Req,
-  UseInterceptors,
-} from '@nestjs/common';
+  UseInterceptors
+} from "@nestjs/common";
 import { Request } from 'express';
 import { ProductCommentService } from './product-comment.service';
 import { CreateProductComment } from './dto/create-product-comment.dto';
 import { UpdateProductComment } from './dto/update-product-comment.dto';
+import { PaginationDto } from "../common/dto/paginationDto";
 
 @Controller('api/v1')
 export class ProductCommentController {
@@ -53,6 +54,19 @@ export class ProductCommentController {
       );
     } catch (e) {
       throw e;
+    }
+  }
+
+  @Get('/comments/products')
+  async getComments(
+    @Query() pagination?: PaginationDto,
+    @Query('where') where?: any,
+  ) {
+    try {
+      return await this.productCommentService.getComments(pagination, where);
+    } catch (error) {
+      console.error(error.message);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 
