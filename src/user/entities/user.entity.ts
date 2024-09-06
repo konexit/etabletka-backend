@@ -60,8 +60,8 @@ export class User {
   @OneToOne(() => UserProfile)
   userProfile: UserProfile;
 
-  @OneToMany(() => BlogComment, (blogComment) => blogComment.author)
-  blogComments: BlogComment[];
+  // @OneToMany(() => BlogComment, (blogComment) => blogComment.author)
+  // blogComments: BlogComment[];
 
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);

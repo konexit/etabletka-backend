@@ -36,6 +36,15 @@ export class ProductCommentController {
     @Body() updateProductComment: UpdateProductComment,
   ) {
     const token = request.headers.authorization?.split(' ')[1] ?? '';
+
+    if (
+      updateProductComment.isApproved &&
+      typeof updateProductComment.isApproved === 'string'
+    ) {
+      updateProductComment.isApproved =
+        updateProductComment.isApproved === 'true';
+    }
+
     try {
       return await this.productCommentService.update(
         token,

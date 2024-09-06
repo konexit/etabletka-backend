@@ -2,7 +2,7 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpdateProductComment {
   @IsNotEmpty()
-  productId: number;
+  postId: number;
 
   @IsNotEmpty()
   userId: number;
@@ -10,6 +10,7 @@ export class UpdateProductComment {
   @IsOptional()
   parentId: number;
 
+  @IsOptional()
   @IsString()
   comment: string;
 

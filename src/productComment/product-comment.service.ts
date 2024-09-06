@@ -5,19 +5,18 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { CreateProductComment } from './dto/create-product-comment.dto';
 import { UpdateProductComment } from './dto/update-product-comment.dto';
+import { WsGateway } from '../ws/ws.gateway';
 
 @Injectable()
 export class ProductCommentService {
   constructor(
     @InjectRepository(ProductComment)
     private readonly productCommentRepository: Repository<ProductComment>,
+    private readonly wsGateway: WsGateway,
     private jwtService: JwtService,
   ) {}
 
-  async create(
-    token: string,
-    createProductComment: CreateProductComment,
-  ) {
+  async create(token: string, createProductComment: CreateProductComment) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
@@ -28,7 +27,11 @@ export class ProductCommentService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    return await this.productCommentRepository.save(comment);
+
+    const result: ProductComment =
+      await this.productCommentRepository.save(comment);
+    this.wsGateway.handleEmit({ event: 'new_product_comment', data: result });
+    return result;
   }
 
   async update(
@@ -58,6 +61,14 @@ export class ProductCommentService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    if (!comment.isApproved && payload?.roleId !== 1) {
+      this.wsGateway.handleEmit({
+        event: 'update_product_comment',
+        data: comment,
+      });
+    }
+
     return comment;
   }
 
