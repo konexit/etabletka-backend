@@ -120,6 +120,26 @@ export class BlogPostService {
     return this.convertPost(await queryBuilder.getOne());
   }
 
+  async delete(token: string, id: number) {
+    if (!token || typeof token !== 'string') {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const payload = await this.jwtService.decode(token);
+    if (payload?.roleId !== 1) {
+      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    }
+
+    const post = await this.blogPostRepository.findOneBy({
+      id: id,
+    });
+    if (!post) {
+      throw new HttpException('Can`t delete post', HttpStatus.NOT_FOUND);
+    }
+
+    return await this.blogPostRepository.delete(id);
+  }
+
   public async fetchData(
     queryBuilder: SelectQueryBuilder<BlogPost>,
     take: number,

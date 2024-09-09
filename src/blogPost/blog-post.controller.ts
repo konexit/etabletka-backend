@@ -3,6 +3,7 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -226,6 +227,17 @@ export class BlogPostController {
       return await this.blogPostService.update(token, +id, updatePost);
     } catch (error) {
       throw error;
+    }
+  }
+
+  @Delete('/post/:id')
+  async delete(@Req() request: Request, @Param('id') id: number) {
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
+    try {
+      return await this.blogPostService.delete(token, id);
+    } catch (e) {
+      console.error(e.message);
+      throw e;
     }
   }
 
