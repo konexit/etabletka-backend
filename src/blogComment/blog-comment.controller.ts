@@ -2,6 +2,7 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -57,6 +58,17 @@ export class BlogCommentController {
         +id,
         updatePostComment,
       );
+    } catch (e) {
+      console.error(e.message);
+      throw e;
+    }
+  }
+
+  @Delete('/comment/post/:id')
+  async delete(@Req() request: Request, @Param('id') id: number) {
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
+    try {
+      return await this.blogCommentService.delete(token, id);
     } catch (e) {
       console.error(e.message);
       throw e;

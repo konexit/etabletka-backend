@@ -2,18 +2,22 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
-  Get, HttpException, HttpStatus,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
   Patch,
-  Post, Query,
+  Post,
+  Query,
   Req,
-  UseInterceptors
-} from "@nestjs/common";
+  UseInterceptors,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { ProductCommentService } from './product-comment.service';
 import { CreateProductComment } from './dto/create-product-comment.dto';
 import { UpdateProductComment } from './dto/update-product-comment.dto';
-import { PaginationDto } from "../common/dto/paginationDto";
+import { PaginationDto } from '../common/dto/paginationDto';
 
 @Controller('api/v1')
 export class ProductCommentController {
@@ -53,6 +57,17 @@ export class ProductCommentController {
         updateProductComment,
       );
     } catch (e) {
+      throw e;
+    }
+  }
+
+  @Delete('/comment/product/:id')
+  async delete(@Req() request: Request, @Param('id') id: number) {
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
+    try {
+      return await this.productCommentService.delete(token, id);
+    } catch (e) {
+      console.error(e.message);
       throw e;
     }
   }
