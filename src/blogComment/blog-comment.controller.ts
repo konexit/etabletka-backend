@@ -10,9 +10,9 @@ import {
   Patch,
   Post,
   Query,
-  Req,
-  UseInterceptors,
-} from '@nestjs/common';
+  Req, UseGuards,
+  UseInterceptors
+} from "@nestjs/common";
 import { BlogCommentService } from './blog-comment.service';
 import { BlogComment } from './entities/blog-comment.entity';
 import { ApiTags } from '@nestjs/swagger';
@@ -20,12 +20,14 @@ import { Request } from 'express';
 import { CreatePostComment } from './dto/create-post-comment.dto';
 import { UpdatePostComment } from './dto/update-post-comment.dto';
 import { PaginationDto } from '../common/dto/paginationDto';
+import { AuthGuard } from "../auth/auth.guard";
 
 @ApiTags('comments/post')
 @Controller('api/v1')
 export class BlogCommentController {
   constructor(private readonly blogCommentService: BlogCommentService) {}
 
+  @UseGuards(AuthGuard)
   @Post('/comment/post')
   @UseInterceptors(ClassSerializerInterceptor)
   async create(
@@ -36,6 +38,7 @@ export class BlogCommentController {
     return await this.blogCommentService.create(token, createPostComment);
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/comment/post/:id')
   @UseInterceptors(ClassSerializerInterceptor)
   async update(
@@ -64,6 +67,7 @@ export class BlogCommentController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Delete('/comment/post/:id')
   async delete(@Req() request: Request, @Param('id') id: number) {
     const token = request.headers.authorization?.split(' ')[1] ?? '';

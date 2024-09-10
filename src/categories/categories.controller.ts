@@ -8,14 +8,15 @@ import {
   Param,
   Patch,
   Post,
-  Query,
-  UseInterceptors,
-} from '@nestjs/common';
+  Query, UseGuards,
+  UseInterceptors
+} from "@nestjs/common";
 import { ApiTags } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { ResponseCategoryDto } from './dto/response-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { AuthGuard } from "../auth/auth.guard";
 
 @ApiTags('categories')
 @Controller('api/v1')
@@ -23,6 +24,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
+  @UseGuards(AuthGuard)
   @Post('/categories')
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.create(createCategoryDto);
@@ -75,6 +77,7 @@ export class CategoriesController {
     return new ResponseCategoryDto(category, lang);
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/categories/:id')
   update(
     @Param('id') id: string,
@@ -83,6 +86,7 @@ export class CategoriesController {
     return this.categoriesService.update(+id, updateCategoryDto);
   }
 
+  @UseGuards(AuthGuard)
   @Delete('/categories/:id')
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(+id);

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from "@nestjs/common";
 import { SiteOptionService } from './site-option.service';
 import { SiteOption } from './entities/site-option.entity';
 import { ApiTags } from '@nestjs/swagger';
@@ -7,6 +7,7 @@ import { UpdateCharacteristic } from './dto/update-characteristic.dto';
 import { CreateCharacteristic } from './dto/create-characteristic.dto';
 import { UpdateValue } from './dto/update-value.dto';
 import { CreateValue } from './dto/create-value.dto';
+import { AuthGuard } from "../auth/auth.guard";
 
 @ApiTags('site-options')
 @Controller('api/v1')
@@ -19,6 +20,7 @@ export class SiteOptionController {
   @Patch('/site-option/update/:id')
   async update(@Req() request: Request, @Param('id') id: number) {}
 
+  @UseGuards(AuthGuard)
   @Post('/characteristic/create')
   async characteristicCreate(
     @Req() request: Request,
@@ -31,6 +33,7 @@ export class SiteOptionController {
     );
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/characteristic/update/:key')
   async characteristicUpdate(
     @Req() request: Request,
@@ -45,12 +48,14 @@ export class SiteOptionController {
     );
   }
 
+  @UseGuards(AuthGuard)
   @Post('/value/create')
   async valueCreate(@Req() request: Request, @Body() createValue: CreateValue) {
     const token = request.headers.authorization?.split(' ')[1] ?? '';
     return await this.siteOptionService.valueCreate(token, createValue);
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/value/update/:key')
   async valueUpdate(
     @Req() request: Request,

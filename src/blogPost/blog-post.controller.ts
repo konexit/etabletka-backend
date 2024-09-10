@@ -12,9 +12,9 @@ import {
   Post,
   Query,
   Req,
-  UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
+  UploadedFile, UseGuards,
+  UseInterceptors
+} from "@nestjs/common";
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
@@ -24,12 +24,14 @@ import { BlogPostService } from './blog-post.service';
 import { CreatePost } from './dto/create-post.dto';
 import { UpdatePost } from './dto/update-post.dto';
 import { BlogPost } from './entities/blog-post.entity';
+import { AuthGuard } from "../auth/auth.guard";
 
 @ApiTags('post')
 @Controller('api/v1')
 export class BlogPostController {
   constructor(private readonly blogPostService: BlogPostService) {}
 
+  @UseGuards(AuthGuard)
   @Post('/post')
   @UseInterceptors(ClassSerializerInterceptor)
   @UseInterceptors(FileInterceptor('image', {}))
@@ -135,6 +137,7 @@ export class BlogPostController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/post/:id')
   async update(
     @Req() request: Request,
@@ -230,6 +233,7 @@ export class BlogPostController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Delete('/post/:id')
   async delete(@Req() request: Request, @Param('id') id: number) {
     const token = request.headers.authorization?.split(' ')[1] ?? '';

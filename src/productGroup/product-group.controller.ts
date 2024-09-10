@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Req,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import slugify from 'slugify';
@@ -16,12 +17,14 @@ import { Request } from 'express';
 import { UpdateProductGroup } from './dto/update-product-group.dto';
 import { ProductGroup } from './entities/product-group.entity';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('product-groups')
 @Controller('api/v1')
 export class ProductGroupController {
   constructor(private readonly productGroupService: ProductGroupService) {}
 
+  @UseGuards(AuthGuard)
   @Post('/product-group/create')
   @UseInterceptors(ClassSerializerInterceptor)
   async create(
@@ -49,6 +52,7 @@ export class ProductGroupController {
     return await this.productGroupService.create(token, createProductGroup);
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/product-group/update/:id')
   @UseInterceptors(ClassSerializerInterceptor)
   async update(

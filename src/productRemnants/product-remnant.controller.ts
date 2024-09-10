@@ -24,6 +24,7 @@ import { ApiTags } from '@nestjs/swagger';
 export class ProductRemnantController {
   constructor(private readonly productRemnantService: ProductRemnantService) {}
 
+  @UseGuards(AuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @Post()
   create(

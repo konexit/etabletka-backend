@@ -10,9 +10,9 @@ import {
   Post,
   Query,
   Req,
-  UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
+  UploadedFile, UseGuards,
+  UseInterceptors
+} from "@nestjs/common";
 import { DiscountGroupService } from './discount-group.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
@@ -20,12 +20,14 @@ import { CreateDiscountGroup } from './dto/create-discount-group.dto';
 import { UpdateDiscountGroup } from './dto/update-discount-group.dto';
 import { DiscountGroup } from './entities/discount-group.entity';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from "../auth/auth.guard";
 
 @ApiTags('discount-groups')
 @Controller('api/v1')
 export class DiscountGroupController {
   constructor(private readonly discountGroupService: DiscountGroupService) {}
 
+  @UseGuards(AuthGuard)
   @Post('/discount-group/create')
   @UseInterceptors(ClassSerializerInterceptor)
   @UseInterceptors(FileInterceptor('image', {}))
@@ -73,6 +75,7 @@ export class DiscountGroupController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/discount-group/update/:id')
   @UseInterceptors(ClassSerializerInterceptor)
   async update(
@@ -106,6 +109,7 @@ export class DiscountGroupController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Post('/discount-group/update/:id/image')
   @UseInterceptors(FileInterceptor('image', {}))
   async updateImage(
@@ -124,6 +128,7 @@ export class DiscountGroupController {
     return 'No image';
   }
 
+  @UseGuards(AuthGuard)
   @Post('/discount-group/:id/status')
   async setStatus(
     @Param('id') id: number,

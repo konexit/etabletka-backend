@@ -8,9 +8,9 @@ import {
   Param,
   Patch,
   Post,
-  Req,
-  UseInterceptors,
-} from '@nestjs/common';
+  Req, UseGuards,
+  UseInterceptors
+} from "@nestjs/common";
 import { BlogCategoryService } from './blog-category.service';
 import { BlogCategory } from './entities/blog-category.entity';
 import { ApiTags } from '@nestjs/swagger';
@@ -18,12 +18,14 @@ import { Request } from 'express';
 import { CreateBlogCategory } from './dto/create-blog-category.dto';
 import slugify from 'slugify';
 import { UpdateBlogCategory } from './dto/update-blog-category.dto';
+import { AuthGuard } from "../auth/auth.guard";
 
 @ApiTags('blog-categories')
 @Controller('api/v1')
 export class BlogCategoryController {
   constructor(private readonly blogCategoryService: BlogCategoryService) {}
 
+  @UseGuards(AuthGuard)
   @Post('/blog-category/create')
   @UseInterceptors(ClassSerializerInterceptor)
   async create(
@@ -99,6 +101,7 @@ export class BlogCategoryController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/blog-category/update/:id')
   @UseInterceptors(ClassSerializerInterceptor)
   async update(

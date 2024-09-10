@@ -25,58 +25,13 @@ import { ApiTags } from '@nestjs/swagger';
 @ApiTags('products')
 @Controller('api/v1')
 export class ProductController {
-  constructor(private readonly productService: ProductService) { }
+  constructor(private readonly productService: ProductService) {}
 
+  @UseGuards(AuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('product/create')
   async create(@Body() createProductDto: CreateProduct): Promise<Product> {
     return await this.productService.create(createProductDto);
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Get('/product/:id')
-  async findProductById(@Req() request: Request, @Param('id') id: number) {
-    const token = request.headers.authorization?.split(' ')[1] ?? '';
-    return await this.productService.findProductById(token, +id, {
-      lang: 'uk',
-      typeViews: 'object'
-    });
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Get('/category/:id/products')
-  async getProductsByCategoryId(@Param('id') id: number): Promise<any> {
-    return await this.productService.getProductsByCategoryId(+id);
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Get('/product/slug/:slug')
-  async getProductBySlug(@Param('slug') slug: string) {
-    return await this.productService.findProductBySlug(slug);
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Get('/products')
-  async findAll(
-    @Req() request: Request,
-    @Query('pagination') pagination?: any,
-    @Query('orderBy') orderBy?: any,
-    @Query('where') where?: any,
-  ) {
-    const token = request.headers.authorization?.split(' ')[1] ?? '';
-    return this.productService.findAll(token, pagination, orderBy, where);
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Get('/sale-products')
-  async findAllSales() {
-    return this.productService.findAllSales();
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Get('/popular-products')
-  async findPopular() {
-    return this.productService.findPopular();
   }
 
   @UseGuards(AuthGuard)
@@ -174,5 +129,51 @@ export class ProductController {
     const token = request.headers.authorization?.split(' ')[1] ?? '';
 
     return await this.productService.addBadgeToProduct(token, id, badgeId);
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/product/:id')
+  async findProductById(@Req() request: Request, @Param('id') id: number) {
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
+    return await this.productService.findProductById(token, +id, {
+      lang: 'uk',
+      typeViews: 'object',
+    });
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/category/:id/products')
+  async getProductsByCategoryId(@Param('id') id: number): Promise<any> {
+    return await this.productService.getProductsByCategoryId(+id);
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/product/slug/:slug')
+  async getProductBySlug(@Param('slug') slug: string) {
+    return await this.productService.findProductBySlug(slug);
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/products')
+  async findAll(
+    @Req() request: Request,
+    @Query('pagination') pagination?: any,
+    @Query('orderBy') orderBy?: any,
+    @Query('where') where?: any,
+  ) {
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
+    return this.productService.findAll(token, pagination, orderBy, where);
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/sale-products')
+  async findAllSales() {
+    return this.productService.findAllSales();
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/popular-products')
+  async findPopular() {
+    return this.productService.findPopular();
   }
 }

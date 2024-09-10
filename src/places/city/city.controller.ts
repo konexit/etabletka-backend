@@ -7,19 +7,21 @@ import {
   Param,
   Patch,
   Query,
-  Req,
-} from '@nestjs/common';
+  Req, UseGuards
+} from "@nestjs/common";
 import { CityService } from './city.service';
 import { City } from './entities/city.entity';
 import { Request } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { UpdateCity } from './dto/update-city.dto';
+import { AuthGuard } from "../../auth/auth.guard";
 
 @ApiTags('cities')
 @Controller('api/v1')
 export class CityController {
   constructor(private readonly cityService: CityService) {}
 
+  @UseGuards(AuthGuard)
   @Patch('/city/:id')
   async update(
     @Req() request: Request,

@@ -10,19 +10,21 @@ import {
   Patch,
   Post,
   Query,
-  Req,
-  UseInterceptors,
-} from '@nestjs/common';
+  Req, UseGuards,
+  UseInterceptors
+} from "@nestjs/common";
 import { Request } from 'express';
 import { ProductCommentService } from './product-comment.service';
 import { CreateProductComment } from './dto/create-product-comment.dto';
 import { UpdateProductComment } from './dto/update-product-comment.dto';
 import { PaginationDto } from '../common/dto/paginationDto';
+import { AuthGuard } from "../auth/auth.guard";
 
 @Controller('api/v1')
 export class ProductCommentController {
   constructor(private readonly productCommentService: ProductCommentService) {}
 
+  @UseGuards(AuthGuard)
   @Post('/comment/product')
   @UseInterceptors(ClassSerializerInterceptor)
   async create(
@@ -33,6 +35,7 @@ export class ProductCommentController {
     return await this.productCommentService.create(token, createProductComment);
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/comment/product/:id')
   @UseInterceptors(ClassSerializerInterceptor)
   async update(
@@ -61,6 +64,7 @@ export class ProductCommentController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Delete('/comment/product/:id')
   async delete(@Req() request: Request, @Param('id') id: number) {
     const token = request.headers.authorization?.split(' ')[1] ?? '';

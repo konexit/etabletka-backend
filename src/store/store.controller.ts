@@ -10,20 +10,22 @@ import {
   Query,
   Req,
   UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
+  UseInterceptors, UseGuards
+} from "@nestjs/common";
 import { StoreService } from './store.service';
 import { Store } from './entities/store.entity';
 import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from "../auth/auth.guard";
 
 @ApiTags('stores')
 @Controller('api/v1')
 export class StoreController {
   constructor(private readonly storeService: StoreService) {}
 
+  @UseGuards(AuthGuard)
   @Post('/store/update/:id/image')
   @UseInterceptors(FileInterceptor('image', {}))
   async updateImage(
@@ -40,6 +42,7 @@ export class StoreController {
     return 'No image';
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/store/update/:id')
   async update(
     @Req() request: Request,
@@ -65,6 +68,7 @@ export class StoreController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Post('/store/:id/status')
   async setStoreStatus(
     @Param('id') id: number,

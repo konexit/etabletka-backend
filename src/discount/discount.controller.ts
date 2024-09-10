@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Req,
-  UploadedFile,
+  UploadedFile, UseGuards,
   UseInterceptors
 } from "@nestjs/common";
 import slugify from 'slugify';
@@ -20,12 +20,14 @@ import { Discount } from './entities/discount.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateDiscount } from './dto/update-discount.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from "../auth/auth.guard";
 
 @ApiTags('discounts')
 @Controller('api/v1')
 export class DiscountController {
   constructor(private readonly discountService: DiscountService) {}
 
+  @UseGuards(AuthGuard)
   @Post('/discount/create')
   @UseInterceptors(ClassSerializerInterceptor)
   @UseInterceptors(FileInterceptor('image', {}))
@@ -76,6 +78,7 @@ export class DiscountController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/discount/update/:id')
   async update(
     @Req() request: Request,
@@ -120,6 +123,7 @@ export class DiscountController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Delete('/discount/:id')
   async delete(@Req() request: Request, @Param('id') id: number) {
     const token = request.headers.authorization?.split(' ')[1] ?? '';

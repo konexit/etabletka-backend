@@ -16,6 +16,12 @@ import { ApiTags } from '@nestjs/swagger';
 export class ProductTypeController {
   constructor(private readonly productTypeService: ProductTypeService) {}
 
+  @UseGuards(AuthGuard)
+  @Delete('/product-type/:id')
+  async remove(@Param('id') id: number) {
+    return await this.productTypeService.remove(id);
+  }
+
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('/product-types')
   async findAll() {
@@ -25,11 +31,5 @@ export class ProductTypeController {
   @Get('/product-type/:id')
   async findOne(@Param('id') id: number) {
     return await this.productTypeService.findOne(+id);
-  }
-
-  @UseGuards(AuthGuard)
-  @Delete('/product-type/:id')
-  async remove(@Param('id') id: number) {
-    return await this.productTypeService.remove(id);
   }
 }

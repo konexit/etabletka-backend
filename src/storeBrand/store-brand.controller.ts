@@ -8,9 +8,9 @@ import {
   Patch,
   Post,
   Req,
-  UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
+  UploadedFile, UseGuards,
+  UseInterceptors
+} from "@nestjs/common";
 import { StoreBrandService } from './store-brand.service';
 import { StoreBrand } from './entities/store-brand.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -18,12 +18,14 @@ import { Request } from 'express';
 import { CreateStoreBrand } from './dto/create-store-brand.dto';
 import { UpdateStoreBrand } from './dto/update-store-brand.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from "../auth/auth.guard";
 
 @ApiTags('/store/brand')
 @Controller('api/v1')
 export class StoreBrandController {
   constructor(private readonly storeBrandService: StoreBrandService) {}
 
+  @UseGuards(AuthGuard)
   @Post('/store/brand/create')
   @UseInterceptors(ClassSerializerInterceptor)
   @UseInterceptors(FileInterceptor('image', {}))
@@ -46,6 +48,7 @@ export class StoreBrandController {
     return storeBrand;
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/store/brand/update/:id')
   @UseInterceptors(ClassSerializerInterceptor)
   async updateStoreBrand(
@@ -57,6 +60,7 @@ export class StoreBrandController {
     return this.storeBrandService.update(token, +id, updateStoreBrand);
   }
 
+  @UseGuards(AuthGuard)
   @Delete('/store/brand/:id')
   async delete(@Req() request: Request, @Param('id') id: number) {
     const token = request.headers.authorization?.split(' ')[1] ?? '';
