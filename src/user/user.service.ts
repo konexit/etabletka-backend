@@ -7,6 +7,7 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import { SmsService } from '../services/sms.service';
+import { PaginationDto } from '../common/dto/paginationDto';
 
 @Injectable()
 export class UserService {
@@ -123,18 +124,38 @@ export class UserService {
     );
   }
 
-  async findAll(token: string | any[]): Promise<User[]> {
+  async findAll(
+    token: string | any[],
+    pagination: PaginationDto = {},
+    where: any = {},
+  ) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('No access', HttpStatus.FORBIDDEN);
     }
 
-    const users = await this.userRepository.find();
+    const { take = 15, skip = 0 } = pagination;
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+    const total = await queryBuilder.getCount();
 
+    queryBuilder
+      .select('user')
+      .addSelect('role.id')
+      .addSelect('role.role')
+      .leftJoin('user.role', 'role')
+      .orderBy('user.createdAt', 'DESC')
+      .take(take)
+      .skip(skip)
+      .where('user.id is not null');
+
+    const users = await queryBuilder.getMany();
     if (!users) {
       throw new HttpException('Users not found', HttpStatus.NOT_FOUND);
     }
 
-    return users;
+    return {
+      users,
+      pagination: { total, take, skip },
+    };
   }
 
   async getUserByRoleId(id: number): Promise<User[]> {

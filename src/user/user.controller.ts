@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   Req,
+  Query,
 } from '@nestjs/common';
 
 import { AuthGuard } from '../auth/auth.guard';
@@ -19,6 +20,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Request } from 'express';
 import { ApiTags } from '@nestjs/swagger';
+import { PaginationDto } from '../common/dto/paginationDto';
 
 @ApiTags('users')
 @Controller('api/v1')
@@ -52,9 +54,13 @@ export class UserController {
   @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(AuthGuard)
   @Get('/users')
-  async findAll(@Req() request: Request): Promise<User[]> {
+  async findAll(
+    @Req() request: Request,
+    @Query() pagination?: PaginationDto,
+    @Query('where') where?: any,
+  ) {
     const token = request.headers.authorization?.split(' ')[1] ?? '';
-    return await this.userService.findAll(token);
+    return await this.userService.findAll(token, pagination, where);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)

@@ -25,7 +25,6 @@ export class AnotherPointService {
     }
 
     const anotherPoint = this.anotherPointRepository.create(createAnotherPoint);
-
     if (!anotherPoint) {
       throw new HttpException(
         `Can't create another point with data: ${createAnotherPoint}`,
@@ -51,6 +50,7 @@ export class AnotherPointService {
     }
 
     await this.anotherPointRepository.update(id, updateAnotherPoint);
+
     const anotherPoint = await this.anotherPointRepository.findOneBy({
       id,
     });
