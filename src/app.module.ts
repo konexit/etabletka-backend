@@ -39,6 +39,7 @@ import { ProductGroupModule } from './productGroup/product-group.module';
 import { ProductCommentModule } from './productComment/product-comment.module';
 import { RefreshModule } from './refresh/refresh.module';
 import { WsModule } from './ws/ws.module';
+import { ProductAttributesModule } from './productAttributes/product-attributes.module';
 
 @Module({
   imports: [
@@ -89,6 +90,7 @@ import { WsModule } from './ws/ws.module';
     SearchModule,
     RefreshModule,
     WsModule,
+    ProductAttributesModule
   ],
   controllers: [AppController],
   providers: [AppService],

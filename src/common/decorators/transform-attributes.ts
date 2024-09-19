@@ -28,6 +28,17 @@ export interface TransformAttributesOptions {
   typeViews: TypeViews | string;
 }
 
+const getValueByLang = (value: any, lang: string) => {
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i++) {
+      value[i].name = value[i].name[lang];
+    }
+  } else {
+    value.name = value.name[lang];
+  }
+  return value;
+}
+
 export function TransformAttributes(
   defaultLang: string,
   optionParamIndex: number = 1,
@@ -48,59 +59,46 @@ export function TransformAttributes(
         const cacheManager: Cache = this.cacheManager;
         const priceConfig: PriceConfig = this.priceConfig;
         const attributes = await cacheManager.get('product_attributes');
-        const attributesValue = await this.cacheManager.get(
-          'product_attributes_value',
-        );
-
         switch (options.typeViews) {
           case TypeViews.Object:
-            if (attributes && attributesValue) {
-              const prepareResult = Object.keys(result.attributes).reduce(
-                (acc, key) => {
-                  result.attributes[key].name =
-                    attributesValue[result.attributes[key].slug]?.[lang] ??
-                    result.attributes[key].slug;
-                  attributes[key].sectionViews.forEach((view) =>
+            if (attributes) {
+              const prepareResult = Object
+                .keys(result.attributes)
+                .reduce((acc, key) => {
+                  const value = getValueByLang(result.attributes[key], lang);
+                  attributes[key].sectionViews.forEach((view) => {
                     acc[view].push({
-                      name:
-                        attributes[key]?.name?.[lang] ?? attributes[key].alias,
+                      name: attributes[key]?.name?.[lang],
                       order: attributes[key]?.order,
-                      value: result.attributes[key],
-                    }),
-                  );
+                      value
+                    })
+                  });
                   return acc;
                 },
-                initialValueTypeViewsObject(),
-              );
+                  initialValueTypeViewsObject(),
+                );
               if (
                 result.attributes[priceConfig.denominatorKey] &&
                 result.attributes[priceConfig.wholeKey] &&
                 result.attributes[priceConfig.partKey]
               ) {
-                prepareResult.price.denominator =
-                  +result.attributes[priceConfig.denominatorKey].name;
-                prepareResult.price.wholeName =
-                  result.attributes[priceConfig.wholeKey].name;
-                prepareResult.price.partName =
-                  result.attributes[priceConfig.partKey].name;
+                prepareResult.price.denominator = +result.attributes[priceConfig.denominatorKey]?.name?.[lang];
+                prepareResult.price.wholeName = result.attributes[priceConfig.wholeKey]?.name?.[lang];
+                prepareResult.price.partName = result.attributes[priceConfig.partKey]?.name?.[lang];
               }
               result.attributes = prepareResult;
             }
             break;
           case TypeViews.Arr:
-            if (attributes && attributesValue) {
+            if (attributes) {
               result.attributes = Object.keys(result.attributes)
                 .map((key) => {
-                  result.attributes[key].name =
-                    attributesValue[result.attributes[key].slug]?.[lang] ??
-                    result.attributes[key].slug;
                   return {
-                    name:
-                      attributes[key]?.name?.[lang] ?? attributes[key].alias,
+                    name: attributes[key]?.name?.[lang],
                     type: attributes[key]?.type,
                     sectionViews: attributes[key].sectionViews,
                     order: attributes[key]?.order,
-                    value: result.attributes[key],
+                    value: getValueByLang(result.attributes[key], lang),
                   };
                 })
                 .sort((a, b) => a.order - b.order);
@@ -108,10 +106,9 @@ export function TransformAttributes(
             break;
         }
       }
-
       return result;
     };
 
     return descriptor;
-  };
+  }
 }

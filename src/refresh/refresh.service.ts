@@ -1,31 +1,25 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { SiteOptionService } from 'src/siteOptions/site-option.service';
 import { CacheKeys, SearchEngineKeys } from './refresh-keys';
 import { SearchService } from 'src/search/search.service';
 import { SearchEngineRefreshDto } from './dto/search-engine-refresh.dto';
+import { ProductAttributesService } from 'src/productAttributes/product-attributes.service';
 
 @Injectable()
 export class RefreshService {
   private readonly logger = new Logger(RefreshService.name);
 
   constructor(
-    private readonly siteOptionService: SiteOptionService,
-    private readonly searchService: SearchService
+    private readonly searchService: SearchService,
+    private readonly productAttributesService: ProductAttributesService
   ) { }
 
   async refreshCacheByKey(key: string) {
     switch (key) {
-      case CacheKeys.ProductAttributesMap:
-        await this.siteOptionService.moveFacetSearchMapToCache();
-        break;
       case CacheKeys.ProductAttributes:
-        await this.siteOptionService.moveFacetSearchMapToCache(CacheKeys.ProductAttributes);
-        break;
-      case CacheKeys.ProductAttributesValue:
-        await this.siteOptionService.moveFacetSearchMapToCache(CacheKeys.ProductAttributesValue);
+        await this.productAttributesService.cacheInit();
         break;
       case CacheKeys.All:
-        await this.siteOptionService.moveFacetSearchMapToCache();
+        await this.productAttributesService.cacheInit();
         break;
       default:
         const warnMsg = `cache key: '${key}' is not supported, only these [${Object.values(CacheKeys)}]`;

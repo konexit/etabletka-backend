@@ -1,8 +1,6 @@
 export enum CacheKeys {
     All = 'all',
-    ProductAttributesMap = 'product_attributes_map',
     ProductAttributes = 'product_attributes',
-    ProductAttributesValue = 'product_attributes_value',
     Categories = 'categories'
 }
 

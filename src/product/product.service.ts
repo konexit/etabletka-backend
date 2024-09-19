@@ -406,9 +406,15 @@ export class ProductService {
     return products;
   }
 
-  async getProductByIdForUser(id) {
-    return await this.productRepository.findOne({
-      where: { id, isActive: true },
+  @TransformAttributes('uk', 2)
+  async findProductById(
+    token: string,
+    id: number,
+    options: TransformAttributesOptions
+  ): Promise<Product> {
+    const payload = await this.jwtService.decode(token);
+    const product = await this.productRepository.findOne({
+      where: payload?.roleId === 1 ? { id, isActive: true } : { id },
       relations: [
         'productGroups',
         'productRemnants',
@@ -420,32 +426,6 @@ export class ProductService {
         'brand',
       ],
     });
-  }
-
-  @TransformAttributes('uk', 2)
-  async findProductById(
-    token: string,
-    id: number,
-    options: TransformAttributesOptions
-  ): Promise<Product> {
-    let product = await this.getProductByIdForUser(id);
-
-    const payload = await this.jwtService.decode(token);
-    if (payload?.roleId === 1) {
-      product = await this.productRepository.findOne({
-        where: { id },
-        relations: [
-          'productGroups',
-          'productRemnants',
-          'productRemnants.store',
-          'productType',
-          'categories',
-          'discounts',
-          'badges',
-          'brand',
-        ],
-      });
-    }
 
     if (!product) {
       throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
