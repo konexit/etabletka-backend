@@ -6,11 +6,11 @@ import { Cache } from 'cache-manager';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { ProductAttributes } from './entities/product-attributes.entity';
 import { UpdateProductAttributes } from './dto/update-product-attributes.dto';
+import { CacheKeys } from 'src/refresh/refresh-keys';
 
 @Injectable()
 export class ProductAttributesService {
   private readonly logger = new Logger(ProductAttributesService.name);
-  private productAttrCacheKey = 'product_attributes'
   constructor(
     @InjectRepository(ProductAttributes)
     private readonly productAttributesRepository: Repository<ProductAttributes>,
@@ -60,8 +60,8 @@ export class ProductAttributesService {
   }
 
   async cacheInit() {
-    this.cacheManager.set(this.productAttrCacheKey, await this.getAllFormatMap())
-    const logMsg = `cache key '${this.productAttrCacheKey}' was successfully added`
+    this.cacheManager.set(CacheKeys.ProductAttributes, await this.getAllFormatMap())
+    const logMsg = `cache key '${CacheKeys.ProductAttributes}' was successfully added`
     this.logger.log(logMsg);
     return logMsg;
   }

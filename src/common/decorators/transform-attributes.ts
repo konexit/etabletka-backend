@@ -1,4 +1,5 @@
 import { Cache } from 'cache-manager';
+import { CacheKeys } from 'src/refresh/refresh-keys';
 
 enum TypeViews {
   Arr = 'arr',
@@ -58,7 +59,7 @@ export function TransformAttributes(
       if (result && result.attributes) {
         const cacheManager: Cache = this.cacheManager;
         const priceConfig: PriceConfig = this.priceConfig;
-        const attributes = await cacheManager.get('product_attributes');
+        const attributes = await cacheManager.get(CacheKeys.ProductAttributes);
         switch (options.typeViews) {
           case TypeViews.Object:
             if (attributes) {

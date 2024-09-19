@@ -14,30 +14,31 @@ declare namespace Search {
 
   export type FilterValues = FilterCheckBoxValue[] | FilterRangeValue;
 
-  export type AttributesValue = {
-    [key: string]: Record<string, any>;
-  };
-
   export type AttributeValues = {
     icon: string | null;
-    name: string;
+    name: Record<string, any>;
     path: string | null;
     slug: string;
     color: string | null;
-    filter: boolean;
-    isPreview: boolean;
   };
 
-  export enum TypeUI {
-    Checkbox = 'checkbox',
-    Range = 'range'
+  export enum Type {
+    Import = 'import',
+    Custom = 'custom'
+  }
+
+  export enum SectionViews {
+    Main = 'main',
+    Attributes = 'attributes',
+    Preview = 'preview'
   }
 
   export type Attribute = {
     name: Record<string, any>;
-    type: string;
-    alias: string;
+    key: string;
+    type: Type;
     order: number;
+    sectionViews: SectionViews[];
     filter: boolean;
     filterUI: boolean;
     typeUI: TypeUI;
@@ -46,10 +47,5 @@ declare namespace Search {
 
   export type Attributes = {
     [key: string]: Attribute;
-  };
-
-  export type FacetSearchMap = {
-    attributes: Attributes;
-    attributesValue: AttributesValue;
   };
 }

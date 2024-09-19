@@ -25,7 +25,9 @@ import {
 } from './dto/facet-search-filters.dto';
 import { SearchDto } from './dto/search.dto';
 import { isEmpty } from './utils';
-import { SearchEngineKeys } from 'src/refresh/refresh-keys';
+import { CacheKeys } from 'src/refresh/refresh-keys';
+
+const attributeValue = {};
 // Documentation:  https://www.npmjs.com/package/meilisearch
 @Injectable()
 export class SearchService {
@@ -56,7 +58,7 @@ export class SearchService {
   }
 
   async init() {
-    const filterUI = await this.getFilters('filterUI');
+    const filterUI = await this.getFilters('filter_ui');
     this.indexesConfig.products.facetAttr = filterUI;
     this.indexesConfig.products.filterableAttr = filterUI.concat(
       this.indexesConfig.products.filterableAttr,
@@ -114,9 +116,30 @@ export class SearchService {
 
   async makeProductsIndex(lang: string, productIds?: string[]): Promise<Array<any>> {
     const start = performance.now();
-    const products = await this.productRepository.query(
-      this.productIndexQuery(lang, await this.getFilters(), productIds),
-    );
+    const filters = await this.getFilters();
+    const products = await this.productRepository.query(this.productIndexQuery(lang, productIds));
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      const attributes = product.attributes;
+      if (!attributes) continue;
+      filters.forEach(filter => {
+        const attr = attributes[filter]
+        if (attr) {
+          if (Array.isArray(attr)) {
+            product[filter] = attr.reduce((acc, attr) => {
+              attributeValue[attr.slug] = attr.name[lang]
+              acc.push(attr.slug);
+              return acc;
+            }, []);
+          } else {
+            attributeValue[attr.slug] = attr.name[lang]
+            product[filter] = [attr.slug];
+          }
+        }
+      });
+      delete product.attributes;
+    }
+
     if (!products) {
       throw new HttpException('Products does not exist', HttpStatus.NOT_FOUND);
     }
@@ -127,20 +150,39 @@ export class SearchService {
   }
 
   async search(text: string, searchParams?: SearchParams) {
-    if (!isNaN(Number(text)))
+    if (!isNaN(Number(text))) {
       Object.assign(searchParams, { filter: [`sync_id = ${text}`] });
+    }
     return await this.client
       .index(this.indexesConfig.products.name)
       .search(text, searchParams);
   }
 
   async facetSearch(search: SearchDto, searchParams?: SearchParams) {
+    const searchParamsWithEmptyFilter = JSON.parse(JSON.stringify(searchParams));
+    searchParamsWithEmptyFilter.filter = '';
     return await this.createFacetFilters(
       search.lang,
-      await this.client
-        .index(this.indexesConfig.products.name)
-        .search(search.text, searchParams),
+      await Promise.all([
+        this.client.index(this.indexesConfig.products.name).search(search.text, searchParams),
+        this.client.index(this.indexesConfig.products.name).search(search.text, searchParamsWithEmptyFilter)
+      ]),
+      this.getSelectedFilters(search.filter)
     );
+  }
+
+  getSelectedFilters(filters: string): any[] {
+    const matches = [...filters.matchAll(/(?:^|\/)([^:\/&]+):([^\/&]+)/g)];
+    const result = matches.reduce((acc, match) => {
+      const [_, key] = match;
+      acc.push({
+        key,
+        type: 'checkbox'
+      });
+      return acc;
+    }, []);
+    console.log(result, filters);
+    return result;
   }
 
   getFacetFilters(index: string = 'products'): string[] {
@@ -158,6 +200,7 @@ export class SearchService {
    * @param filter price:50&1000/production-form:kapsuly_klipsa_shampun
    */
   extractFacetFilter(filter: string): string {
+    if (!filter) return '';
     const sqlParts = [];
     filter.split('/').forEach((param) => {
       const [key, value] = param.split(':');
@@ -219,33 +262,38 @@ export class SearchService {
 
   private async createFacetFilters(
     lang: string,
-    res: SearchResponse,
+    res: SearchResponse[],
+    selectedFilters?: any[]
   ): Promise<FacetSearchFilterDto> {
-    const facetSearchMap: Search.FacetSearchMap = {
-      attributes: (await this.cacheManager.get('product_attributes')) ?? {},
-      attributesValue: (await this.cacheManager.get('product_attributes_value')) ?? {},
-    };
+    const attributes: Search.Attributes = (await this.cacheManager.get(CacheKeys.ProductAttributes));
+    selectedFilters.forEach(filter => {
+      if (filter.type == 'checkbox') {
+        Object.assign(res[0].facetDistribution[filter.key], res[1].facetDistribution[filter.key])
+      } else {
+        res[0].facetStats = res[1].facetStats
+      }
+    })
     return {
-      filters: Object.keys(res.facetDistribution)
+      filters: Object.keys(res[0].facetDistribution)
         .reduce((acc, key) => {
-          if (isEmpty(res.facetDistribution[key])) return acc;
+          if (isEmpty(res[0].facetDistribution[key])) return acc;
           acc.push(
             this.createFilter(
               lang,
               key,
-              res.facetDistribution[key],
-              res.facetStats,
-              facetSearchMap,
+              res[0].facetDistribution[key],
+              res[0].facetStats,
+              attributes,
             ),
           );
           return acc;
         }, [])
         .sort((a, b) => a.order - b.order),
-      products: res.hits,
-      limit: res.limit,
-      offset: res.offset,
-      estimatedTotalHits: res.estimatedTotalHits,
-      query: res.query,
+      products: res[0].hits,
+      limit: res[0].limit,
+      offset: res[0].offset,
+      estimatedTotalHits: res[0].estimatedTotalHits,
+      query: res[0].query,
     };
   }
 
@@ -254,12 +302,12 @@ export class SearchService {
     key: string,
     values: CategoriesDistribution,
     facetStats: FacetStats,
-    facetSearchMap: Search.FacetSearchMap,
+    attributes: Search.Attributes,
   ): Filter {
-    const filter = facetSearchMap.attributes[key];
+    const filter: Search.Attribute = attributes[key];
     if (!filter) {
       this.logger.warn(
-        `facet-filter key '${key}' not found in facetSearchMap, may be problems importing it from db table 'site_options'`,
+        `facet-filter key '${key}' not found in attributes, maybe it doesn't exist table 'product_attribute'`,
       );
       return new Filter();
     }
@@ -269,7 +317,7 @@ export class SearchService {
       case TypeUI.Checkbox:
         filterValues = Object.keys(values).map((item) => {
           return {
-            name: this.getFilterValueName(lang, item, facetSearchMap),
+            name: attributeValue[item],
             alias: item,
             count: values[item],
           };
@@ -278,8 +326,8 @@ export class SearchService {
       case TypeUI.Range:
         filterValues = Object.assign(
           {
-            name: this.getFilterValueName(lang, key, facetSearchMap),
-            alias: key,
+            name: attributeValue[key],
+            alias: key
           },
           facetStats[key],
         );
@@ -289,39 +337,19 @@ export class SearchService {
     }
 
     return {
-      name: filter.name[lang] ?? filter.alias,
+      name: filter.name[lang],
       order: filter.order,
-      alias: filter.alias,
+      alias: filter.key,
       typeUI: filter.typeUI,
       values: filterValues,
     };
   }
 
-  private getFilterValueName(
-    lang: string,
-    key: string,
-    facetSearchMap: Search.FacetSearchMap,
-  ): string {
-    return (
-      (facetSearchMap.attributesValue[key] &&
-        facetSearchMap.attributesValue[key][lang]) ??
-      key
-    );
-  }
-
   private async getFilters(typeFilter: string = 'filter'): Promise<string[]> {
-    return (
-      await this.productRepository.query(`SELECT key
-              FROM jsonb_each((SELECT json->'attributes' FROM site_options WHERE key = 'product_attributes_map')) AS kv(key, value) 
-              WHERE (value->'${typeFilter}')::boolean = true`)
-    ).map(({ key }) => key);
+    return (await this.productRepository.query(`SELECT key FROM product_attributes WHERE ${typeFilter} = true`)).map(({ key }) => key);
   }
 
-  private productIndexQuery(
-    lang: string,
-    filters: string[],
-    productIds?: string[],
-  ): string {
+  private productIndexQuery(lang: string, productIds?: string[]): string {
     return `SELECT
                 id,
                 sync_id,
@@ -329,11 +357,10 @@ export class SearchService {
                 rating,
                 cdn_data,
                 slug,
-                attributes->'category_path'->>'path' as category_path,
-                price
-                ${filters.map((f) => `,attributes->'${f}'->>'slug' as "${f}"`).join('')}
-            FROM products p
-            WHERE p.attributes IS NOT NULL AND p.active = true ${productIds ? `AND p.id IN(${productIds.join(',')})` : ''}`;
+                active,
+                price,
+                attributes
+            FROM products p ${productIds ? `WHERE p.id IN(${productIds.join(',')})` : ''}`;
   }
 
   private buildSQL(key: string, value: string): string {

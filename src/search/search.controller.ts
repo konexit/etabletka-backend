@@ -26,7 +26,6 @@ export class SearchController {
         'img',
         'rating',
         'name',
-        'category_path',
         'price',
       ],
       limit: search.limit,
