@@ -1,8 +1,8 @@
 import { Controller, Get, Param, Req } from '@nestjs/common';
-import { PageService } from './page.service';
+import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { Page } from './entities/page.entity';
-import { ApiTags } from '@nestjs/swagger';
+import { PageService } from './page.service';
 
 @ApiTags('pages')
 @Controller('api/v1')
@@ -17,7 +17,7 @@ export class PageController {
   }
 
   @Get('pages/menu/:index')
-  async getPagesByMenuIndex(@Param('index') index: number): Promise<Page[]> {
+  async getPagesByMenuIndex(@Param('index') index: number) {
     return await this.pageService.getPagesByMenuIndex(index);
   }
 

@@ -1,10 +1,10 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Page } from './entities/page.entity';
-import { Repository } from 'typeorm';
-import { JwtService } from '@nestjs/jwt';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
+import { Repository } from 'typeorm';
+import { Page } from './entities/page.entity';
 
 @Injectable()
 export class PageService {
@@ -17,8 +17,6 @@ export class PageService {
   ) {}
 
   cachePagesKey = 'pages';
-  cacheMenuPagesKeyOne = 'menuPagesOne';
-  cacheMenuPagesKeyTwo = 'menuPagesTwo';
   cachePageTTL = 14400000; // 4 Hour
 
   async getPages(token: string | any[]): Promise<any> {
@@ -44,20 +42,14 @@ export class PageService {
     return pages;
   }
 
-  async getPagesByMenuIndex(index): Promise<any> {
-    if (index === 1) {
-      const cachePages = await this.cacheManager.get(this.cacheMenuPagesKeyOne);
-      if (cachePages) {
-        return cachePages;
-      }
-    }
+  async getPagesByMenuIndex(
+    index: number,
+  ): Promise<ReturnType<PageService['transform']>[]> {
+    const cachedPages = await this.cacheManager.get<
+      ReturnType<PageService['transform']>[]
+    >(`${this.cachePagesKey}-menu-${index}`);
 
-    if (index === 2) {
-      const cachePages = await this.cacheManager.get(this.cacheMenuPagesKeyTwo);
-      if (cachePages) {
-        return cachePages;
-      }
-    }
+    if (cachedPages) return cachedPages;
 
     const queryBuilder = this.pageRepository.createQueryBuilder('page');
     const pages = await queryBuilder
@@ -67,25 +59,18 @@ export class PageService {
       .where('page.menuIndex = :index', { index })
       .getMany();
 
-    if (!pages) {
+    if (!pages)
       throw new HttpException('Pages not found', HttpStatus.NOT_FOUND);
-    }
 
-    if (index === 1)
-      await this.cacheManager.set(
-        this.cacheMenuPagesKeyOne,
-        pages,
-        this.cachePageTTL,
-      );
+    const result = pages.map((page) => this.transform(page));
 
-    if (index === 2)
-      await this.cacheManager.set(
-        this.cacheMenuPagesKeyTwo,
-        pages,
-        this.cachePageTTL,
-      );
+    await this.cacheManager.set(
+      `${this.cachePagesKey}-menu-${index}`,
+      result,
+      this.cachePageTTL,
+    );
 
-    return pages;
+    return result;
   }
 
   async getPageBySlug(slug: string): Promise<Page> {
@@ -98,5 +83,14 @@ export class PageService {
     }
 
     return page;
+  }
+
+  transform(
+    page: Page,
+    lang: string = 'uk',
+  ): Omit<Page, 'title'> & { title: string } {
+    const result = JSON.parse(JSON.stringify(page));
+    result.title = result.title[lang];
+    return result;
   }
 }
