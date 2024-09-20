@@ -159,29 +159,55 @@ export class SearchService {
   }
 
   async facetSearch(search: SearchDto, searchParams?: SearchParams) {
-    const searchParamsWithEmptyFilter = JSON.parse(JSON.stringify(searchParams));
-    searchParamsWithEmptyFilter.filter = '';
-    return await this.createFacetFilters(
-      search.lang,
-      await Promise.all([
-        this.client.index(this.indexesConfig.products.name).search(search.text, searchParams),
-        this.client.index(this.indexesConfig.products.name).search(search.text, searchParamsWithEmptyFilter)
-      ]),
-      this.getSelectedFilters(search.filter)
-    );
+    const selectedFilters = this.getSelectedFilters(search.filter);
+    const searchQueries = [this.client.index(this.indexesConfig.products.name).search(search.text, searchParams)];
+    if (search.filter) {
+      let filter = '';
+      if (selectedFilters.length > 1) {
+        filter = (<string>searchParams.filter).split(` AND ${selectedFilters.pop().key}`)[0];
+      }
+      searchQueries.push(this.client.index(this.indexesConfig.products.name).search(search.text, {
+        facets: searchParams.facets,
+        offset: searchParams.offset,
+        limit: searchParams.limit,
+        filter
+      }));
+    }
+    return await this.createFacetFilters(search.lang, await Promise.all(searchQueries), selectedFilters);
   }
 
-  getSelectedFilters(filters: string): any[] {
-    const matches = [...filters.matchAll(/(?:^|\/)([^:\/&]+):([^\/&]+)/g)];
-    const result = matches.reduce((acc, match) => {
-      const [_, key] = match;
-      acc.push({
-        key,
-        type: 'checkbox'
-      });
-      return acc;
-    }, []);
-    console.log(result, filters);
+  getSelectedFilters(filters: string): Search.SelectedFilters[] {
+    let isTypeRange = false;
+    let isFilter = false;
+    let currentFilter = '';
+    const result: Search.SelectedFilters[] = [];
+
+    const addFilter = () => {
+      if (isFilter) {
+        result.push({
+          key: currentFilter,
+          type: isTypeRange ? 'range' : 'checkbox'
+        });
+        currentFilter = '';
+        isTypeRange = isFilter = false;
+      }
+    };
+
+    for (let i = 0; i < filters.length; i++) {
+      const char = filters[i];
+      if (char === '/') {
+        addFilter();
+      } else if (char === ':') {
+        isFilter = true;
+      } else if (char === '&') {
+        isTypeRange = true;
+      } else {
+        if (!isFilter) {
+          currentFilter += char;
+        }
+      }
+    }
+    addFilter();
     return result;
   }
 
@@ -263,7 +289,7 @@ export class SearchService {
   private async createFacetFilters(
     lang: string,
     res: SearchResponse[],
-    selectedFilters?: any[]
+    selectedFilters?: Search.SelectedFilters[]
   ): Promise<FacetSearchFilterDto> {
     const attributes: Search.Attributes = (await this.cacheManager.get(CacheKeys.ProductAttributes));
     selectedFilters.forEach(filter => {

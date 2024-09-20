@@ -45,6 +45,11 @@ declare namespace Search {
     values: AttributeValues[];
   };
 
+  export type SelectedFilters = {
+    type: string;
+    key: string;
+  };
+
   export type Attributes = {
     [key: string]: Attribute;
   };
