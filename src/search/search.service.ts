@@ -164,7 +164,7 @@ export class SearchService {
     if (search.filter) {
       let filter = '';
       if (selectedFilters.length > 1) {
-        filter = (<string>searchParams.filter).split(` AND ${selectedFilters.pop().key}`)[0];
+        filter = (<string>searchParams.filter).split(` AND ${selectedFilters[selectedFilters.length - 1].key}`)[0];
       }
       searchQueries.push(this.client.index(this.indexesConfig.products.name).search(search.text, {
         facets: searchParams.facets,
@@ -286,11 +286,7 @@ export class SearchService {
     }
   }
 
-  private async createFacetFilters(
-    lang: string,
-    res: SearchResponse[],
-    selectedFilters?: Search.SelectedFilters[]
-  ): Promise<FacetSearchFilterDto> {
+  private async createFacetFilters(lang: string, res: SearchResponse[], selectedFilters?: Search.SelectedFilters[]): Promise<FacetSearchFilterDto> {
     const attributes: Search.Attributes = (await this.cacheManager.get(CacheKeys.ProductAttributes));
     selectedFilters.forEach(filter => {
       if (filter.type == 'checkbox') {
