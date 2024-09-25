@@ -289,51 +289,58 @@ export class SearchService {
 
   private async createFacetFilters(search: SearchDto, res: SearchResponse, selectedFilters?: Search.SelectedFilters[]): Promise<FacetSearchFilterDto> {
     const attributes: Search.Attributes = (await this.cacheManager.get(CacheKeys.ProductAttributes));
+    let out = null;
     if (selectedFilters.length) {
-      const selectedFiltersResults = await Promise.all(selectedFilters.map(filter => {
-        if (filter.type != 'checkbox') return null;
-        return this.client.index(this.indexesConfig.products.name).search(search.text, {
-          limit: 0,
-          facets: this.getFacetFilters(),
-          filter: `${filter.key} IN [${filter.value.join(',')}]`
-        });
-      }));
+      const selectedCheckboxFilters = selectedFilters.filter(f => f.type == 'checkbox');
+      if (selectedCheckboxFilters.length > 1) {
+        const selectedFiltersResults = await Promise.all(selectedCheckboxFilters.map(filter => {
+          return this.client.index(this.indexesConfig.products.name).search(search.text, {
+            limit: 0,
+            facets: this.getFacetFilters(),
+            filter: `${filter.key} IN [${filter.value.join(',')}]`
+          });
+        }));
 
-      const availableFilterValue = selectedFilters.reduce((acc, currentFilter) => {
-        acc[currentFilter.key] = selectedFilters.reduce((acc, curFilter, i) => {
-          if (curFilter.key == currentFilter.key) return acc;
-          if (isEmpty(acc)) {
-            acc = selectedFiltersResults[i].facetDistribution[currentFilter.key];
-          } else {
-            const mergeFilterValue = {};
-            const result = selectedFiltersResults[i].facetDistribution[currentFilter.key];
-            if (acc) {
-              for (const filterValue in result) {
-                if (acc[filterValue]) {
-                  mergeFilterValue[filterValue] = result[filterValue];
+        const availableFilterValue = selectedCheckboxFilters.reduce((acc, currentFilter) => {
+          acc[currentFilter.key] = selectedCheckboxFilters.reduce((acc, curFilter, i) => {
+            if (curFilter.key == currentFilter.key) return acc;
+            if (isEmpty(acc)) {
+              acc = selectedFiltersResults[i].facetDistribution[currentFilter.key];
+            } else {
+              const mergeFilterValue = {};
+              const result = selectedFiltersResults[i].facetDistribution[currentFilter.key];
+              if (acc) {
+                for (const filterValue in result) {
+                  if (acc[filterValue]) {
+                    mergeFilterValue[filterValue] = result[filterValue];
+                  }
                 }
               }
+              acc = mergeFilterValue;
             }
-            acc = mergeFilterValue;
-          }
+            return acc;
+          }, {});
           return acc;
         }, {});
-        return acc;
-      }, {});
 
-      const finalSelectedFilters = Object
-        .keys(availableFilterValue)
-        .reduce((acc, currentKey, i) => {
-          acc += `${i ? ' AND' : ''} ${currentKey} IN [${Object.keys(availableFilterValue[currentKey]).join(',')}]`;
-          return acc;
-        }, '');
+        const finalSelectedFilters = Object
+          .keys(availableFilterValue)
+          .reduce((acc, currentKey, i) => {
+            acc += `${i ? ' AND' : ''} ${currentKey} IN [${Object.keys(availableFilterValue[currentKey]).join(',')}]`;
+            return acc;
+          }, '');
 
-      const out = await this.client.index(this.indexesConfig.products.name).search(search.text, {
-        limit: 0,
-        facets: this.getFacetFilters(),
-        filter: finalSelectedFilters
-      });
-
+        out = await this.client.index(this.indexesConfig.products.name).search(search.text, {
+          limit: 0,
+          facets: this.getFacetFilters(),
+          filter: finalSelectedFilters
+        });
+      } else {
+        out = await this.client.index(this.indexesConfig.products.name).search(search.text, {
+          limit: 0,
+          facets: this.getFacetFilters()
+        });
+      }
 
       selectedFilters.forEach(filter => {
         if (filter.type == 'checkbox') {
@@ -343,9 +350,9 @@ export class SearchService {
               f[value] = 0;
             }
           });
-          Object.assign(res.facetDistribution[filter.key], f)
+          Object.assign(res.facetDistribution[filter.key], f);
         } else {
-          res.facetStats = out.facetStats
+          res.facetStats = out.facetStats;
         }
       });
     }
