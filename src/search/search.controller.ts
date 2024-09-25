@@ -28,10 +28,8 @@ export class SearchController {
         'name',
         'price',
       ],
-      limit: search.limit,
-      offset: search.offset,
-      facets: this.searchService.getFacetFilters(),
-      filter: this.searchService.extractFacetFilter(search.filter),
+      limit: 0,
+      facets: this.searchService.getFacetFilters()
     });
   }
 
