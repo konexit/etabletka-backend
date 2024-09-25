@@ -48,6 +48,7 @@ declare namespace Search {
   export type SelectedFilters = {
     type: string;
     key: string;
+    value: string[];
   };
 
   export type Attributes = {

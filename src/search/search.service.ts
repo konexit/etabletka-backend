@@ -26,6 +26,7 @@ import {
 import { SearchDto } from './dto/search.dto';
 import { isEmpty } from './utils';
 import { CacheKeys } from 'src/refresh/refresh-keys';
+import { filter } from 'rxjs';
 
 const attributeValue = {};
 // Documentation:  https://www.npmjs.com/package/meilisearch
@@ -160,36 +161,31 @@ export class SearchService {
 
   async facetSearch(search: SearchDto, searchParams?: SearchParams) {
     const selectedFilters = this.getSelectedFilters(search.filter);
-    const searchQueries = [this.client.index(this.indexesConfig.products.name).search(search.text, searchParams)];
-    if (search.filter) {
-      let filter = '';
-      if (selectedFilters.length > 1) {
-        filter = (<string>searchParams.filter).split(` AND ${selectedFilters[selectedFilters.length - 1].key}`)[0];
-      }
-      searchQueries.push(this.client.index(this.indexesConfig.products.name).search(search.text, {
-        facets: searchParams.facets,
-        offset: searchParams.offset,
-        limit: searchParams.limit,
-        filter
-      }));
-    }
-    return await this.createFacetFilters(search.lang, await Promise.all(searchQueries), selectedFilters);
+    const searchQuery = await this.client.index(this.indexesConfig.products.name).search(search.text, searchParams);
+    return await this.createFacetFilters(search, searchQuery, selectedFilters);
   }
 
   getSelectedFilters(filters: string): Search.SelectedFilters[] {
     let isTypeRange = false;
     let isFilter = false;
     let currentFilter = '';
+    let currentValue = '';
+    let value = [];
     const result: Search.SelectedFilters[] = [];
 
     const addFilter = () => {
       if (isFilter) {
+        if (currentValue) {
+          value.push(currentValue);
+        }
         result.push({
           key: currentFilter,
-          type: isTypeRange ? 'range' : 'checkbox'
+          type: isTypeRange ? 'range' : 'checkbox',
+          value
         });
-        currentFilter = '';
+        currentFilter = currentValue = '';
         isTypeRange = isFilter = false;
+        value = [];
       }
     };
 
@@ -201,9 +197,14 @@ export class SearchService {
         isFilter = true;
       } else if (char === '&') {
         isTypeRange = true;
+      } else if (char === '_') {
+        value.push(currentValue);
+        currentValue = '';
       } else {
         if (!isFilter) {
           currentFilter += char;
+        } else {
+          currentValue += char;
         }
       }
     }
@@ -286,36 +287,90 @@ export class SearchService {
     }
   }
 
-  private async createFacetFilters(lang: string, res: SearchResponse[], selectedFilters?: Search.SelectedFilters[]): Promise<FacetSearchFilterDto> {
+  private async createFacetFilters(search: SearchDto, res: SearchResponse, selectedFilters?: Search.SelectedFilters[]): Promise<FacetSearchFilterDto> {
     const attributes: Search.Attributes = (await this.cacheManager.get(CacheKeys.ProductAttributes));
-    selectedFilters.forEach(filter => {
-      if (filter.type == 'checkbox') {
-        Object.assign(res[0].facetDistribution[filter.key], res[1].facetDistribution[filter.key])
-      } else {
-        res[0].facetStats = res[1].facetStats
-      }
-    })
+    if (selectedFilters.length) {
+      const selectedFiltersResults = await Promise.all(selectedFilters.map(filter => {
+        if (filter.type != 'checkbox') return null;
+        return this.client.index(this.indexesConfig.products.name).search(search.text, {
+          limit: 0,
+          facets: this.getFacetFilters(),
+          filter: `${filter.key} IN [${filter.value.join(',')}]`
+        });
+      }));
+
+      const availableFilterValue = selectedFilters.reduce((acc, currentFilter) => {
+        acc[currentFilter.key] = selectedFilters.reduce((acc, curFilter, i) => {
+          if (curFilter.key == currentFilter.key) return acc;
+          if (isEmpty(acc)) {
+            acc = selectedFiltersResults[i].facetDistribution[currentFilter.key];
+          } else {
+            const mergeFilterValue = {};
+            const result = selectedFiltersResults[i].facetDistribution[currentFilter.key];
+            if (acc) {
+              for (const filterValue in result) {
+                if (acc[filterValue]) {
+                  mergeFilterValue[filterValue] = result[filterValue];
+                }
+              }
+            }
+            acc = mergeFilterValue;
+          }
+          return acc;
+        }, {});
+        return acc;
+      }, {});
+
+      const finalSelectedFilters = Object
+        .keys(availableFilterValue)
+        .reduce((acc, currentKey, i) => {
+          acc += `${i ? ' AND' : ''} ${currentKey} IN [${Object.keys(availableFilterValue[currentKey]).join(',')}]`;
+          return acc;
+        }, '');
+
+      const out = await this.client.index(this.indexesConfig.products.name).search(search.text, {
+        limit: 0,
+        facets: this.getFacetFilters(),
+        filter: finalSelectedFilters
+      });
+
+
+      selectedFilters.forEach(filter => {
+        if (filter.type == 'checkbox') {
+          const f = out.facetDistribution[filter.key]
+          filter.value.forEach(value => {
+            if (!f[value]) {
+              f[value] = 0;
+            }
+          });
+          Object.assign(res.facetDistribution[filter.key], f)
+        } else {
+          res.facetStats = out.facetStats
+        }
+      });
+    }
+
     return {
-      filters: Object.keys(res[0].facetDistribution)
+      filters: Object.keys(res.facetDistribution)
         .reduce((acc, key) => {
-          if (isEmpty(res[0].facetDistribution[key])) return acc;
+          if (isEmpty(res.facetDistribution[key])) return acc;
           acc.push(
             this.createFilter(
-              lang,
+              search.lang,
               key,
-              res[0].facetDistribution[key],
-              res[0].facetStats,
+              res.facetDistribution[key],
+              res.facetStats,
               attributes,
             ),
           );
           return acc;
         }, [])
         .sort((a, b) => a.order - b.order),
-      products: res[0].hits,
-      limit: res[0].limit,
-      offset: res[0].offset,
-      estimatedTotalHits: res[0].estimatedTotalHits,
-      query: res[0].query,
+      products: res.hits,
+      limit: res.limit,
+      offset: res.offset,
+      estimatedTotalHits: res.estimatedTotalHits,
+      query: res.query,
     };
   }
 
