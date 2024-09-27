@@ -26,7 +26,6 @@ import {
 import { SearchDto } from './dto/search.dto';
 import { isEmpty } from './utils';
 import { CacheKeys } from 'src/refresh/refresh-keys';
-import { filter } from 'rxjs';
 
 const attributeValue = {};
 // Documentation:  https://www.npmjs.com/package/meilisearch
@@ -331,13 +330,15 @@ export class SearchService {
           }, '');
 
         out = await this.client.index(this.indexesConfig.products.name).search(search.text, {
-          limit: 0,
+          limit: search.limit,
+          offset:search.offset,
           facets: this.getFacetFilters(),
           filter: finalSelectedFilters
         });
       } else {
         out = await this.client.index(this.indexesConfig.products.name).search(search.text, {
-          limit: 0,
+          limit: search.limit,
+          offset:search.offset,
           facets: this.getFacetFilters()
         });
       }
