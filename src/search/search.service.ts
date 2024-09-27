@@ -158,12 +158,6 @@ export class SearchService {
       .search(text, searchParams);
   }
 
-  async facetSearch(search: SearchDto, searchParams?: SearchParams) {
-    const selectedFilters = this.getSelectedFilters(search.filter);
-    const searchQuery = await this.client.index(this.indexesConfig.products.name).search(search.text, searchParams);
-    return await this.createFacetFilters(search, searchQuery, selectedFilters);
-  }
-
   getSelectedFilters(filters: string): Search.SelectedFilters[] {
     let isTypeRange = false;
     let isFilter = false;
@@ -286,99 +280,71 @@ export class SearchService {
     }
   }
 
-  private async createFacetFilters(search: SearchDto, res: SearchResponse, selectedFilters?: Search.SelectedFilters[]): Promise<FacetSearchFilterDto> {
+  async facetSearch(search: SearchDto, searchParams: SearchParams) {
+    return this.createFacetFilters(search, searchParams);
+  }
+
+  private async createFacetFilters(search: SearchDto, searchParams: SearchParams): Promise<FacetSearchFilterDto> {
     const attributes: Search.Attributes = (await this.cacheManager.get(CacheKeys.ProductAttributes));
-    let out = null;
-    if (selectedFilters.length) {
-      const selectedCheckboxFilters = selectedFilters.filter(f => f.type == 'checkbox');
-      if (selectedCheckboxFilters.length > 1) {
-        const selectedFiltersResults = await Promise.all(selectedCheckboxFilters.map(filter => {
-          return this.client.index(this.indexesConfig.products.name).search(search.text, {
-            limit: 0,
-            facets: this.getFacetFilters(),
-            filter: `${filter.key} IN [${filter.value.join(',')}]`
-          });
-        }));
+    const selectedFilters: Search.SelectedFilters[] = this.getSelectedFilters(search.filter);
+    const selectedCheckboxFilters = selectedFilters.filter(f => f.type == 'checkbox');
 
-        const availableFilterValue = selectedCheckboxFilters.reduce((acc, currentFilter) => {
-          acc[currentFilter.key] = selectedCheckboxFilters.reduce((acc, curFilter, i) => {
-            if (curFilter.key == currentFilter.key) return acc;
-            if (isEmpty(acc)) {
-              acc = selectedFiltersResults[i].facetDistribution[currentFilter.key];
-            } else {
-              const mergeFilterValue = {};
-              const result = selectedFiltersResults[i].facetDistribution[currentFilter.key];
-              if (acc) {
-                for (const filterValue in result) {
-                  if (acc[filterValue]) {
-                    mergeFilterValue[filterValue] = result[filterValue];
-                  }
-                }
-              }
-              acc = mergeFilterValue;
-            }
-            return acc;
-          }, {});
-          return acc;
-        }, {});
+    const [mainSearchQuery, allFacetFilters] = await Promise.all([
+      this.client.index(this.indexesConfig.products.name).search(search.text, searchParams),
+      selectedCheckboxFilters.length ? this.client.index(this.indexesConfig.products.name).search(search.text, {
+        limit: 0,
+        facets: searchParams.facets
+      }) : Promise.resolve(null)
+    ]);
 
-        const finalSelectedFilters = Object
-          .keys(availableFilterValue)
-          .reduce((acc, currentKey, i) => {
-            acc += `${i ? ' AND' : ''} ${currentKey} IN [${Object.keys(availableFilterValue[currentKey]).join(',')}]`;
-            return acc;
-          }, '');
+    if (allFacetFilters) {
+      const filter = selectedCheckboxFilters.reduce((acc, filter, i) => {
+        acc += `${i ? ' AND' : ''} ${filter.key} IN [${Object.keys(allFacetFilters.facetDistribution[filter.key]).join(',')}]`;
+        return acc;
+      }, '');
 
-        out = await this.client.index(this.indexesConfig.products.name).search(search.text, {
-          limit: search.limit,
-          offset:search.offset,
-          facets: this.getFacetFilters(),
-          filter: finalSelectedFilters
-        });
-      } else {
-        out = await this.client.index(this.indexesConfig.products.name).search(search.text, {
-          limit: search.limit,
-          offset:search.offset,
-          facets: this.getFacetFilters()
-        });
-      }
+      const mergeFacetFilters = await this.client.index(this.indexesConfig.products.name).search(search.text, {
+        limit: 0,
+        facets: searchParams.facets,
+        filter
+      });
 
       selectedFilters.forEach(filter => {
         if (filter.type == 'checkbox') {
-          const f = out.facetDistribution[filter.key]
+          const f = mergeFacetFilters.facetDistribution[filter.key]
           filter.value.forEach(value => {
             if (!f[value]) {
               f[value] = 0;
             }
           });
-          Object.assign(res.facetDistribution[filter.key], f);
+          Object.assign(mainSearchQuery.facetDistribution[filter.key], f);
         } else {
-          res.facetStats = out.facetStats;
+          mainSearchQuery.facetStats = mergeFacetFilters.facetStats;
         }
       });
     }
 
     return {
-      filters: Object.keys(res.facetDistribution)
+      filters: Object.keys(mainSearchQuery.facetDistribution)
         .reduce((acc, key) => {
-          if (isEmpty(res.facetDistribution[key])) return acc;
+          if (isEmpty(mainSearchQuery.facetDistribution[key])) return acc;
           acc.push(
             this.createFilter(
               search.lang,
               key,
-              res.facetDistribution[key],
-              res.facetStats,
+              mainSearchQuery.facetDistribution[key],
+              mainSearchQuery.facetStats,
               attributes,
             ),
           );
           return acc;
         }, [])
         .sort((a, b) => a.order - b.order),
-      products: res.hits,
-      limit: res.limit,
-      offset: res.offset,
-      estimatedTotalHits: res.estimatedTotalHits,
-      query: res.query,
+      products: mainSearchQuery.hits,
+      limit: mainSearchQuery.limit,
+      offset: mainSearchQuery.offset,
+      estimatedTotalHits: mainSearchQuery.estimatedTotalHits,
+      query: mainSearchQuery.query,
     };
   }
 
