@@ -383,8 +383,6 @@ export class SearchService {
       })
     }
 
-    console.log(mainSearchQuery.facetStats)
-
     const filtersWarn: string[] = [];
     const filters: Filter[] = [];
 
