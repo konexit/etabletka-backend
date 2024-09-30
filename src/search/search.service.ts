@@ -488,7 +488,13 @@ export class SearchService {
   private buildSQL(key: string, value: string): string {
     if (value.includes('&')) {
       const [min, max] = value.split('&').map(Number);
-      return `${key} ${min} TO ${max}`;
+      if (min && !max) {
+        return `${key} >= ${min}`;
+      } else if (max && !min) {
+        return `${key} <= ${max}`;
+      } else {
+        return `${key} ${min} TO ${max}`;
+      }
     } else if (value.includes('_')) {
       const items = value.split('_').map((v) => `'${v}'`);
       return `${key} IN [${items.join(',')}]`;
