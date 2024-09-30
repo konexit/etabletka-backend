@@ -11,7 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
 import {
   CategoriesDistribution,
-  FacetStats,
+  FacetStat,
   MeiliSearch,
   SearchParams,
   SearchResponse,
@@ -24,8 +24,9 @@ import {
   TypeUI,
 } from './dto/facet-search-filters.dto';
 import { SearchDto } from './dto/search.dto';
-import { isEmpty } from './utils';
+import { groupBy, isEmpty } from './utils';
 import { CacheKeys } from 'src/refresh/refresh-keys';
+import { filter } from 'rxjs';
 
 const attributeValue = {};
 // Documentation:  https://www.npmjs.com/package/meilisearch
@@ -158,25 +159,37 @@ export class SearchService {
       .search(text, searchParams);
   }
 
-  getSelectedFilters(filters: string): Search.SelectedFilters[] {
+  getSelectedFilters(filters: string): [Search.SelectedCheckboxFilters[], Search.SelectedRangeFilters[]] {
     let isTypeRange = false;
     let isFilter = false;
     let currentFilter = '';
     let currentValue = '';
+    let min = '';
     let value = [];
-    const result: Search.SelectedFilters[] = [];
+    const result: [Search.SelectedCheckboxFilters[], Search.SelectedRangeFilters[]] = [[], []];
 
     const addFilter = () => {
       if (isFilter) {
         if (currentValue) {
           value.push(currentValue);
         }
-        result.push({
-          key: currentFilter,
-          type: isTypeRange ? 'range' : 'checkbox',
-          value
-        });
-        currentFilter = currentValue = '';
+
+        if (isTypeRange) {
+          result[1].push({
+            key: currentFilter,
+            type: 'range',
+            min: +min,
+            max: +currentValue
+          });
+        } else {
+          result[0].push({
+            key: currentFilter,
+            type: 'checkbox',
+            value
+          });
+        }
+
+        currentFilter = currentValue = min = '';
         isTypeRange = isFilter = false;
         value = [];
       }
@@ -190,6 +203,8 @@ export class SearchService {
         isFilter = true;
       } else if (char === '&') {
         isTypeRange = true;
+        min = currentValue;
+        currentValue = '';
       } else if (char === '_') {
         value.push(currentValue);
         currentValue = '';
@@ -285,61 +300,138 @@ export class SearchService {
   }
 
   private async createFacetFilters(search: SearchDto, searchParams: SearchParams): Promise<FacetSearchFilterDto> {
+    const searchQueriesPromises: Promise<SearchResponse>[] = [];
     const attributes: Search.Attributes = (await this.cacheManager.get(CacheKeys.ProductAttributes));
-    const selectedFilters: Search.SelectedFilters[] = this.getSelectedFilters(search.filter);
-    const selectedCheckboxFilters = selectedFilters.filter(f => f.type == 'checkbox');
+    const mainSearchQuery = await this.client.index(this.indexesConfig.products.name).search(search.text, searchParams);
+    const [selectedCheckboxFilters, selectedRangeFilters] = this.getSelectedFilters(search.filter);
+    const filterRange = selectedRangeFilters.length ? ` AND ${selectedRangeFilters.map(({ key, min, max }) => `${key} ${min} TO ${max}`).join(' AND')}` : '';
 
-    const [mainSearchQuery, allFacetFilters] = await Promise.all([
-      this.client.index(this.indexesConfig.products.name).search(search.text, searchParams),
-      selectedCheckboxFilters.length ? this.client.index(this.indexesConfig.products.name).search(search.text, {
-        limit: 0,
-        facets: searchParams.facets
-      }) : Promise.resolve(null)
-    ]);
-
-    if (allFacetFilters) {
-      const filter = selectedCheckboxFilters.reduce((acc, filter, i) => {
-        acc += `${i ? ' AND' : ''} ${filter.key} IN [${Object.keys(allFacetFilters.facetDistribution[filter.key]).join(',')}]`;
-        return acc;
-      }, '');
-
-      const mergeFacetFilters = await this.client.index(this.indexesConfig.products.name).search(search.text, {
-        limit: 0,
-        facets: searchParams.facets,
-        filter
-      });
-
-      selectedFilters.forEach(filter => {
-        if (filter.type == 'checkbox') {
-          const f = mergeFacetFilters.facetDistribution[filter.key]
-          filter.value.forEach(value => {
-            if (!f[value]) {
-              f[value] = 0;
-            }
-          });
-          Object.assign(mainSearchQuery.facetDistribution[filter.key], f);
-        } else {
-          mainSearchQuery.facetStats = mergeFacetFilters.facetStats;
-        }
+    if (selectedCheckboxFilters.length) {
+      selectedCheckboxFilters.forEach(filter => {
+        searchQueriesPromises.push(this.client.index(this.indexesConfig.products.name).search(search.text, {
+          limit: 0,
+          facets: searchParams.facets,
+          filter: selectedCheckboxFilters.length == 1 ? '' : `${filter.key} IN [${filter.value.join(',')}] ${filterRange}`
+        }));
       });
     }
 
-    return {
-      filters: Object.keys(mainSearchQuery.facetDistribution)
-        .reduce((acc, key) => {
-          if (isEmpty(mainSearchQuery.facetDistribution[key])) return acc;
-          acc.push(
-            this.createFilter(
-              search.lang,
-              key,
-              mainSearchQuery.facetDistribution[key],
-              mainSearchQuery.facetStats,
-              attributes,
-            ),
-          );
+    if (selectedRangeFilters.length) {
+      searchQueriesPromises.push(
+        this.client.index(this.indexesConfig.products.name).search(search.text, {
+          limit: 0,
+          facets: searchParams.facets,
+        }));
+    }
+
+    const selectedFiltersResults = await Promise.all(searchQueriesPromises);
+
+    if (selectedCheckboxFilters.length) {
+      let availableCheckboxFilterValue: Record<string, Search.SelectedCheckboxFacetFilters> = {};
+
+      if (selectedCheckboxFilters.length > 1) {
+        availableCheckboxFilterValue = selectedCheckboxFilters.reduce((acc, currentFilter) => {
+          acc[currentFilter.key] = selectedCheckboxFilters.reduce((acc, curFilter, i) => {
+            if (curFilter.key == currentFilter.key) return acc;
+            if (isEmpty(acc)) {
+              acc = selectedFiltersResults[i].facetDistribution[currentFilter.key];
+            } else {
+              const mergeFilterValue = {};
+              const result = selectedFiltersResults[i].facetDistribution[currentFilter.key];
+              for (const filterValue in result) {
+                if (acc[filterValue]) {
+                  mergeFilterValue[filterValue] = result[filterValue] < acc[filterValue] ? result[filterValue] : acc[filterValue];
+                }
+              }
+              acc = mergeFilterValue;
+            }
+            return acc;
+          }, {});
           return acc;
-        }, [])
-        .sort((a, b) => a.order - b.order),
+        }, {});
+      } else {
+        const filterKey = selectedCheckboxFilters[0].key;
+        availableCheckboxFilterValue = { [filterKey]: selectedFiltersResults[0].facetDistribution[filterKey] }
+      }
+
+      selectedCheckboxFilters.forEach(filter => {
+        const f = availableCheckboxFilterValue[filter.key]
+        filter.value.forEach(value => {
+          if (!f[value]) {
+            f[value] = 0;
+          }
+        });
+        Object.assign(mainSearchQuery.facetDistribution[filter.key], f);
+      });
+    }
+
+    if (selectedRangeFilters.length) {
+      const rangeQuery = selectedFiltersResults[selectedFiltersResults.length - 1];
+      selectedRangeFilters.forEach(({ key }) => {
+        let facetStat = rangeQuery.facetStats[key];
+        if (!facetStat) {
+          facetStat = {
+            min: 0,
+            max: 0
+          };
+        }
+        if (!mainSearchQuery.facetStats[key]) {
+          mainSearchQuery.facetStats[key] = facetStat;
+        } else {
+          Object.assign(mainSearchQuery.facetStats[key], facetStat);
+        }
+      })
+    }
+
+    console.log(mainSearchQuery.facetStats)
+
+    const filtersWarn: string[] = [];
+    const filters: Filter[] = [];
+
+    const checkBoxFilters: Filter[] = [];
+    for (const key in mainSearchQuery.facetDistribution) {
+      const filterAttr: Search.Attribute = attributes[key];
+      if (!filterAttr) {
+        filtersWarn.push(key);
+        continue;
+      }
+
+      if (!filterAttr.filterUI || filterAttr.typeUI == TypeUI.Range) continue;
+
+      checkBoxFilters.push(
+        this.createFilter(
+          search.lang,
+          filterAttr,
+          this.createCheckboxFilterValues(mainSearchQuery.facetDistribution[key], filterAttr)
+        ));
+    }
+
+    const rangeFilters: Filter[] = [];
+    for (const key in mainSearchQuery.facetStats) {
+      const filterAttr: Search.Attribute = attributes[key];
+      if (!filterAttr) {
+        filtersWarn.push(key);
+        continue;
+      }
+
+      if (!filterAttr.filterUI) continue;
+
+      rangeFilters.push(
+        this.createFilter(
+          search.lang,
+          filterAttr,
+          this.createRangeFilterValues(mainSearchQuery.facetStats[key], filterAttr)
+        ));
+    }
+
+    if (filtersWarn.length) {
+      this.logger.warn(
+        `facet-filter keys: [${filtersWarn.join(',')}] not found in attributes, maybe it doesn't exist table 'product_attribute'`,
+      );
+    }
+
+    return {
+      filters: filters.concat(checkBoxFilters, rangeFilters).sort((a, b) => a.order - b.order),
       products: mainSearchQuery.hits,
       limit: mainSearchQuery.limit,
       offset: mainSearchQuery.offset,
@@ -348,50 +440,31 @@ export class SearchService {
     };
   }
 
-  private createFilter(
-    lang: string,
-    key: string,
-    values: CategoriesDistribution,
-    facetStats: FacetStats,
-    attributes: Search.Attributes,
-  ): Filter {
-    const filter: Search.Attribute = attributes[key];
-    if (!filter) {
-      this.logger.warn(
-        `facet-filter key '${key}' not found in attributes, maybe it doesn't exist table 'product_attribute'`,
-      );
-      return new Filter();
-    }
-    let filterValues: Search.FilterValues = [];
-
-    switch (filter.typeUI) {
-      case TypeUI.Checkbox:
-        filterValues = Object.keys(values).map((item) => {
-          return {
-            name: attributeValue[item],
-            alias: item,
-            count: values[item],
-          };
-        });
-        break;
-      case TypeUI.Range:
-        filterValues = Object.assign(
-          {
-            name: attributeValue[key],
-            alias: key
-          },
-          facetStats[key],
-        );
-        break;
-      default:
-        this.logger.warn(`facet-filter not support typeUI '${filter.typeUI}'`);
-    }
-
+  private createRangeFilterValues(facetStat: FacetStat, filterAttr: Search.Attribute): Search.FilterValues {
     return {
-      name: filter.name[lang],
-      order: filter.order,
-      alias: filter.key,
-      typeUI: filter.typeUI,
+      name: attributeValue[filterAttr.key],
+      alias: filterAttr.key,
+      min: facetStat.min,
+      max: facetStat.max
+    };
+  }
+
+  private createCheckboxFilterValues(facetDistribution: CategoriesDistribution, filterAttr: Search.Attribute): Search.FilterValues {
+    return Object.keys(facetDistribution).map((item) => {
+      return {
+        name: attributeValue[item],
+        alias: item,
+        count: facetDistribution[item],
+      };
+    });
+  }
+
+  private createFilter(lang: string, filterAttr: Search.Attribute, filterValues: Search.FilterValues): Filter {
+    return {
+      name: filterAttr.name[lang],
+      order: filterAttr.order,
+      alias: filterAttr.key,
+      typeUI: filterAttr.typeUI,
       values: filterValues,
     };
   }

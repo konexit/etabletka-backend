@@ -45,11 +45,27 @@ declare namespace Search {
     values: AttributeValues[];
   };
 
-  export type SelectedFilters = {
+  export type SelectedCheckboxFilters = {
     type: string;
     key: string;
     value: string[];
   };
+
+  export type SelectedCheckboxFacetFilters = Record<string, any>;
+
+  export type SelectedRangeFilters = {
+    type: string;
+    key: string;
+    min: number;
+    max: number;
+  };
+
+  export type SelectedRangeFacetFilters = {
+    min: number;
+    max: number;
+  };
+
+  export type SelectedFilters = SelectedCheckboxFilters | SelectedRangeFilters;
 
   export type Attributes = {
     [key: string]: Attribute;
