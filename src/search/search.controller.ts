@@ -32,6 +32,7 @@ export class SearchController {
       offset: search.offset,
       facets: this.searchService.getFacetFilters(),
       filter: this.searchService.extractFacetFilter(search.filter),
+      sort: search.sort
     });
   }
 

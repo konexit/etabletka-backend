@@ -3,6 +3,7 @@ interface IndexConfig {
   primaryKey: string;
   searchableAttr: string[];
   filterableAttr: string[];
+  sortableAttr: string[];
   facetAttr?: string[];
 }
 

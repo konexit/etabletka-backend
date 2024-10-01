@@ -40,6 +40,7 @@ export class SearchService {
       primaryKey: 'id',
       searchableAttr: ['name', 'sync_id'],
       filterableAttr: ['sync_id'],
+      sortableAttr: ['name', 'price', 'rating'],
       facetAttr: [],
     },
   };
@@ -168,6 +169,8 @@ export class SearchService {
     let value = [];
     const result: [Search.SelectedCheckboxFilters[], Search.SelectedRangeFilters[]] = [[], []];
 
+    if (!filters) return result;
+
     const addFilter = () => {
       if (isFilter) {
         if (currentValue) {
@@ -177,14 +180,14 @@ export class SearchService {
         if (isTypeRange) {
           result[1].push({
             key: currentFilter,
-            type: 'range',
+            type: TypeUI.Range,
             min: +min,
             max: +currentValue
           });
         } else {
           result[0].push({
             key: currentFilter,
-            type: 'checkbox',
+            type: TypeUI.Checkbox,
             value
           });
         }
@@ -257,16 +260,18 @@ export class SearchService {
         primaryKey: indexConfig.primaryKey,
       });
       this.logger.log(
-        `Index '${indexConfig.name}' created with primary key '${indexConfig.primaryKey}', attributes: searchable[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}]`,
+        `Index '${indexConfig.name}' created with primary key '${indexConfig.primaryKey}', attributes: searchable[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}] sortable[${indexConfig.sortableAttr}]`,
       );
     } else {
       this.logger.log(
-        `Index '${indexConfig.name}' already exists, attributes: searchable[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}]`,
+        `Index '${indexConfig.name}' already exists, attributes: searchable[${indexConfig.searchableAttr}] filterable[${indexConfig.filterableAttr}] sortable[${indexConfig.sortableAttr}]`,
       );
     }
+
     const index = this.client.index(indexConfig.name);
     await index.updateSearchableAttributes(indexConfig.searchableAttr);
     await index.updateFilterableAttributes(indexConfig.filterableAttr);
+    await index.updateSortableAttributes(indexConfig.sortableAttr);
   }
 
   private async addDocumentsToIndex(
