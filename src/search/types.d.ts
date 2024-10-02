@@ -6,7 +6,6 @@ declare namespace Search {
   };
 
   export type FilterRangeValue = {
-    name: string;
     alias: string;
     min: number;
     max: number;
@@ -48,6 +47,7 @@ declare namespace Search {
   export type SelectedCheckboxFilters = {
     type: string;
     key: string;
+    sql: string;
     value: string[];
   };
 
@@ -56,16 +56,12 @@ declare namespace Search {
   export type SelectedRangeFilters = {
     type: string;
     key: string;
+    sql: string;
     min: number;
     max: number;
   };
 
-  export type SelectedRangeFacetFilters = {
-    min: number;
-    max: number;
-  };
-
-  export type SelectedFilters = SelectedCheckboxFilters | SelectedRangeFilters;
+  export type SelectedFilters =  SelectedCheckboxFilters | SelectedRangeFilters;
 
   export type Attributes = {
     [key: string]: Attribute;

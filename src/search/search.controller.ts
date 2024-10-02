@@ -17,23 +17,8 @@ export class SearchController {
   }
 
   @Post('/facet-search')
-  async getFacetSearch(
-    @Body() search: SearchDto,
-  ): Promise<FacetSearchFilterDto> {
-    return this.searchService.facetSearch(search, {
-      attributesToRetrieve: [
-        'id',
-        'img',
-        'rating',
-        'name',
-        'price',
-      ],
-      limit: search.limit,
-      offset: search.offset,
-      facets: this.searchService.getFacetFilters(),
-      filter: this.searchService.extractFacetFilter(search.filter),
-      sort: search.sort
-    });
+  async getFacetSearch(@Body() search: SearchDto): Promise<FacetSearchFilterDto> {
+    return this.searchService.facetSearch(search);
   }
 
   @Post('/search/make-index')
