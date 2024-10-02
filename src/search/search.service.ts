@@ -118,8 +118,7 @@ export class SearchService {
 
   async makeProductsIndex(lang: string, productIds?: string[]): Promise<Array<any>> {
     const start = performance.now();
-    const filters = await this.getFilters();
-    const products = await this.productRepository.query(this.productIndexQuery(lang, productIds));
+    const [filters, products] = await Promise.all([this.getFilters(), this.productRepository.query(this.productIndexQuery(lang, productIds))]);
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
       const attributes = product.attributes;

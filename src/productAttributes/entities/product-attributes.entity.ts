@@ -43,11 +43,22 @@ export class ProductAttributes {
   })
   sectionViews: SectionViews[];
 
+  @Column({
+    name: 'merge_keys',
+    type: 'varchar',
+    array: true,
+    default: () => 'ARRAY[]::varchar[]'
+  })
+  mergeKeys: string[];
+
   @Column({ default: 0 })
   order: number;
 
   @Column({ default: false })
   filter: boolean;
+
+  @Column({ name: 'multiple_values', default: false })
+  multipleValues: boolean;
 
   @Column({ name: 'filter_ui', default: false })
   filterUI: boolean;

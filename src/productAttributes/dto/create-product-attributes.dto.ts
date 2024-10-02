@@ -35,11 +35,17 @@ export class CreateProductAttributes {
   @IsBoolean()
   filterUI: boolean;
 
+  @IsBoolean()
+  multipleValues: boolean;
+
   @IsArray()
   sectionViews: SectionViews[];
 
   @IsArray()
   values: JSON;
+
+  @IsArray()
+  mergeKeys: string[];
 
   @IsOptional()
   createdAt: Date;
