@@ -60,7 +60,7 @@ export class SearchService {
   }
 
   async init() {
-    const filterUI = await this.getFilters('filter_ui');
+    const filterUI = (await this.getFilters('filter_ui')).map(({ key }) => key);
     this.indexesConfig.products.facetAttr = filterUI;
     this.indexesConfig.products.filterableAttr = filterUI.concat(
       this.indexesConfig.products.filterableAttr,
@@ -118,34 +118,37 @@ export class SearchService {
 
   async makeProductsIndex(lang: string, productIds?: string[]): Promise<Array<any>> {
     const start = performance.now();
-    const [filters, products] = await Promise.all([this.getFilters(), this.productRepository.query(this.productIndexQuery(lang, productIds))]);
-    for (let i = 0; i < products.length; i++) {
-      const product = products[i];
-      const attributes = product.attributes;
-      if (!attributes) continue;
-      filters.forEach(filter => {
-        const attr = attributes[filter]
-        if (attr) {
-          if (Array.isArray(attr)) {
-            product[filter] = attr.reduce((acc, attr) => {
-              this.setAttributeValue(filter, attr.slug, attr.name[lang]);
-              acc.push(attr.slug);
-              return acc;
-            }, []);
-          } else {
-            this.setAttributeValue(filter, attr.slug, attr.name[lang]);
-            product[filter] = [attr.slug];
-          }
-        }
-      });
-      delete product.attributes;
-    }
-
+    const filters = await this.getFilters();
+    const [products, values] = await Promise.all([this.productRepository.query(this.productIndexQuery(lang, filters, productIds)), this.getAttributeValue(productIds)]);
     if (!products) {
       throw new HttpException('Products does not exist', HttpStatus.NOT_FOUND);
     }
+
+    const _attributeValue = values[0]?.result ?? {};
+    if (isEmpty(_attributeValue)) {
+      throw new HttpException('Products attributes values does not exist', HttpStatus.NOT_FOUND);
+    }
+
+    filters.forEach(f => {
+      if (f.mergeKeys.length) {
+        f.mergeKeys.forEach(key => Object.assign(_attributeValue[f.key], _attributeValue[key]));
+      }
+    });
+
+    if (productIds && productIds.length) {
+      Object.keys(_attributeValue).forEach(key => {
+        if (!attributeValue[key]) {
+          attributeValue[key] = _attributeValue[key];
+        } else {
+          Object.assign(attributeValue[key], _attributeValue[key]);
+        }
+      });
+    } else {
+      Object.assign(attributeValue, _attributeValue);
+    }
+
     this.logger.log(
-      `products indexing was successful, count: ${products.length} time: ${(performance.now() - start).toFixed(3)} ms `,
+      `products indexing was successful, count: ${products.length} time: ${(performance.now() - start).toFixed(3)} ms`,
     );
     return products;
   }
@@ -464,11 +467,11 @@ export class SearchService {
     };
   }
 
-  private async getFilters(typeFilter: string = 'filter'): Promise<string[]> {
-    return (await this.productRepository.query(`SELECT key FROM product_attributes WHERE ${typeFilter} = true`)).map(({ key }) => key);
+  private async getFilters(typeFilter: string = 'filter'): Promise<Search.FilterAttr[]> {
+    return this.productRepository.query(`SELECT key, multiple_values AS "multipleValues", merge_keys AS "mergeKeys" FROM product_attributes WHERE ${typeFilter} = true`);
   }
 
-  private productIndexQuery(lang: string, productIds?: string[]): string {
+  private productIndexQuery(lang: string, filters: Search.FilterAttr[], productIds?: string[]): string {
     return `SELECT
                 id,
                 sync_id,
@@ -477,17 +480,51 @@ export class SearchService {
                 cdn_data,
                 slug,
                 active,
-                price,
-                attributes
+                price
+                ${this.productAttributesIndexQuery(filters)}
             FROM products p ${productIds ? `WHERE p.id IN(${productIds.join(',')})` : ''}`;
   }
 
-  private setAttributeValue(key: string, alias: string, name: string): void {
-    const value = attributeValue[key];
-    if (!value) {
-      attributeValue[key] = { [alias]: name };
-    } else {
-      value[alias] = name;
-    }
+  private productAttributesIndexQuery(filters: Search.FilterAttr[]): string {
+    const slugSQL = (key: string) => `SELECT jsonb_path_query(p.attributes, '$."${key}"[*].slug')`;
+    const slugAggSQL = (unique: boolean = false) => `SELECT jsonb_agg(${unique ? 'DISTINCT' : ''} slug)`;
+    return filters.map(f => {
+      if (f.mergeKeys.length) {
+        return `,(${slugAggSQL(true)} AS "${f.key}" FROM (${[...f.mergeKeys, f.key].map(key => `${slugSQL(key)} AS slug`).join(' UNION ALL ')})) AS "${f.key}"`;
+      } else {
+        if (f.multipleValues) {
+          return `,(${slugAggSQL()} FROM (${slugSQL(f.key)} AS slug)) AS "${f.key}"`;
+        } else {
+          return `,(${slugSQL(f.key)}) AS "${f.key}"`;
+        }
+      }
+    }).join('');
+  }
+
+  private async getAttributeValue(productIds?: string[]) {
+    const productIdsSQL = productIds ? ` AND id IN(${productIds.join(',')})` : '';
+    const attributeValueSQL = `SELECT jsonb_object_agg(key, value) AS result
+    FROM (
+        SELECT key,
+              jsonb_object_agg(elem->>'slug', elem->'name'->>'uk') AS value
+        FROM products p,
+            jsonb_each(p.attributes) AS attr(key, val),
+            jsonb_array_elements(val) AS elem
+        WHERE jsonb_typeof(val) = 'array'
+          AND elem->>'slug' IS NOT NULL
+          AND elem->'name'->>'uk' IS NOT NULL ${productIdsSQL}
+        GROUP BY key
+        UNION ALL
+        SELECT key,
+              jsonb_object_agg(val->>'slug', val->'name'->>'uk') AS value
+        FROM products p,
+            jsonb_each(p.attributes) AS attr(key, val)
+        WHERE jsonb_typeof(val) = 'object'
+          AND val->>'slug' IS NOT NULL
+          AND val->'name'->>'uk' IS NOT NULL ${productIdsSQL}
+        GROUP BY key
+    )`;
+
+    return this.productRepository.query(attributeValueSQL);
   }
 }

@@ -40,8 +40,16 @@ declare namespace Search {
     sectionViews: SectionViews[];
     filter: boolean;
     filterUI: boolean;
+    mergeKeys: string[];
+    multipleValues: boolean;
     typeUI: TypeUI;
     values: AttributeValues[];
+  };
+
+  export type FilterAttr = {
+    key: string;
+    mergeKeys: string[];
+    multipleValues: boolean;
   };
 
   export type SelectedCheckboxFilters = {
@@ -61,7 +69,7 @@ declare namespace Search {
     max: number;
   };
 
-  export type SelectedFilters =  SelectedCheckboxFilters | SelectedRangeFilters;
+  export type SelectedFilters = SelectedCheckboxFilters | SelectedRangeFilters;
 
   export type Attributes = {
     [key: string]: Attribute;
