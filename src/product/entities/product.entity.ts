@@ -10,7 +10,6 @@ import {
   ManyToMany,
   JoinTable,
 } from 'typeorm';
-import { Category } from '../../categories/entities/category.entity';
 import { ProductRemnant } from '../../productRemnants/entities/product-remnant.entity';
 import { ProductType } from '../../productTypes/entities/product-type.entity';
 import { Badge } from '../../badge/entities/badge.entity';
@@ -104,6 +103,14 @@ export class Product {
   @Column({ type: 'jsonb', nullable: true })
   attributes: JSON;
 
+  @Column({
+    name: 'categories',
+    type: 'int',
+    array: true,
+    default: () => 'ARRAY[]::int[]'
+  })
+  categories: number[];
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
@@ -145,12 +152,6 @@ export class Product {
     name: 'cross_discounts_products',
   })
   discounts: Discount[];
-
-  @ManyToMany(() => Category)
-  @JoinTable({
-    name: 'cross_categories_products',
-  })
-  categories: Category[];
 
   @ManyToMany(() => ProductGroup)
   @JoinTable({

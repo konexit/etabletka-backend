@@ -499,10 +499,7 @@ export class SearchService {
                 sync_id,
                 name->>'${lang}' AS name,
                 active,
-                rating,
-                cdn_data,
-                slug,
-                '[1,2]' AS _categories
+                rating
                 ${filterSources.get(TypeSource.HEADDER)?.map(f => `,${f.key[0] == '_' ? f.key.slice(1) : f.key} AS "${f.key}"`).join('') ?? ''}
                 ${this.productAttributesIndexQuery(filterSources.get(TypeSource.ATTRIBUTES)) ?? []}
             FROM products p

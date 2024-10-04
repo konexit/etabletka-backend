@@ -69,9 +69,6 @@ export class ProductService {
     const productBadgeIds = updateProduct.badges;
     delete updateProduct.badges;
 
-    const productCategoryIds = updateProduct.categories;
-    delete updateProduct.categories;
-
     const productDiscountIds = updateProduct.discounts;
     delete updateProduct.discounts;
 
@@ -105,20 +102,6 @@ export class ProductService {
       }
     } else {
       product.badges = [];
-    }
-
-    if (productCategoryIds) {
-      if (!Array.isArray(productCategoryIds)) {
-        const ids: Array<number> = String(productCategoryIds)
-          .split(',')
-          .map(Number);
-
-        product.categories = await this.addCategories(ids);
-      } else {
-        product.categories = await this.addCategories(productCategoryIds);
-      }
-    } else {
-      product.categories = [];
     }
 
     if (productDiscountIds) {
@@ -420,7 +403,6 @@ export class ProductService {
         'productRemnants',
         'productRemnants.store',
         'productType',
-        'categories',
         'discounts',
         'badges',
         'brand',
@@ -442,12 +424,6 @@ export class ProductService {
         );
 
         discount.name = discount.name[options.lang];
-      }
-    }
-
-    if (product.categories) {
-      for (const category of product.categories) {
-        category.name = category?.name[options.lang];
       }
     }
 
@@ -473,7 +449,6 @@ export class ProductService {
         'productRemnants',
         'productRemnants.store',
         'productType',
-        'categories',
         'discounts',
         'badges',
         'brand',
