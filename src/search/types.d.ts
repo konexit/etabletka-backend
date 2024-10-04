@@ -57,6 +57,7 @@ declare namespace Search {
     key: string;
     sql: string;
     value: string[];
+    privateFilter: boolean;
   };
 
   export type SelectedCheckboxFacetFilters = Record<string, any>;
@@ -67,7 +68,10 @@ declare namespace Search {
     sql: string;
     min: number;
     max: number;
+    privateFilter: boolean;
   };
+
+  export type PrivateFilters = string[];
 
   export type SelectedFilters = SelectedCheckboxFilters | SelectedRangeFilters;
 

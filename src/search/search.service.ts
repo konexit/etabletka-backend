@@ -60,9 +60,9 @@ export class SearchService {
   }
 
   async init() {
-    const filterUI = (await this.getFilters('filter_ui')).map(({ key }) => key);
-    this.indexesConfig.products.facetAttr = filterUI;
-    this.indexesConfig.products.filterableAttr = filterUI.concat(
+    const filters = (await this.getFilters()).map(({ key }) => key);
+    this.indexesConfig.products.facetAttr = filters;
+    this.indexesConfig.products.filterableAttr = filters.concat(
       this.indexesConfig.products.filterableAttr,
     );
     this.createIndexIfNotExists(this.indexesConfig.products);
@@ -237,19 +237,28 @@ export class SearchService {
    * Supported filter types:
    * - `range` [key:value1&value2] - separator `&`;
    * - `checkbox` [key:value1_value2_value3] - separator `_`;
-   *
+   * 
+   * All filters can be private, so we need to add an underscore `_` to the beginning of the key
+   *  
+   * Example: 
+   * - [`_key:`value1_value2_value3]
+   * 
    * Filter merging template: filter1/filter2/filter... - separator `/`;
    *
    * Example:
    * @param filter price:50&1000/production-form:kapsuly_klipsa_shampun
    */
-  private extractFacetFilters(filters: string): [Search.SelectedCheckboxFilters[], Search.SelectedRangeFilters[]] {
-    const result: [Search.SelectedCheckboxFilters[], Search.SelectedRangeFilters[]] = [[], []];
+  private extractFacetFilters(filters: string): [Search.SelectedCheckboxFilters[], Search.SelectedRangeFilters[], Search.PrivateFilters] {
+    const result: [Search.SelectedCheckboxFilters[], Search.SelectedRangeFilters[], Search.PrivateFilters] = [[], [], []];
     if (!filters) return result;
     filters.split('/').forEach((param) => {
       const [key, value] = param.split(':');
       if (!key || !value) return;
       const filter = this.parseFilter(key, value);
+      if (filter.privateFilter) {
+        result[2].push(filter.sql);
+        return;
+      }
       if (filter.type === TypeUI.Checkbox) {
         result[0].push(filter as Search.SelectedCheckboxFilters);
       } else {
@@ -260,11 +269,13 @@ export class SearchService {
   }
 
   private parseFilter(key: string, value: string): Search.SelectedFilters {
+    const privateFilter = key[0] == '_';
     if (value.includes('&')) {
       const [min, max] = value.split('&').map(Number);
       const result = {
         type: TypeUI.Range,
         key,
+        privateFilter,
         max,
         min,
         sql: ''
@@ -282,6 +293,7 @@ export class SearchService {
       return {
         type: TypeUI.Checkbox,
         key,
+        privateFilter,
         value: items,
         sql: `${key} IN [${items.map(v => `'${v}'`).join(',')}]`
       };
@@ -289,6 +301,7 @@ export class SearchService {
       return {
         type: TypeUI.Checkbox,
         key,
+        privateFilter,
         value: [value],
         sql: `${key} = '${value}'`
       };
@@ -297,19 +310,19 @@ export class SearchService {
 
   private async createFacetFilters(search: SearchDto, searchParams: SearchParams): Promise<FacetSearchFilterDto> {
     const attributes: Search.Attributes = await this.cacheManager.get(CacheKeys.ProductAttributes);
-    const [selectedCheckboxFilters, selectedRangeFilters] = this.extractFacetFilters(search.filter);
-    const filterCheckbox = selectedCheckboxFilters.map(f => f.sql).join(this.SQL_AND);
+    const [selectedCheckboxFilters, selectedRangeFilters, privateFilters] = this.extractFacetFilters(search.filter);
+    const filterCheckbox = selectedCheckboxFilters.map(f => f.sql).concat(privateFilters).join(this.SQL_AND);
     const filterRange = selectedRangeFilters.map(f => f.sql).join(this.SQL_AND);
     searchParams.filter = [filterCheckbox, filterRange].filter(f => !!f).join(this.SQL_AND);
     const searchQueriesPromises: Promise<SearchResponse>[] = [this.client.index(this.indexesConfig.products.name).search(search.text, searchParams)];
 
     if (selectedCheckboxFilters.length) {
-      const filterRangeAdd = selectedRangeFilters.length ? `${this.SQL_AND} ${filterRange}` : '';
+      const filterScope = privateFilters.concat(filterRange).filter(f => !!f).join(this.SQL_AND);
       selectedCheckboxFilters.forEach(filter => {
         searchQueriesPromises.push(this.client.index(this.indexesConfig.products.name).search(search.text, {
           limit: 0,
           facets: searchParams.facets,
-          filter: selectedCheckboxFilters.length == 1 ? filterRange : filter.sql + filterRangeAdd
+          filter: selectedCheckboxFilters.length == 1 ? filterScope : `${filter.sql} ${filterScope ? `${this.SQL_AND} ${filterScope}` : ''}`
         }));
       });
     }
@@ -475,11 +488,12 @@ export class SearchService {
     return `SELECT
                 id,
                 sync_id,
-                name->>'${lang}' as name,
+                name->>'${lang}' AS name,
                 rating,
                 cdn_data,
                 slug,
                 active,
+                '[1,2]' AS _categories,
                 price
                 ${this.productAttributesIndexQuery(filters)}
             FROM products p
