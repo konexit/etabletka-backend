@@ -5,7 +5,7 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
 } from 'typeorm';
-import { Type, SectionViews, TypeUI } from '../product-attributes.enum';
+import { Type, SectionViews, TypeUI, TypeSource } from '../product-attributes.enum';
 
 @Entity({
   name: 'product_attributes',
@@ -33,7 +33,15 @@ export class ProductAttributes {
     enum: TypeUI,
     default: TypeUI.Checkbox,
   })
+
   typeUI: TypeUI;
+  @Column({
+    name: 'type_source',
+    type: 'enum',
+    enum: TypeSource,
+    default: TypeSource.ATTRIBUTES,
+  })
+  typeSource: TypeSource;
 
   @Column({
     name: 'section_views',
@@ -54,14 +62,14 @@ export class ProductAttributes {
   @Column({ default: 0 })
   order: number;
 
-  @Column({ default: false })
-  filter: boolean;
+  @Column({ name: 'search_engine', default: false })
+  searchEngine: boolean;
 
   @Column({ name: 'multiple_values', default: false })
   multipleValues: boolean;
 
-  @Column({ name: 'filter_ui', default: false })
-  filterUI: boolean;
+  @Column({ name: 'ui', default: false })
+  ui: boolean;
 
   @Column({ type: 'jsonb', nullable: true })
   values: JSON;

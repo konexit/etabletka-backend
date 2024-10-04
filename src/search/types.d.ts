@@ -32,17 +32,23 @@ declare namespace Search {
     Preview = 'preview'
   }
 
+  export enum TypeSource {
+    HEADDER = 'headder',
+    ATTRIBUTES = 'attributes'
+  }
+
   export type Attribute = {
     name: Record<string, any>;
     key: string;
     type: Type;
     order: number;
     sectionViews: SectionViews[];
-    filter: boolean;
-    filterUI: boolean;
+    searchEngine: boolean;
+    ui: boolean;
     mergeKeys: string[];
     multipleValues: boolean;
     typeUI: TypeUI;
+    typeSource: TypeSource;
     values: AttributeValues[];
   };
 
@@ -50,6 +56,7 @@ declare namespace Search {
     key: string;
     mergeKeys: string[];
     multipleValues: boolean;
+    typeSource: TypeSource;
   };
 
   export type SelectedCheckboxFilters = {

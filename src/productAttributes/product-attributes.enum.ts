@@ -8,6 +8,11 @@ export enum TypeUI {
     Checkbox = 'checkbox'
 }
 
+export enum TypeSource {
+    HEADDER = 'headder',
+    ATTRIBUTES = 'attributes'
+}
+
 export enum SectionViews {
     MAIN = 'main',
     ATTRIBUTES = 'attributes',

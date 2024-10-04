@@ -7,7 +7,7 @@ import {
   IsArray,
   IsObject
 } from 'class-validator';
-import { SectionViews, Type, TypeUI } from '../product-attributes.enum';
+import { SectionViews, Type, TypeSource, TypeUI } from '../product-attributes.enum';
 
 export class CreateProductAttributes {
   @IsOptional()
@@ -26,14 +26,17 @@ export class CreateProductAttributes {
   @IsNotEmpty()
   typeUI: TypeUI;
 
+  @IsNotEmpty()
+  typeSource: TypeSource
+
   @IsNumber()
   order: number;
 
   @IsBoolean()
-  filter: boolean;
+  searchEngine: boolean;
 
   @IsBoolean()
-  filterUI: boolean;
+  ui: boolean;
 
   @IsBoolean()
   multipleValues: boolean;

@@ -1,5 +1,5 @@
 import { IsOptional, IsNumber } from 'class-validator';
-import { SectionViews, Type, TypeUI } from '../product-attributes.enum';
+import { SectionViews, Type, TypeSource, TypeUI } from '../product-attributes.enum';
 
 export class UpdateProductAttributes {
   @IsOptional()
@@ -15,13 +15,16 @@ export class UpdateProductAttributes {
   typeUI: TypeUI;
 
   @IsOptional()
+  typeSource: TypeSource;
+
+  @IsOptional()
   order: number;
 
   @IsOptional()
-  filter: boolean;
+  searchEngine: boolean;
 
   @IsOptional()
-  filterUI: boolean;
+  ui: boolean;
 
   @IsOptional()
   sectionViews: SectionViews[];

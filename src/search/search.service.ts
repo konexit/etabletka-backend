@@ -24,8 +24,9 @@ import {
   TypeUI,
 } from './dto/facet-search-filters.dto';
 import { SearchDto } from './dto/search.dto';
-import { isEmpty } from './utils';
+import { groupBy, isEmpty } from './utils';
 import { CacheKeys } from 'src/refresh/refresh-keys';
+import { TypeSource } from 'src/productAttributes/product-attributes.enum';
 
 const attributeValue = {};
 // Documentation:  https://www.npmjs.com/package/meilisearch
@@ -60,9 +61,9 @@ export class SearchService {
   }
 
   async init() {
-    const filters = (await this.getFilters()).map(({ key }) => key);
-    this.indexesConfig.products.facetAttr = filters;
-    this.indexesConfig.products.filterableAttr = filters.concat(
+    const filter = (await this.getFilters()).map(({ key }) => key);
+    this.indexesConfig.products.facetAttr = filter;
+    this.indexesConfig.products.filterableAttr = filter.concat(
       this.indexesConfig.products.filterableAttr,
     );
     this.createIndexIfNotExists(this.indexesConfig.products);
@@ -408,7 +409,7 @@ export class SearchService {
         continue;
       }
 
-      if (!filterAttr.filterUI || filterAttr.typeUI == TypeUI.Range) continue;
+      if (!filterAttr.ui || filterAttr.typeUI == TypeUI.Range) continue;
 
       checkBoxFilters.push(
         this.createFilter(
@@ -426,7 +427,7 @@ export class SearchService {
         continue;
       }
 
-      if (!filterAttr.filterUI) continue;
+      if (!filterAttr.ui) continue;
 
       rangeFilters.push(
         this.createFilter(
@@ -480,22 +481,30 @@ export class SearchService {
     };
   }
 
-  private async getFilters(typeFilter: string = 'filter'): Promise<Search.FilterAttr[]> {
-    return this.productRepository.query(`SELECT key, multiple_values AS "multipleValues", merge_keys AS "mergeKeys" FROM product_attributes WHERE ${typeFilter} = true`);
+  private async getFilters(): Promise<Search.FilterAttr[]> {
+    return this.productRepository.query(`
+      SELECT 
+        key,
+        multiple_values AS "multipleValues",
+        merge_keys AS "mergeKeys",
+        type_source AS "typeSource"
+      FROM product_attributes 
+      WHERE search_engine = true`);
   }
 
   private productIndexQuery(lang: string, filters: Search.FilterAttr[], productIds?: string[]): string {
+    const filterSources = groupBy(filters, f => f.typeSource);
     return `SELECT
                 id,
                 sync_id,
                 name->>'${lang}' AS name,
+                active,
                 rating,
                 cdn_data,
                 slug,
-                active,
-                '[1,2]' AS _categories,
-                price
-                ${this.productAttributesIndexQuery(filters)}
+                '[1,2]' AS _categories
+                ${filterSources.get(TypeSource.HEADDER)?.map(f => `,${f.key[0] == '_' ? f.key.slice(1) : f.key} AS "${f.key}"`).join('') ?? ''}
+                ${this.productAttributesIndexQuery(filterSources.get(TypeSource.ATTRIBUTES)) ?? []}
             FROM products p
             WHERE search_engine = true ${productIds ? ` AND p.id IN(${productIds.join(',')})` : ''}`;
   }
