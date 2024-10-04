@@ -86,6 +86,9 @@ export class Product {
   @Column({ name: 'hidden', default: false })
   isHidden: boolean;
 
+  @Column({ name: 'search_engine', default: true })
+  searchEngine: boolean;
+
   @Column({ name: 'in_stock', default: false })
   inStoke: boolean;
 

@@ -482,7 +482,8 @@ export class SearchService {
                 active,
                 price
                 ${this.productAttributesIndexQuery(filters)}
-            FROM products p ${productIds ? `WHERE p.id IN(${productIds.join(',')})` : ''}`;
+            FROM products p
+            WHERE search_engine = true ${productIds ? ` AND p.id IN(${productIds.join(',')})` : ''}`;
   }
 
   private productAttributesIndexQuery(filters: Search.FilterAttr[]): string {
