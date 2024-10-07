@@ -1,5 +1,5 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
 import { LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'typeorm';
@@ -7,18 +7,19 @@ import { CategoryNode } from './categories.module';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
+import { CacheKeys } from 'src/refresh/refresh-keys';
 
 @Injectable()
 export class CategoriesService {
+  private readonly logger = new Logger(CategoriesService.name);
   constructor(
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
-  ) {}
+  ) { }
 
-  cacheMenuKey = 'menu';
-  cacheMenuTTL = 60000;
+  private cacheMenuTTL = 60000;
 
   create(createCategoryDto: CreateCategoryDto) {
     return 'This action adds a new category';
@@ -33,8 +34,7 @@ export class CategoriesService {
   }
 
   async formatMenu(depth: number = 3) {
-    const cacheCategoryMenu: ReturnType<typeof this.buildMenuTree> =
-      await this.cacheManager.get(this.cacheMenuKey);
+    const cacheCategoryMenu: ReturnType<typeof this.buildMenuTree> = await this.cacheManager.get(CacheKeys.Categories);
 
     if (cacheCategoryMenu) return cacheCategoryMenu;
 
@@ -48,7 +48,7 @@ export class CategoriesService {
     const categoryMenu = this.buildMenuTree(categories, depth);
 
     await this.cacheManager.set(
-      this.cacheMenuKey,
+      CacheKeys.Categories,
       categoryMenu,
       this.cacheMenuTTL,
     );
@@ -152,6 +152,10 @@ export class CategoriesService {
     }
 
     return { formatCategory: category, idMap };
+  }
+
+  async cacheReset() {
+    this.cacheManager.set(CacheKeys.Categories, null);
   }
 
   private getCategoryTree(

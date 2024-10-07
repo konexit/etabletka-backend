@@ -60,8 +60,8 @@ export class ProductAttributesService {
   }
 
   async cacheInit() {
-    this.cacheManager.set(CacheKeys.ProductAttributes, await this.getAllFormatMap())
-    const logMsg = `cache key '${CacheKeys.ProductAttributes}' was successfully added`
+    this.cacheManager.set(CacheKeys.ProductAttributes, await this.getAllFormatMap());
+    const logMsg = `cache key '${CacheKeys.ProductAttributes}' was successfully added`;
     this.logger.log(logMsg);
     return logMsg;
   }
