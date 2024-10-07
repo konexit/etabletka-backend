@@ -86,6 +86,10 @@ export class CategoriesService {
       active: true,
     });
 
+    if (!category) {
+      return null;
+    }
+
     const categories = await this.categoryRepository.find({
       where: {
         active: true,

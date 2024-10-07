@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ClassSerializerInterceptor,
   Controller,
@@ -71,11 +72,26 @@ export class CategoriesController {
   @Get('/categories/:id')
   @UseInterceptors(ClassSerializerInterceptor)
   async getCategoryById(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Query('lang') lang: string,
-    @Query('depth') depth: number,
+    @Query('depth') depth: string,
   ) {
-    const category = await this.categoriesService.findById(id, depth);
+    const parsedId = parseInt(id, 10);
+
+    if (isNaN(parsedId)) {
+      throw new BadRequestException();
+    }
+
+    const parsedDepth = parseInt(depth, 10);
+
+    if (isNaN(parsedDepth)) {
+      throw new BadRequestException();
+    }
+
+    const category = await this.categoriesService.findById(
+      parsedId,
+      parsedDepth,
+    );
 
     if (!category) throw new NotFoundException();
 
