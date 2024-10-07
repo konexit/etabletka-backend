@@ -76,21 +76,15 @@ export class CategoriesController {
     @Query('lang') lang: string,
     @Query('depth') depth: string,
   ) {
-    const parsedId = parseInt(id, 10);
+    const parsedId = parseInt(id);
 
     if (isNaN(parsedId)) {
       throw new BadRequestException();
     }
 
-    const parsedDepth = parseInt(depth, 10);
-
-    if (isNaN(parsedDepth)) {
-      throw new BadRequestException();
-    }
-
     const category = await this.categoriesService.findById(
       parsedId,
-      parsedDepth,
+      parseInt(depth),
     );
 
     if (!category) throw new NotFoundException();
