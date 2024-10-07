@@ -8,15 +8,16 @@ import {
   Param,
   Patch,
   Post,
-  Query, UseGuards,
-  UseInterceptors
-} from "@nestjs/common";
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '../auth/auth.guard';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { ResponseCategoryDto } from './dto/response-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { AuthGuard } from "../auth/auth.guard";
 
 @ApiTags('categories')
 @Controller('api/v1')
@@ -69,8 +70,12 @@ export class CategoriesController {
 
   @Get('/categories/:id')
   @UseInterceptors(ClassSerializerInterceptor)
-  async getCategoryById(@Param('id') id: number, @Query('lang') lang: string) {
-    const category = await this.categoriesService.findById(id);
+  async getCategoryById(
+    @Param('id') id: number,
+    @Query('lang') lang: string,
+    @Query('depth') depth: number,
+  ) {
+    const category = await this.categoriesService.findById(id, depth);
 
     if (!category) throw new NotFoundException();
 

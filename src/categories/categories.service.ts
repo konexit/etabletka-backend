@@ -80,7 +80,7 @@ export class CategoriesService {
     });
   }
 
-  async findById(id: number) {
+  async findById(id: number, depth: number = 3) {
     const category = await this.categoryRepository.findOneBy({
       id,
       active: true,
@@ -95,7 +95,7 @@ export class CategoriesService {
 
     return {
       ...category,
-      children: this.getCategoryTree(category.id, categories, 3),
+      children: this.getCategoryTree(category.id, categories, depth),
     };
   }
 
@@ -156,7 +156,7 @@ export class CategoriesService {
     depthLimit: number,
     depth: number = 1,
   ): CategoryNode[] {
-    if (depth >= depthLimit) {
+    if (depth > depthLimit) {
       return [];
     }
 
