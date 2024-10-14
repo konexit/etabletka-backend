@@ -1,6 +1,15 @@
-import { Controller, Get, Param, Req } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  Controller,
+  Get,
+  Param,
+  Query,
+  Req,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
+import { ResponsePageDto } from './dto/response-page.dto';
 import { Page } from './entities/page.entity';
 import { PageService } from './page.service';
 
@@ -16,13 +25,20 @@ export class PageController {
     return await this.pageService.getPages(token);
   }
 
-  @Get('pages/menu/:index')
+  @Get('/pages/menu/:index')
   async getPagesByMenuIndex(@Param('index') index: number) {
     return await this.pageService.getPagesByMenuIndex(index);
   }
 
   @Get('/page/:slug')
-  async getPageBySlug(@Param('slug') slug: string): Promise<Page> {
-    return await this.pageService.getPageBySlug(slug);
+  @UseInterceptors(ClassSerializerInterceptor)
+  async getPageBySlug(
+    @Param('slug') slug: string,
+    @Query('lang') lang: string,
+  ): Promise<ResponsePageDto> {
+    return new ResponsePageDto(
+      await this.pageService.getPageBySlug(slug),
+      lang,
+    );
   }
 }
