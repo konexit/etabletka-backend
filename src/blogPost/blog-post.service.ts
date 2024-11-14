@@ -184,8 +184,7 @@ export class BlogPostService {
 
   async getPosts(
     pagination: PaginationDto = {},
-    lang: string = 'uk',
-  ): Promise<{ posts: BlogPost[]; pagination: any }> {
+  ): Promise<{ posts: BlogPost[]; total: number }> {
     const { take = 15, skip = 0 } = pagination;
 
     const queryBuilder = this.blogPostRepository.createQueryBuilder('post');
@@ -200,7 +199,7 @@ export class BlogPostService {
 
     return {
       posts,
-      pagination: { total, take, skip },
+      total,
     };
   }
 

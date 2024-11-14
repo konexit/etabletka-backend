@@ -12,19 +12,20 @@ import {
   Post,
   Query,
   Req,
-  UploadedFile, UseGuards,
-  UseInterceptors
-} from "@nestjs/common";
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import slugify from 'slugify';
+import { AuthGuard } from '../auth/auth.guard';
 import { PaginationDto } from '../common/dto/paginationDto';
 import { BlogPostService } from './blog-post.service';
 import { CreatePost } from './dto/create-post.dto';
 import { UpdatePost } from './dto/update-post.dto';
 import { BlogPost } from './entities/blog-post.entity';
-import { AuthGuard } from "../auth/auth.guard";
 
 @ApiTags('post')
 @Controller('api/v1')
@@ -253,7 +254,7 @@ export class BlogPostController {
   @Get('/blogs')
   async getPosts(
     @Query() pagination?: PaginationDto,
-  ): Promise<{ posts: BlogPost[]; pagination: any }> {
+  ): Promise<{ posts: BlogPost[]; total: number }> {
     try {
       return await this.blogPostService.getPosts(pagination);
     } catch (error) {
