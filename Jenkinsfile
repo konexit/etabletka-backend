@@ -84,12 +84,11 @@ pipeline {
                 def chatIds = TELEGRAM_CHAT_IDS.split(',')
                 chatIds.each { chatId ->
                     telegramSend(
-                        message: """✅ Deployment of '${SERVICE_DIR}' completed successfully!
-                        Build #${BUILD_NUMBER}
-                        Latest Commit: ${gitCommit}
-                        Author: ${gitAuthor}
-                        Message: ${gitMessage}
-                        """.stripIndent(),
+                        message: "✅ Deployment of '${SERVICE_DIR}' completed successfully!\n" +
+                                "Build #${BUILD_NUMBER}\n" +
+                                "Latest Commit: ${gitCommit}\n" +
+                                "Author: ${gitAuthor}\n" +
+                                "Message: ${gitMessage}",
                         chatId: chatId
                     )
                 }
@@ -107,12 +106,11 @@ pipeline {
                 def chatIds = TELEGRAM_CHAT_IDS.split(',')
                 chatIds.each { chatId ->
                     telegramSend(
-                        message: """❌ Deployment of '${SERVICE_DIR}' failed.
-                        Build #${BUILD_NUMBER}
-                        Latest Commit: ${gitCommit}
-                        Author: ${gitAuthor}
-                        Message: ${gitMessage}
-                        """.stripIndent(),
+                        message: "❌ Deployment of '${SERVICE_DIR}' failed.\n" +
+                                "Build #${BUILD_NUMBER}\n" +
+                                "Latest Commit: ${gitCommit}\n" +
+                                "Author: ${gitAuthor}\n" +
+                                "Message: ${gitMessage}",
                         chatId: chatId
                     )
                 }
