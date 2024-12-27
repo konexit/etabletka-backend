@@ -35,9 +35,15 @@ pipeline {
             steps {
                 sshagent(['github-ssh-key']) {
                     sh '''
-                    cd ${SERVICES_DIR}/${SERVICE_DIR}
-                    git checkout main
-                    git pull origin main
+                    if [ -d "${SERVICES_DIR}/${SERVICE_DIR}/.git" ]; then
+                        cd ${SERVICES_DIR}/${SERVICE_DIR}
+                        git checkout main
+                        git pull origin main
+                    else
+                        git clone ${REPO_URL} ${SERVICES_DIR}/${SERVICE_DIR}
+                        cd ${SERVICES_DIR}/${SERVICE_DIR}
+                        git checkout main
+                    fi
                     '''
                 }
             }
