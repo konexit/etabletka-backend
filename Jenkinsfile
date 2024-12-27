@@ -8,7 +8,7 @@ pipeline {
         CONFIG_DIR = 'config'
         SERVICES_DIR = "${APP_DIR}/services"
         SERVICE_DIR = 'etabletka-backend'
-        TELEGRAM_CHAT_ID = '6547693867'
+        TELEGRAM_CHAT_IDS = '551702377' // Comma-separated chat IDs
         NODE_ENV = 'development'
     }
     stages {
@@ -74,11 +74,21 @@ pipeline {
     }
     post {
         success {
-            telegramSend(message: "✅ Deployment of '${SERVICE_DIR}' completed successfully!", chatId: env.TELEGRAM_CHAT_ID)
+            script {
+                def chatIds = TELEGRAM_CHAT_IDS.split(',')
+                chatIds.each { chatId ->
+                    telegramSend(message: "✅ Deployment of '${SERVICE_DIR}' completed successfully! Build #${BUILD_NUMBER}", chatId: chatId)
+                }
+            }
             echo 'Deployment successful!'
         }
         failure {
-            telegramSend(message: "❌ Deployment of '${SERVICE_DIR}' failed. Please check the logs.", chatId: env.TELEGRAM_CHAT_ID)
+            script {
+                def chatIds = TELEGRAM_CHAT_IDS.split(',')
+                chatIds.each { chatId ->
+                    telegramSend(message: "❌ Deployment of '${SERVICE_DIR}' failed. Build #${BUILD_NUMBER}. Please check the logs.", chatId: chatId)
+                }
+            }
             echo 'Deployment failed!'
         }
     }
