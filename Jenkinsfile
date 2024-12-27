@@ -8,7 +8,7 @@ pipeline {
         CONFIG_DIR = 'config'
         SERVICES_DIR = "${APP_DIR}/services"
         SERVICE_DIR = 'etabletka-backend'
-        TELEGRAM_CHAT_IDS = '551702377' // Comma-separated chat IDs
+        TELEGRAM_CHAT_IDS = '551702377,910078644' // Comma-separated chat IDs
         NODE_ENV = 'development'
     }
     stages {
