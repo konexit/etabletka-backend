@@ -46,8 +46,6 @@ import { ProductAttributesModule } from './productAttributes/product-attributes.
     ConfigModule.forRoot({
       envFilePath: [
         '.env',
-        '.env.local',
-        '/var/www/etabletka.ua/api/dist/src/.env',
       ],
       isGlobal: true,
     }),
