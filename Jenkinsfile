@@ -75,18 +75,46 @@ pipeline {
     post {
         success {
             script {
+                // Get Git information
+                def gitCommit = sh(script: "cd ${SERVICES_DIR}/${SERVICE_DIR} && git rev-parse --short HEAD", returnStdout: true).trim()
+                def gitAuthor = sh(script: "cd ${SERVICES_DIR}/${SERVICE_DIR} && git log -1 --pretty=format:'%an'", returnStdout: true).trim()
+                def gitMessage = sh(script: "cd ${SERVICES_DIR}/${SERVICE_DIR} && git log -1 --pretty=format:'%s'", returnStdout: true).trim()
+
+                // Notify multiple chat IDs
                 def chatIds = TELEGRAM_CHAT_IDS.split(',')
                 chatIds.each { chatId ->
-                    telegramSend(message: "✅ Deployment of '${SERVICE_DIR}' completed successfully! Build #${BUILD_NUMBER}", chatId: chatId)
+                    telegramSend(
+                        message: """✅ Deployment of '${SERVICE_DIR}' completed successfully!
+                        Build #${BUILD_NUMBER}
+                        Latest Commit: ${gitCommit}
+                        Author: ${gitAuthor}
+                        Message: ${gitMessage}
+                        """,
+                        chatId: chatId
+                    )
                 }
             }
             echo 'Deployment successful!'
         }
         failure {
             script {
+                // Get Git information
+                def gitCommit = sh(script: "cd ${SERVICES_DIR}/${SERVICE_DIR} && git rev-parse --short HEAD", returnStdout: true).trim()
+                def gitAuthor = sh(script: "cd ${SERVICES_DIR}/${SERVICE_DIR} && git log -1 --pretty=format:'%an'", returnStdout: true).trim()
+                def gitMessage = sh(script: "cd ${SERVICES_DIR}/${SERVICE_DIR} && git log -1 --pretty=format:'%s'", returnStdout: true).trim()
+
+                // Notify multiple chat IDs
                 def chatIds = TELEGRAM_CHAT_IDS.split(',')
                 chatIds.each { chatId ->
-                    telegramSend(message: "❌ Deployment of '${SERVICE_DIR}' failed. Build #${BUILD_NUMBER}. Please check the logs.", chatId: chatId)
+                    telegramSend(
+                        message: """❌ Deployment of '${SERVICE_DIR}' failed.
+                        Build #${BUILD_NUMBER}
+                        Latest Commit: ${gitCommit}
+                        Author: ${gitAuthor}
+                        Message: ${gitMessage}
+                        """,
+                        chatId: chatId
+                    )
                 }
             }
             echo 'Deployment failed!'
