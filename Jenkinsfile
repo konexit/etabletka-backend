@@ -89,7 +89,7 @@ pipeline {
                         Latest Commit: ${gitCommit}
                         Author: ${gitAuthor}
                         Message: ${gitMessage}
-                        """,
+                        """.stripIndent(),
                         chatId: chatId
                     )
                 }
@@ -112,7 +112,7 @@ pipeline {
                         Latest Commit: ${gitCommit}
                         Author: ${gitAuthor}
                         Message: ${gitMessage}
-                        """,
+                        """.stripIndent(),
                         chatId: chatId
                     )
                 }
