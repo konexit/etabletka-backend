@@ -23,7 +23,6 @@ pipeline {
                     echo "Git репозиторий найден. Выполняем reset и clean."
                     cd ${SERVICES_DIR}/${SERVICE_DIR}
                     git reset --hard
-                    git clean -fd
                 else
                     echo "Удаляем старые файлы, если директория не является репозиторием."
                     rm -rf ${SERVICES_DIR}/${SERVICE_DIR}/*
@@ -73,7 +72,7 @@ pipeline {
                 // Перезапуск приложения через PM2
                 sh '''
                 cd ${SERVICES_DIR}/${SERVICE_DIR}
-                JENKINS_NODE_COOKIE=dontKillMe pm2 restart ecosystem.config.js --env production --only etabletka-backend --node-args="--env-file ${SERVICES_DIR}/${SERVICE_DIR}/.env" || pm2 start ecosystem.config.js ${SERVICES_DIR}/${SERVICE_DIR}/.env --env production
+                JENKINS_NODE_COOKIE=dontKillMe pm2 restart ecosystem.config.js --env production --only etabletka-backend --node-args="--env-file ${SERVICES_DIR}/${SERVICE_DIR}/.env" || pm2 start ecosystem.config.js --node-args="--env-file ${SERVICES_DIR}/${SERVICE_DIR}/.env" --env production
                 '''
             }
         }
