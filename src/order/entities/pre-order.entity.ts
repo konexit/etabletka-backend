@@ -1,4 +1,4 @@
-import { OrderJSON, OrderStatusesJSON } from 'src/common/types/order';
+import { OrderJSON } from 'src/common/types/order';
 import {
   Column,
   CreateDateColumn,
@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 @Entity({
-  name: 'orders',
+  name: 'pre_orders',
 })
 export class Order {
   @PrimaryGeneratedColumn()
@@ -35,11 +35,8 @@ export class Order {
   @Column({ type: 'jsonb', nullable: true })
   order: OrderJSON;
 
-  @Column({ name: 'order_statuses', type: 'jsonb', nullable: true })
-  orderStatuses: OrderStatusesJSON;
-
-  @Column({ name: 'integration_time', type: 'timestamp', nullable: true })
-  integrationTime: Date;
+  @Column({ name: 'move_to_order', default: false })
+  moveToOrder: boolean;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

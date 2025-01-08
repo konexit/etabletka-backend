@@ -23,7 +23,6 @@ import { FaqItemModule } from './page/faqItem/faq-item.module';
 import { BannerModule } from './banner/banner.module';
 import { BadgeModule } from './badge/badge.module';
 import { StoreModule } from './store/store.module';
-import { OrderModule } from './order/order.module';
 import { MenuModule } from './menu/menu.module';
 import { SiteOptionModule } from './siteOptions/site-option.module';
 import { RoleModule } from './role/role.module';
@@ -40,6 +39,8 @@ import { ProductCommentModule } from './productComment/product-comment.module';
 import { RefreshModule } from './refresh/refresh.module';
 import { WsModule } from './ws/ws.module';
 import { ProductAttributesModule } from './productAttributes/product-attributes.module';
+import { CartModule } from './cart/cart.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -77,7 +78,6 @@ import { ProductAttributesModule } from './productAttributes/product-attributes.
     CategoriesModule,
     StoreBrandModule,
     StoreModule,
-    OrderModule,
     MenuModule,
     SiteOptionModule,
     BrandsModule,
@@ -88,7 +88,9 @@ import { ProductAttributesModule } from './productAttributes/product-attributes.
     SearchModule,
     RefreshModule,
     WsModule,
-    ProductAttributesModule
+    ProductAttributesModule,
+    CartModule,
+    OrderModule
   ],
   controllers: [AppController],
   providers: [AppService],
