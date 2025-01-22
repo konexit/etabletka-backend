@@ -39,8 +39,8 @@ import { ProductCommentModule } from './productComment/product-comment.module';
 import { RefreshModule } from './refresh/refresh.module';
 import { WsModule } from './ws/ws.module';
 import { ProductAttributesModule } from './productAttributes/product-attributes.module';
-import { CartModule } from './cart/cart.module';
-import { OrderModule } from './order/order.module';
+import { CartModule } from './commerce/cart/cart.module';
+import { OrderModule } from './commerce/order/order.module';
 
 @Module({
   imports: [

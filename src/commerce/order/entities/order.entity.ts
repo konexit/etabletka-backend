@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 @Entity({
-  name: 'pre_orders',
+  name: 'orders',
 })
 export class Order {
   @PrimaryGeneratedColumn()
@@ -35,8 +35,8 @@ export class Order {
   @Column({ type: 'jsonb', nullable: true })
   order: OrderJSON;
 
-  @Column({ name: 'move_to_order', default: false })
-  moveToOrder: boolean;
+  @Column({ name: 'integration_time', type: 'timestamp', nullable: true })
+  integrationTime: Date;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
