@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import axios, { AxiosInstance } from 'axios';
+import { handleAxiosError } from 'src/common/utils';
 import { Credentials, TokenResponse } from './types';
 import {
   AUTH_SERVICES_URL,
@@ -10,31 +12,26 @@ import {
 
 @Injectable()
 export class AuthProvider {
-  private url: string;
-  private headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+  private axiosInstance: AxiosInstance;
 
   constructor(private readonly configService: ConfigService) {
-    this.url = this.configService.get<string>(AUTH_SERVICES_URL);
+    this.axiosInstance = axios.create({
+      baseURL: this.configService.get<string>(AUTH_SERVICES_URL),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      timeout: 5000,
+    });
   }
 
   async getTokenByCredentials(credentials: Credentials): Promise<string> {
     try {
-      const response = await fetch(`${this.url}/login`, {
-        method: "POST",
-        headers: this.headers,
-        body: JSON.stringify(credentials),
-      });
+      const response = await this.axiosInstance.post<TokenResponse>('/login', credentials);
 
-      if (!response.ok) {
-        return "";
-      }
-
-      const data: TokenResponse = await response.json();
-      return `${data.token_type} ${data.access_token}`;
+      return `${response.data.token_type} ${response.data.access_token}`;
     } catch (error) {
-      return "";
+      handleAxiosError(error);
+      return '';
     }
   }
 
