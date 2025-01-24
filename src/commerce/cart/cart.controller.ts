@@ -1,10 +1,14 @@
-import { Controller, Get, Post, Delete, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, Inject } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CartItem } from 'src/common/types/cart/cart.interface';
+import { TradeProvider, TRADE_PROVIDER_MANAGER } from 'src/providers/trade';
 
 @Controller('cart')
 export class CartController {
-  constructor(private readonly cartService: CartService) { }
+  constructor(
+    private readonly cartService: CartService, 
+    @Inject(TRADE_PROVIDER_MANAGER) private tradeProvider: TradeProvider,
+    ) { }
 
   @Post()
   createCart(): { cartId: string } {

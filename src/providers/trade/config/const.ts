@@ -1,1 +1,0 @@
-export const TRADE_SERVICES_URL = "TRADE_SERVICES_URL"

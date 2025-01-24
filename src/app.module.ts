@@ -41,6 +41,8 @@ import { WsModule } from './ws/ws.module';
 import { ProductAttributesModule } from './productAttributes/product-attributes.module';
 import { CartModule } from './commerce/cart/cart.module';
 import { OrderModule } from './commerce/order/order.module';
+import { TradeModule } from './providers/trade/trade.module';
+import { CDNModule } from './providers/cdn/cdn.module';
 
 @Module({
   imports: [
@@ -90,9 +92,11 @@ import { OrderModule } from './commerce/order/order.module';
     WsModule,
     ProductAttributesModule,
     CartModule,
-    OrderModule
+    OrderModule,
+    TradeModule,
+    CDNModule
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
