@@ -15,6 +15,7 @@ import {
     AuthCacheService,
     {
       provide: AUTH_PROVIDER_MANAGER,
+      inject: [ConfigService, AuthCacheService],
       useFactory: (configService: ConfigService, authCacheService: AuthCacheService) => {
         const authProvider = new AuthProvider(configService, authCacheService);
         authProvider.setCredentials({
@@ -23,8 +24,7 @@ import {
           user_type: configService.get<string>(AUTH_SERVICE_USER_TYPE),
         });
         return authProvider;
-      },
-      inject: [ConfigService, AuthCacheService],
+      }
     },
   ],
   exports: [AUTH_PROVIDER_MANAGER],

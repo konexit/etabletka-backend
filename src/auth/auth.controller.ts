@@ -1,6 +1,6 @@
 import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import AuthDto from './dto/auth.dto';
+import AuthDTO from './dto/auth.dto';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('auth')
@@ -10,7 +10,7 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async signIn(@Body() signInDto: AuthDto): Promise<any> {
-    return await this.authService.signIn(signInDto.phone, signInDto.password);
+  async signIn(@Body() signInDTO: AuthDTO): Promise<any> {
+    return this.authService.signIn(signInDTO.login, signInDTO.password);
   }
 }

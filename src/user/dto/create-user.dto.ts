@@ -1,5 +1,5 @@
 import { IsString, IsNotEmpty, MinLength, IsOptional } from 'class-validator';
-export class CreateUserDto {
+export class CreateUserDTO {
   @IsString()
   @IsNotEmpty()
   @MinLength(13)

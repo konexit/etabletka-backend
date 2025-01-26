@@ -1,10 +1,10 @@
 import { IsString, IsNotEmpty, MinLength } from 'class-validator';
 
-export default class AuthDto {
+export default class AuthDTO {
   @IsString()
   @IsNotEmpty()
   @MinLength(13)
-  phone: string;
+  login: string;
 
   @IsString()
   @IsNotEmpty()

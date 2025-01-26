@@ -15,8 +15,8 @@ import {
 
 import { AuthGuard } from '../auth/auth.guard';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDTO } from './dto/create-user.dto';
+import { UpdateUserDTO } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Request } from 'express';
 import { ApiTags } from '@nestjs/swagger';
@@ -29,14 +29,14 @@ export class UserController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('/user/create')
-  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return await this.userService.create(createUserDto);
+  async create(@Body() createUserDTO: CreateUserDTO): Promise<User> {
+    return this.userService.create(createUserDTO);
   }
 
   @UseGuards(AuthGuard)
   @Patch('/user/update/:id')
-  update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(id, updateUserDto);
+  update(@Param('id') id: number, @Body() updateUserDTO: UpdateUserDTO) {
+    return this.userService.update(id, updateUserDTO);
   }
 
   @UseGuards(AuthGuard)

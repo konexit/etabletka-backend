@@ -1,13 +1,14 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDTO } from './dto/create-user.dto';
+import { UpdateUserDTO } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
-import { SmsService } from '../services/sms.service';
+import { SMSProvider } from '../providers/sms'
 import { PaginationDto } from '../common/dto/paginationDto';
+import { SALT } from 'src/auth/auth.constants';
 
 @Injectable()
 export class UserService {
@@ -15,31 +16,30 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private configService: ConfigService,
-    private smsService: SmsService,
+    private smsProvider: SMSProvider,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDTO: CreateUserDTO): Promise<User> {
     const userExist = await this.userRepository.findOneBy({
-      phone: createUserDto.phone,
+      phone: createUserDTO.phone,
     });
     if (userExist) return userExist;
 
-    const user = this.userRepository.create(createUserDto);
+    const user = this.userRepository.create(createUserDTO);
     if (!user) {
       throw new HttpException(
-        `Can't create user with this data: ${createUserDto}`,
+        `Can't create user with this data: ${createUserDTO}`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    const salt = this.configService.get('SALT');
     user.password = crypto
-      .pbkdf2Sync(user.password, salt, 1000, 64, `sha512`)
+      .pbkdf2Sync(user.password, this.configService.get<string>(SALT), 1000, 64, `sha512`)
       .toString(`hex`);
 
     user.code = this.generateRandomNumber(6);
 
-    await this.smsService.sendSMS(
+    await this.smsProvider.sendSMS(
       [user.phone],
       `Activation code: ${user.code}`,
     );
@@ -47,7 +47,7 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: number, updateUserDto: UpdateUserDTO): Promise<User> {
     await this.userRepository.update(id, updateUserDto);
     const user = await this.userRepository.findOneBy({ id: id });
 
