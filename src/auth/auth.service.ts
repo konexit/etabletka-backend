@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/users/user/user.service';
 import * as crypto from 'crypto';
 import AuthDto from './dto/auth.dto';
-import { SALT, TOKEN_TYPE } from './auth.constants';
+import { JWT_EXPIRES_IN, SALT, TOKEN_TYPE } from './auth.constants';
 import { JwtPayload, JwtResponse } from './auth.interfaces';
 
 @Injectable()
@@ -16,7 +16,7 @@ export class AuthService {
   ) { }
 
   async signIn(authDto: AuthDto): Promise<JwtResponse> {
-    const user = await this.userService.getByPhone(authDto.login);
+    const user = await this.userService.getByLogin(authDto.login);
     if (!user) {
       throw new HttpException(
         `This login: ${authDto.login} not found`,
@@ -37,13 +37,13 @@ export class AuthService {
 
     const payload: JwtPayload = {
       userId: user.id,
-      roleId: user.roleId,
+      roles: [user.role.role]
     };
 
     return {
       access_token: await this.jwtService.signAsync(payload),
       token_type: TOKEN_TYPE,
-      expires_in: ''
+      expires_in: this.configService.get<string>(JWT_EXPIRES_IN)
     };
   }
 }

@@ -6,5 +6,5 @@ export interface JwtResponse {
 
 export interface JwtPayload {
     userId: number;
-    roleId: number;
+    roles: string[];
 }

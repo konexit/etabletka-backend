@@ -34,7 +34,7 @@ export class UserService {
     }
 
     user.password = crypto
-      .pbkdf2Sync(createUserDto.login, this.configService.get<string>(SALT), 1000, 64, `sha512`)
+      .pbkdf2Sync(createUserDto.password, this.configService.get<string>(SALT), 1000, 64, `sha512`)
       .toString(`hex`);
 
     user.code = this.generateRandomNumber(6);
@@ -61,20 +61,30 @@ export class UserService {
     return user;
   }
 
-  async getByPhone(phone: string): Promise<User> {
-    if (!phone)
+  async getByLogin(login: string): Promise<User> {
+    if (!login)
       throw new HttpException(
-        'The phone is not define',
+        'The login is not define',
         HttpStatus.BAD_REQUEST,
       );
 
-    const user = await this.userRepository.findOneBy({ phone });
+    const user = await this.userRepository.findOne({
+      select: {
+        id: true,
+        password: true,
+        role: {
+          role: true
+        }
+      },
+      where: { login },
+      relations: ['role'],
+    });
     if (user) {
       return user;
     }
 
     throw new HttpException(
-      'User with this phone does not exist',
+      'User with this login does not exist',
       HttpStatus.NOT_FOUND,
     );
   }
