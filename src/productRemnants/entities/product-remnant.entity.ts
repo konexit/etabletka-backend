@@ -8,8 +8,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Product } from '../../product/entities/product.entity';
-import { Store } from '../../store/entities/store.entity';
+import { Product } from 'src/product/entities/product.entity';
+import { Store } from 'src/stores/store/entities/store.entity';
 
 @Entity({
   name: 'product_remnants',

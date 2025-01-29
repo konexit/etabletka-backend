@@ -1,25 +1,31 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
-  OneToMany,
   PrimaryGeneratedColumn,
+  CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Store } from 'src/stores/store/entities/store.entity';
 
 @Entity({
-  name: 'sell_types',
+  name: 'districts',
 })
-export class SellType {
+export class District {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
-  name: string;
+  @Column({ name: 'country_id' })
+  countryId: number;
+
+  @Column({ name: 'region_id' })
+  regionId: number;
+
+  @Column({ name: 'name', type: 'json' })
+  name: JSON;
 
   @Column({ unique: true })
-  code: string;
+  slug: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
@@ -27,6 +33,6 @@ export class SellType {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(() => Store, (store) => store.sellType)
+  @OneToMany(() => Store, (store) => store.district)
   stores: Store[];
 }

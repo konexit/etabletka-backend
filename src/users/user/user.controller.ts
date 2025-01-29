@@ -1,0 +1,78 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+  Req,
+  Query,
+} from '@nestjs/common';
+
+import { AuthGuard } from 'src/auth/auth.guard';
+import { UserService } from './user.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
+import { Request } from 'express';
+import { ApiTags } from '@nestjs/swagger';
+import { PaginationDto } from 'src/common/dto/paginationDto';
+import { ActivationDto } from './dto/activation.dto';
+
+@ApiTags('users')
+@Controller('api/v1')
+export class UserController {
+  constructor(private readonly userService: UserService) { }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Post('/user/create')
+  async create(@Body() createUserDTO: CreateUserDto): Promise<User> {
+    return this.userService.create(createUserDTO);
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch('/user/update/:id')
+  update(@Param('id') id: number, @Body() updateUserDTO: UpdateUserDto) {
+    return this.userService.update(id, updateUserDTO);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete('/user/delete/:id')
+  async remove(@Param('id') id: number) {
+    return await this.userService.remove(id);
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Post('/user/activation')
+  async activation(@Body() activationDto: ActivationDto): Promise<User> {
+    return this.userService.activation(activationDto.login, activationDto.code);
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @UseGuards(AuthGuard)
+  @Get('/users')
+  async findAll(
+    @Req() request: Request,
+    @Query() pagination?: PaginationDto,
+    @Query('where') where?: any,
+  ) {
+    const token = request.headers.authorization?.split(' ')[1] ?? '';
+    return await this.userService.findAll(token, pagination, where);
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/users/role/:id')
+  async getUserByRoleId(@Param('id') id: number): Promise<User[]> {
+    return await this.userService.getUserByRoleId(+id);
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/user/:id')
+  async getUserById(@Param('id') id: number): Promise<User> {
+    return await this.userService.getUserById(+id);
+  }
+}

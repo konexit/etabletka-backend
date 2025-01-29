@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 import { BlogCategory } from '../../blogCategory/entities/blog-category.entity';
 import { BlogComment } from '../../blogComment/entities/blog-comment.entity';
-import { User } from '../../user/entities/user.entity';
+import { User } from 'src/users/user/entities/user.entity';
 
 @Entity({
   name: 'blog_posts',

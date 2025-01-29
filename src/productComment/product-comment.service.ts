@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { CreateProductComment } from './dto/create-product-comment.dto';
 import { UpdateProductComment } from './dto/update-product-comment.dto';
-import { WsGateway } from '../ws/ws.gateway';
+import { WsGateway } from '../infrastructure/ws/ws.gateway';
 import { PaginationDto } from '../common/dto/paginationDto';
 
 @Injectable()

@@ -1,5 +1,5 @@
-import { DataSourceOptions } from 'typeorm';
 import 'dotenv/config';
+import { DataSourceOptions, DataSource } from 'typeorm';
 
 const { POSTGRES_HOST, POSTGRES_PORT, POSTGRES_NAME, POSTGRES_USER, POSTGRES_PASSWORD } = process.env;
 
@@ -15,3 +15,4 @@ export const dataSourceOptions: DataSourceOptions = {
   synchronize: false
 };
 
+export default new DataSource(dataSourceOptions);

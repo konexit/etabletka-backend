@@ -4,12 +4,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { BlogPost } from '../../blogPost/entities/blog-post.entity';
-import { User } from '../../user/entities/user.entity';
+import { User } from 'src/users/user/entities/user.entity';
 
 @Entity('blog_comments')
 export class BlogComment {

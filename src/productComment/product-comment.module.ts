@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductComment } from './entities/product-comment.entity';
 import { ProductCommentController } from './product-comment.controller';
 import { ProductCommentService } from './product-comment.service';
-import { WsGateway } from '../ws/ws.gateway';
+import { WsGateway } from '../infrastructure/ws/ws.gateway';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ProductComment])],

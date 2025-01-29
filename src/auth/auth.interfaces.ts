@@ -1,10 +1,10 @@
-export interface JWTResponse {
+export interface JwtResponse {
     access_token: string;
     token_type: string;
     expires_in: string;
 }
 
-export interface JWTPayload {
+export interface JwtPayload {
     userId: number;
     roleId: number;
 }

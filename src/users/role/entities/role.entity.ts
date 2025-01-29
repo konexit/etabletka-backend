@@ -6,20 +6,17 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Store } from 'src/stores/store/entities/store.entity';
+import { User } from '../../user/entities/user.entity';
 
 @Entity({
-  name: 'sell_types',
+  name: 'user_roles',
 })
-export class SellType {
+export class UserRole {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
-  name: string;
-
-  @Column({ unique: true })
-  code: string;
+  @Column({ unique: true, length: 125 })
+  role: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
@@ -27,6 +24,6 @@ export class SellType {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(() => Store, (store) => store.sellType)
-  stores: Store[];
+  @OneToMany(() => User, (user) => user.role)
+  users: User[];
 }

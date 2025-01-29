@@ -1,10 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { UserService } from '../user/user.service';
+import { UserService } from 'src/users/user/user.service';
 import * as crypto from 'crypto';
+import AuthDto from './dto/auth.dto';
 import { SALT, TOKEN_TYPE } from './auth.constants';
-import { JWTPayload, JWTResponse } from './auth.interfaces';
+import { JwtPayload, JwtResponse } from './auth.interfaces';
 
 @Injectable()
 export class AuthService {
@@ -14,28 +15,27 @@ export class AuthService {
     private userService: UserService,
   ) { }
 
-  async signIn(phone: string, password: string): Promise<JWTResponse> {
-    const user = await this.userService.getByPhone(phone);
+  async signIn(authDto: AuthDto): Promise<JwtResponse> {
+    const user = await this.userService.getByPhone(authDto.login);
     if (!user) {
       throw new HttpException(
-        `This phone: ${phone} not found`,
+        `This login: ${authDto.login} not found`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    password = crypto
-      .pbkdf2Sync(password, this.configService.get<string>(SALT), 1000, 64, `sha512`)
+    const password = crypto
+      .pbkdf2Sync(authDto.password, this.configService.get<string>(SALT), 1000, 64, `sha512`)
       .toString(`hex`);
 
-    const isMatch: boolean = password === user.password;
-    if (!isMatch) {
+    if (!(user.password === password)) {
       throw new HttpException(
-        `The password: ${phone} miss match`,
+        `The login: ${authDto.login} miss match`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    const payload: JWTPayload = {
+    const payload: JwtPayload = {
       userId: user.id,
       roleId: user.roleId,
     };
