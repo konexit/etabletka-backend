@@ -1,5 +1,5 @@
 import { Cache } from 'cache-manager';
-import { CacheKeys } from 'src/refresh/refresh-keys';
+import { CacheKeys } from 'src/settings/refresh/refresh-keys';
 
 enum TypeViews {
   Arr = 'arr',

@@ -8,7 +8,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Product } from '../../product/entities/product.entity';
+import { Product } from 'src/products/product/entities/product.entity';
 @Entity({
   name: 'categories',
 })

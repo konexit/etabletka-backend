@@ -11,9 +11,9 @@ import {
 import { City } from 'src/katottg/city/entities/city.entity';
 import { District } from 'src/katottg/district/entities/district.entity';
 import { Region } from 'src/katottg/region/entities/region.entity';
-import { ProductRemnant } from 'src/productRemnants/entities/product-remnant.entity';
+import { ProductRemnant } from 'src/products/remnants/entities/product-remnant.entity';
 import { StoreBrand } from 'src/stores/brand/entities/store-brand.entity';
-import { SellType } from 'src/sellType/entities/sell-type.entity';
+import { SellType } from 'src/stores/sell-type/entities/sell-type.entity';
 
 @Entity({
   name: 'stores',

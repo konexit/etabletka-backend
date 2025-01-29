@@ -12,8 +12,8 @@ import {
 import { Exclude } from 'class-transformer';
 import { UserRole } from 'src/users/role/entities/role.entity';
 import { UserProfile } from 'src/users//profile/entities/user-prolile.entity';
-import { BlogComment } from 'src/blogComment/entities/blog-comment.entity';
-import { ProductComment } from "src/productComment/entities/product-comment.entity";
+import { BlogComment } from 'src/ui/pages/blogs/comment/entities/blog-comment.entity';
+import { ProductComment } from "src/products/comment/entities/product-comment.entity";
 import { ROLE_USER } from 'src/users/role/user-role.constants';
 
 @Entity({

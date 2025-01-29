@@ -17,7 +17,7 @@ import {
   SearchResponse,
 } from 'meilisearch';
 import { Repository } from 'typeorm';
-import { Product } from '../product/entities/product.entity';
+import { Product } from 'src/products/product/entities/product.entity';
 import {
   FacetSearchFilterDto,
   Filter,
@@ -25,8 +25,8 @@ import {
 } from './dto/facet-search-filters.dto';
 import { SearchDto } from './dto/search.dto';
 import { groupBy, isEmpty } from './utils';
-import { CacheKeys } from 'src/refresh/refresh-keys';
-import { TypeSource } from 'src/productAttributes/product-attributes.enum';
+import { CacheKeys } from 'src/settings/refresh/refresh-keys';
+import { TypeSource } from 'src/products/attributes/product-attributes.enum';
 
 const attributeValue = {};
 // Documentation:  https://www.npmjs.com/package/meilisearch
