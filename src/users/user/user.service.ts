@@ -93,7 +93,7 @@ export class UserService {
     const user = await this.userRepository.findOneBy({ login });
     if (!user) {
       throw new HttpException(
-        'User with this phone does not exist',
+        'User with this login does not exist',
         HttpStatus.NOT_FOUND,
       );
     }
