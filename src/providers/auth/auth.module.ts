@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthProvider } from './auth.provider';
-import { AuthCacheService } from './auth.cache.service';
 import {
   AUTH_SERVICE_USER_LOGIN,
   AUTH_SERVICE_USER_PASSWORD,
@@ -12,13 +11,12 @@ import {
 @Module({
   imports: [],
   providers: [
-    AuthCacheService,
     {
       provide: AUTH_PROVIDER_MANAGER,
-      inject: [ConfigService, AuthCacheService],
-      useFactory: (configService: ConfigService, authCacheService: AuthCacheService) => {
-        const authProvider = new AuthProvider(configService, authCacheService);
-        authProvider.setCredentials({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const authProvider = new AuthProvider(configService);
+        authProvider.setCredentials(AUTH_PROVIDER_MANAGER, {
           login: configService.get<string>(AUTH_SERVICE_USER_LOGIN),
           password: configService.get<string>(AUTH_SERVICE_USER_PASSWORD),
           user_type: configService.get<string>(AUTH_SERVICE_USER_TYPE),

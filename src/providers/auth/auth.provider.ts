@@ -1,21 +1,20 @@
 import * as dayjs from 'dayjs';
-import { Injectable } from '@nestjs/common';
+import { Cache, caching } from 'cache-manager';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import { Credentials, TokenResponse } from './auth.interfaces';
 import { AUTH_SERVICES_URL } from './auth.constants';
-import { AuthCacheService } from './auth.cache.service';
 
 
 @Injectable()
-export class AuthProvider {
+export class AuthProvider implements OnModuleInit {
+  private keyManager: string;
+  private localCacheManager: Cache;
   private axiosInstance: AxiosInstance;
   private credentials: Credentials;
 
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly authCacheService: AuthCacheService,
-  ) {
+  constructor(private readonly configService: ConfigService) {
     this.axiosInstance = axios.create({
       baseURL: this.configService.get<string>(AUTH_SERVICES_URL),
       headers: {
@@ -25,25 +24,33 @@ export class AuthProvider {
     });
   }
 
-  setCredentials(credentials: Credentials): void {
+  async onModuleInit(): Promise<void> {
+    this.localCacheManager = await caching('memory', {
+      max: 100,
+      ttl: 0,
+    });
+  }
+
+  setCredentials(keyManager: string, credentials: Credentials): void {
+    this.keyManager = keyManager;
     this.credentials = credentials;
   }
 
-  async getAuthToken(authProviderManager: string): Promise<string> {
-    const cachedToken = await this.authCacheService.get<string>(authProviderManager);
+  async getAuthToken(): Promise<string> {
+    const cachedToken = await this.localCacheManager.get<string>(this.keyManager);
     if (cachedToken) {
       return cachedToken;
     }
 
-    const { data: { token_type, access_token } } = await this.getToken(authProviderManager);
+    const { data: { token_type, access_token } } = await this.getToken();
     return `${token_type} ${access_token}`;
   }
 
-  async refreshAuthToken(authProviderManager: string): Promise<string> {
-    return this.getToken(authProviderManager);
+  async refreshAuthToken(): Promise<string> {
+    return this.getToken();
   }
 
-  private async getToken(authProviderManager: string): Promise<any> {
+  private async getToken(): Promise<any> {
     const response = await this.axiosInstance.post<TokenResponse>('/login', this.credentials);
 
     const { data: { access_token, token_type, expires_in } } = response;
@@ -51,7 +58,7 @@ export class AuthProvider {
 
     const ttl = Math.floor((expiresAt - Date.now()) - 60_000); //ms
 
-    await this.authCacheService.set(authProviderManager, `${token_type} ${access_token}`, ttl);
+    await this.localCacheManager.set(this.keyManager, `${token_type} ${access_token}`, ttl);
     return response;
   }
 }

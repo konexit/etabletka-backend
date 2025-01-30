@@ -25,7 +25,7 @@ export class TradeProvider implements OnModuleInit {
   }
 
   async onModuleInit(): Promise<void> {
-    const token = await this.authProvider.getAuthToken(AUTH_PROVIDER_MANAGER);
+    const token = await this.authProvider.getAuthToken();
     console.log("Token Trade:", token);
   }
 }
