@@ -16,7 +16,7 @@ export class AuthController {
     return this.authService.signIn(authDto);
   }
   @UseGuards(JwtAuthGuard)
-  @Get('test')
+  @Get('token/test')
   async test(): Promise<string> {
     return "ok";
   }
