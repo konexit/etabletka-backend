@@ -11,20 +11,16 @@ export class UserProfileService {
     private userProfileRepository: Repository<UserProfile>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-  ) {}
+  ) { }
 
-  async getProfileByUserId(
-    userId: number,
-  ): Promise<Promise<UserProfile> | Promise<any>> {
+  async getProfileByUserId(userId: number): Promise<Promise<UserProfile> | Promise<any>> {
     const user = await this.userRepository.findOneBy({ id: userId });
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
 
     if (user.isActive) {
-      const userProfile = await this.userProfileRepository.findOneBy({
-        userId,
-      });
+      const userProfile = await this.userProfileRepository.findOneBy({ userId });
 
       if (!userProfile) {
         throw new HttpException('Profile not found', HttpStatus.NOT_FOUND);
