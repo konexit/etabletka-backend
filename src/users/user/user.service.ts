@@ -8,7 +8,9 @@ import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import { SMSProvider } from 'src/providers/sms'
 import { PaginationDto } from 'src/common/dto/paginationDto';
+import { ChangePasswordDto, PasswordRecoveryDto } from './dto/change-password.dto';
 import { SALT } from 'src/auth/auth.constants';
+import { UniqueLoginDto } from './dto/unique-login.dto';
 
 @Injectable()
 export class UserService {
@@ -33,10 +35,7 @@ export class UserService {
       );
     }
 
-    user.password = crypto
-      .pbkdf2Sync(createUserDto.password, this.configService.get<string>(SALT), 1000, 64, `sha512`)
-      .toString(`hex`);
-
+    user.password = this.getPasswordWithSHA512(createUserDto.password);
     user.code = this.generateRandomNumber(6);
 
     await this.smsProvider.sendSMS(
@@ -113,6 +112,82 @@ export class UserService {
     user.isActive = true;
 
     return this.userRepository.save(user);
+  }
+
+  async passwordRecovery(passwordRecoveryDto: PasswordRecoveryDto): Promise<void> {
+    const user = await this.userRepository.findOne({
+      select: {
+        id: true,
+        login: true,
+        code: true
+      },
+      where: {
+        login: passwordRecoveryDto.login
+      }
+    });
+
+    if (!user) {
+      throw new HttpException(
+        'User with this login does not exist',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    user.code = this.generateRandomNumber(6);
+
+    await this.smsProvider.sendSMS(
+      [passwordRecoveryDto.phone],
+      `Recovery code: ${user.code}`,
+    );
+
+    await this.userRepository.save(user);
+
+    return;
+  }
+
+  async changePassword(changePasswordDto: ChangePasswordDto): Promise<User> {
+    const user = await this.userRepository.findOneBy({ login: changePasswordDto.login });
+    if (!user) {
+      throw new HttpException(
+        'User with this login does not exist',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (!user.isActive) {
+      throw new HttpException(
+        'User is not activated',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    if (user.code !== changePasswordDto.code) {
+      throw new HttpException(
+        {
+          message: 'User recovery code mismatch',
+          expected: user.code,
+          received: changePasswordDto.code,
+        },
+        HttpStatus.NOT_MODIFIED,
+      );
+    }
+
+    user.code = null;
+    user.password = this.getPasswordWithSHA512(changePasswordDto.password);
+
+    return this.userRepository.save(user);
+  }
+
+  async checkUniqueLogin(login: string): Promise<void> {
+    const exists = await this.userRepository.exists({ where: { login } });
+    if (exists) {
+      throw new HttpException(
+        'User with this login exist',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    return;
   }
 
   async getByEmail(email: string): Promise<User> {
@@ -197,9 +272,12 @@ export class UserService {
     return this.userRepository.delete(id);
   }
 
-  generateRandomNumber(symbols: number) {
+  private generateRandomNumber(symbols: number) {
     const randomNumber = Math.floor(Math.random() * 1000000);
-
     return randomNumber.toString().padStart(symbols, '0');
+  }
+
+  private getPasswordWithSHA512(purePassword: string): string {
+    return crypto.pbkdf2Sync(purePassword, this.configService.get<string>(SALT), 1000, 64, `sha512`).toString(`hex`);
   }
 }

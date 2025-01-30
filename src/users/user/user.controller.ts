@@ -22,6 +22,9 @@ import { Request } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/dto/paginationDto';
 import { ActivationDto } from './dto/activation.dto';
+import { ChangePasswordDto, PasswordRecoveryDto } from './dto/change-password.dto';
+import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
+import { UniqueLoginDto } from './dto/unique-login.dto';
 
 @ApiTags('users')
 @Controller('api/v1')
@@ -43,13 +46,34 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Delete('/user/delete/:id')
   async remove(@Param('id') id: number) {
-    return await this.userService.remove(id);
+    return this.userService.remove(id);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('/user/activation')
   async activation(@Body() activationDto: ActivationDto): Promise<User> {
     return this.userService.activation(activationDto.login, activationDto.code);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Post('/user/password/change')
+  async changePassword(@Body() changePasswordDto: ChangePasswordDto): Promise<User> {
+    return this.userService.changePassword(changePasswordDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Post('/user/password/recovery')
+  async changePasswordRecovery(@Body() passwordRecoveryDto: PasswordRecoveryDto): Promise<void> {
+    return this.userService.passwordRecovery(passwordRecoveryDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/user/unique/login')
+  async checkUniqueLogin(@Body() uniqueLoginDto: UniqueLoginDto): Promise<void> {
+    return this.userService.checkUniqueLogin(uniqueLoginDto.login);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
@@ -61,18 +85,18 @@ export class UserController {
     @Query('where') where?: any,
   ) {
     const token = request.headers.authorization?.split(' ')[1] ?? '';
-    return await this.userService.findAll(token, pagination, where);
+    return this.userService.findAll(token, pagination, where);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('/users/role/:id')
   async getUserByRoleId(@Param('id') id: number): Promise<User[]> {
-    return await this.userService.getUserByRoleId(+id);
+    return this.userService.getUserByRoleId(+id);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('/user/:id')
   async getUserById(@Param('id') id: number): Promise<User> {
-    return await this.userService.getUserById(+id);
+    return this.userService.getUserById(+id);
   }
 }
