@@ -42,15 +42,16 @@ export class AuthProvider implements OnModuleInit {
       return cachedToken;
     }
 
-    const { data: { token_type, access_token } } = await this.getToken();
+    const { token_type, access_token } = await this.getToken();
     return `${token_type} ${access_token}`;
   }
 
   async refreshAuthToken(): Promise<string> {
-    return this.getToken();
+    const { token_type, access_token } = await this.getToken();
+    return `${token_type} ${access_token}`;
   }
 
-  private async getToken(): Promise<any> {
+  private async getToken(): Promise<TokenResponse> {
     const response = await this.axiosInstance.post<TokenResponse>('/login', this.credentials);
 
     const { data: { access_token, token_type, expires_in } } = response;
@@ -59,6 +60,7 @@ export class AuthProvider implements OnModuleInit {
     const ttl = Math.floor((expiresAt - Date.now()) - 60_000); //ms
 
     await this.localCacheManager.set(this.keyManager, `${token_type} ${access_token}`, ttl);
-    return response;
+    
+    return response.data;
   }
 }

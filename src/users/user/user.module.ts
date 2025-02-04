@@ -10,6 +10,6 @@ import { UserProfile } from '../profile/entities/user-prolile.entity';
   imports: [TypeOrmModule.forFeature([User, UserProfile])],
   controllers: [UserController],
   providers: [UserService, SMSProvider],
-  exports: [UserService, UserModule],
+  exports: [UserService],
 })
 export class UserModule { }

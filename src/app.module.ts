@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { dataSourceOptions } from '../db/data-source';
@@ -56,6 +57,7 @@ import { CDNModule } from './providers/cdn/cdn.module';
       isGlobal: true,
       ttl: 0,
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRoot(dataSourceOptions),
     AuthModule,
     BadgeModule,

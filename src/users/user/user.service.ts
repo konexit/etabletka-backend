@@ -10,7 +10,6 @@ import { SMSProvider } from 'src/providers/sms'
 import { PaginationDto } from 'src/common/dto/paginationDto';
 import { ChangePasswordDto, PasswordRecoveryDto } from './dto/change-password.dto';
 import { SALT } from 'src/auth/auth.constants';
-import { UniqueLoginDto } from './dto/unique-login.dto';
 
 @Injectable()
 export class UserService {
