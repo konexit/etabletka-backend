@@ -6,7 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateProductComment } from './dto/create-product-comment.dto';
 import { UpdateProductComment } from './dto/update-product-comment.dto';
 import { WsGateway } from 'src/infrastructure/ws/ws.gateway';
-import { PaginationDto } from 'src/common/dto/paginationDto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class ProductCommentService {
@@ -15,7 +15,7 @@ export class ProductCommentService {
     private readonly productCommentRepository: Repository<ProductComment>,
     private readonly wsGateway: WsGateway,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async create(token: string, createProductComment: CreateProductComment) {
     if (!token || typeof token !== 'string') {

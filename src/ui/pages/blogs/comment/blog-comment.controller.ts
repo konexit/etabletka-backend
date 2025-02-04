@@ -19,13 +19,13 @@ import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { CreatePostComment } from './dto/create-post-comment.dto';
 import { UpdatePostComment } from './dto/update-post-comment.dto';
-import { PaginationDto } from 'src/common/dto/paginationDto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { AuthGuard } from "src/auth/auth.guard";
 
 @ApiTags('comments/post')
 @Controller('api/v1')
 export class BlogCommentController {
-  constructor(private readonly blogCommentService: BlogCommentService) {}
+  constructor(private readonly blogCommentService: BlogCommentService) { }
 
   @UseGuards(AuthGuard)
   @Post('/comment/post')

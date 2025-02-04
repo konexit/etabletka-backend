@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { TransformAttributes, TransformAttributesOptions } from 'src/common/decorators/transform-attributes';
 import { In, Repository } from 'typeorm';
 import { Badge } from '../badge/entities/badge.entity';
-import { PaginationDto } from 'src/common/dto/paginationDto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Discount } from 'src/promo/discount/entities/discount.entity';
 import { Product } from './entities/product.entity';
 import { CreateProduct } from './dto/create-product.dto';

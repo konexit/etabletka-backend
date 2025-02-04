@@ -4,7 +4,7 @@ import { Store } from './entities/store.entity';
 import { Repository } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { PaginationDto } from 'src/common/dto/paginationDto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { JwtService } from '@nestjs/jwt';
 
@@ -16,7 +16,7 @@ export class StoreService {
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   cacheActiveStoresKey = 'activeStores';
   cacheActiveStoresTTL = 3600000; // 1Hour

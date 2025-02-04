@@ -20,7 +20,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Request } from 'express';
 import { ApiTags } from '@nestjs/swagger';
-import { PaginationDto } from 'src/common/dto/paginationDto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { ActivationDto } from './dto/activation.dto';
 import { ChangePasswordDto, PasswordRecoveryDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';

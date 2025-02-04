@@ -6,7 +6,7 @@ import { CreatePostComment } from './dto/create-post-comment.dto';
 import { UpdatePostComment } from './dto/update-post-comment.dto';
 import { JwtService } from '@nestjs/jwt';
 import { WsGateway } from 'src/infrastructure/ws/ws.gateway';
-import { PaginationDto } from 'src/common/dto/paginationDto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class BlogCommentService {
@@ -15,7 +15,7 @@ export class BlogCommentService {
     private readonly blogCommentRepository: Repository<BlogComment>,
     private readonly wsGateway: WsGateway,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async create(token: string, createPostComment: CreatePostComment) {
     if (!token || typeof token !== 'string') {

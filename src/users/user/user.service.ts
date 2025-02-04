@@ -7,7 +7,7 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import { SMSProvider } from 'src/providers/sms'
-import { PaginationDto } from 'src/common/dto/paginationDto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { ChangePasswordDto, PasswordRecoveryDto } from './dto/change-password.dto';
 import { SALT } from 'src/auth/auth.constants';
 

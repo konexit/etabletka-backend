@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository, SelectQueryBuilder } from 'typeorm';
 import { BlogCategory } from 'src/ui/pages/blogs/category/entities/blog-category.entity';
-import { PaginationDto } from 'src/common/dto/paginationDto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreatePost } from './dto/create-post.dto';
 import { UpdatePost } from './dto/update-post.dto';
 import { BlogPost } from './entities/blog-post.entity';
@@ -16,7 +16,7 @@ export class BlogPostService {
     @InjectRepository(BlogCategory)
     private readonly blogCategoryRepository: Repository<BlogCategory>,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   private convertPost(post: BlogPost, lang: string = 'uk') {
     post.title = post.title[lang];

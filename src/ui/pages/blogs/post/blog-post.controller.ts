@@ -21,7 +21,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import slugify from 'slugify';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { PaginationDto } from 'src/common/dto/paginationDto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { BlogPostService } from './blog-post.service';
 import { CreatePost } from './dto/create-post.dto';
 import { UpdatePost } from './dto/update-post.dto';
@@ -30,7 +30,7 @@ import { BlogPost } from './entities/blog-post.entity';
 @ApiTags('post')
 @Controller('api/v1')
 export class BlogPostController {
-  constructor(private readonly blogPostService: BlogPostService) {}
+  constructor(private readonly blogPostService: BlogPostService) { }
 
   @UseGuards(AuthGuard)
   @Post('/post')

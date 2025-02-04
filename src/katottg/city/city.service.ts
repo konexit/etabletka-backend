@@ -7,7 +7,7 @@ import { Store } from 'src/stores/store/entities/store.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { In } from 'typeorm';
-import { PaginationDto } from '../../common/dto/paginationDto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { UpdateCity } from './dto/update-city.dto';
 
 @Injectable()
@@ -20,7 +20,7 @@ export class CityService {
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   cacheCitiesKey = 'cities';
   cacheDefaultCityKey = 'defaultCity';

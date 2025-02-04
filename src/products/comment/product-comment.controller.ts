@@ -17,7 +17,7 @@ import { Request } from 'express';
 import { ProductCommentService } from './product-comment.service';
 import { CreateProductComment } from './dto/create-product-comment.dto';
 import { UpdateProductComment } from './dto/update-product-comment.dto';
-import { PaginationDto } from 'src/common/dto/paginationDto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { AuthGuard } from "src/auth/auth.guard";
 
 @Controller('api/v1')
