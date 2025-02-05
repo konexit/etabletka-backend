@@ -68,7 +68,6 @@ export class UserController {
     return this.userService.passwordRecovery(passwordRecoveryDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('/user/unique/login')
   async checkUniqueLogin(@Body() uniqueLoginDto: UniqueLoginDto): Promise<void> {
