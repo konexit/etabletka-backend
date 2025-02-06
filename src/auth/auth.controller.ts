@@ -29,7 +29,7 @@ export class AuthController {
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
-  @Get('login/check')
+  @Post('login/check')
   async checkUniqueLogin(@Body() uniqueLoginDto: UniqueLoginDto): Promise<void> {
     return this.authService.checkUniqueLogin(uniqueLoginDto.login);
   }
