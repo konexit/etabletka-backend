@@ -75,10 +75,7 @@ export class UserService {
           role: true
         }
       },
-      where: {
-        login,
-        isActive
-      },
+      where: isActive ? { login, isActive } : { login },
       relations: ['role'],
     });
   }
