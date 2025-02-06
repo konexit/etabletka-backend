@@ -5,11 +5,12 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import * as crypto from 'crypto';
 import { SMSProvider } from 'src/providers/sms'
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { ChangePasswordDto, PasswordRecoveryDto } from './dto/change-password.dto';
 import { SALT } from 'src/auth/auth.constants';
+import { USER_PASSWORD_ACTIVATION_CODE_SIZE } from 'src/common/config/common.constants';
+import { generateRandomNumber } from 'src/common/utils';
+import { getPasswordWithSHA512 } from 'src/common/utils';
 
 @Injectable()
 export class UserService {
@@ -17,13 +18,16 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private configService: ConfigService,
-    private smsProvider: SMSProvider,
+    private smsProvider: SMSProvider
   ) { }
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<void> {
     const userExist = await this.userRepository.findOneBy({ login: createUserDto.login });
     if (userExist) {
-      return Promise.resolve<User>(userExist);
+      throw new HttpException(
+        `User login: ${createUserDto.login}`,
+        HttpStatus.CONFLICT
+      );
     }
 
     const user = this.userRepository.create(createUserDto);
@@ -34,15 +38,17 @@ export class UserService {
       );
     }
 
-    user.password = this.getPasswordWithSHA512(createUserDto.password);
-    user.code = this.generateRandomNumber(6);
+    user.password = getPasswordWithSHA512(createUserDto.password, this.configService.get<string>(SALT));
+    user.code = generateRandomNumber(USER_PASSWORD_ACTIVATION_CODE_SIZE);
 
     await this.smsProvider.sendSMS(
       [user.phone],
       `Activation code: ${user.code}`,
     );
 
-    return this.userRepository.save(user);
+    await this.userRepository.save(user);
+
+    return;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
@@ -59,96 +65,43 @@ export class UserService {
     return user;
   }
 
-  async getByLogin(login: string): Promise<User> {
-    if (!login)
-      throw new HttpException(
-        'The login is not define',
-        HttpStatus.BAD_REQUEST,
-      );
-
-    const user = await this.userRepository.findOne({
+  async getUserForJwtByLogin(login: string, isActive: boolean = true): Promise<User> {
+    return this.userRepository.findOne({
       select: {
         id: true,
         password: true,
+        code: true,
         role: {
           role: true
         }
       },
-      where: { login },
+      where: {
+        login,
+        isActive
+      },
       relations: ['role'],
     });
-    if (user) {
-      return user;
-    }
-
-    throw new HttpException(
-      'User with this login does not exist',
-      HttpStatus.NOT_FOUND,
-    );
   }
 
-  async activation(login: string, code: string): Promise<User> {
-    const user = await this.userRepository.findOneBy({ login });
-    if (!user) {
-      throw new HttpException(
-        'User with this login does not exist',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    if (user.isActive) {
-      return Promise.resolve<User>(user);
-    }
-
-    if (user.code !== code) {
-      throw new HttpException(
-        'User activation code miss match',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    user.code = null;
-    user.isActive = true;
-
-    return this.userRepository.save(user);
-  }
-
-  async passwordRecovery(passwordRecoveryDto: PasswordRecoveryDto): Promise<void> {
-    const user = await this.userRepository.findOne({
+  async getByLoginForActivation(login: string): Promise<User> {
+    return this.userRepository.findOne({
       select: {
         id: true,
         login: true,
-        code: true
+        code: true,
+        updatedAt: true
       },
       where: {
-        login: passwordRecoveryDto.login
+        login
       }
     });
-
-    if (!user) {
-      throw new HttpException(
-        'User with this login does not exist',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    user.code = this.generateRandomNumber(6);
-
-    await this.smsProvider.sendSMS(
-      [passwordRecoveryDto.phone],
-      `Recovery code: ${user.code}`,
-    );
-
-    await this.userRepository.save(user);
-
-    return;
   }
 
-  async changePassword(changePasswordDto: ChangePasswordDto): Promise<User> {
-    const user = await this.userRepository.findOneBy({ login: changePasswordDto.login });
+  async changePassword(userId: number, newPassword: string): Promise<void> {
+    const user = await this.userRepository.findOneBy({ id: userId });
     if (!user) {
       throw new HttpException(
-        'User with this login does not exist',
+        'User not exist',
         HttpStatus.NOT_FOUND,
       );
     }
@@ -160,21 +113,12 @@ export class UserService {
       );
     }
 
-    if (user.code !== changePasswordDto.code) {
-      throw new HttpException(
-        {
-          message: 'User recovery code mismatch',
-          expected: user.code,
-          received: changePasswordDto.code,
-        },
-        HttpStatus.NOT_MODIFIED,
-      );
-    }
-
     user.code = null;
-    user.password = this.getPasswordWithSHA512(changePasswordDto.password);
+    user.password = getPasswordWithSHA512(newPassword, this.configService.get<string>(SALT));
 
-    return this.userRepository.save(user);
+    await this.userRepository.save(user);
+
+    return;
   }
 
   async checkUniqueLogin(login: string): Promise<void> {
@@ -271,12 +215,7 @@ export class UserService {
     return this.userRepository.delete(id);
   }
 
-  private generateRandomNumber(symbols: number) {
-    const randomNumber = Math.floor(Math.random() * 1000000);
-    return randomNumber.toString().padStart(symbols, '0');
-  }
-
-  private getPasswordWithSHA512(purePassword: string): string {
-    return crypto.pbkdf2Sync(purePassword, this.configService.get<string>(SALT), 1000, 64, `sha512`).toString(`hex`);
+  async save(user: User) {
+    return this.userRepository.save(user);
   }
 }

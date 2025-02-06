@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { JWT_EXPIRES_IN, JWT_SECRET } from './auth.constants';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt/jwt.strategy';
+import { SMSProvider } from 'src/providers/sms';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { JwtStrategy } from './jwt/jwt.strategy';
       }),
     }),
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, SMSProvider],
   controllers: [AuthController],
   exports: [AuthService],
 })

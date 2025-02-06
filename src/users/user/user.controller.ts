@@ -11,6 +11,7 @@ import {
   ClassSerializerInterceptor,
   Req,
   Query,
+  HttpException
 } from '@nestjs/common';
 
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -21,10 +22,11 @@ import { User } from './entities/user.entity';
 import { Request } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { ActivationDto } from './dto/activation.dto';
-import { ChangePasswordDto, PasswordRecoveryDto } from './dto/change-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
-import { UniqueLoginDto } from './dto/unique-login.dto';
+import { JWTPayload } from 'src/common/decorators/jwt-payload';
+import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
+import { HttpStatusCode } from 'axios';
 
 @ApiTags('users')
 @Controller('api/v1')
@@ -33,7 +35,7 @@ export class UserController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('/user/create')
-  async create(@Body() createUserDTO: CreateUserDto): Promise<User> {
+  async create(@Body() createUserDTO: CreateUserDto): Promise<void> {
     return this.userService.create(createUserDTO);
   }
 
@@ -49,29 +51,14 @@ export class UserController {
     return this.userService.remove(id);
   }
 
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Post('/user/activation')
-  async activation(@Body() activationDto: ActivationDto): Promise<User> {
-    return this.userService.activation(activationDto.login, activationDto.code);
-  }
-
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('/user/password/change')
-  async changePassword(@Body() changePasswordDto: ChangePasswordDto): Promise<User> {
-    return this.userService.changePassword(changePasswordDto);
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Post('/user/password/recovery')
-  async changePasswordRecovery(@Body() passwordRecoveryDto: PasswordRecoveryDto): Promise<void> {
-    return this.userService.passwordRecovery(passwordRecoveryDto);
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Get('/user/unique/login')
-  async checkUniqueLogin(@Body() uniqueLoginDto: UniqueLoginDto): Promise<void> {
-    return this.userService.checkUniqueLogin(uniqueLoginDto.login);
+  async changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+    @JWTPayload() jwtPayload: JwtPayload
+  ): Promise<void> {
+    return this.userService.changePassword(jwtPayload.userId, changePasswordDto.password);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
@@ -92,9 +79,16 @@ export class UserController {
     return this.userService.getUserByRoleId(+id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('/user/:id')
-  async getUserById(@Param('id') id: number): Promise<User> {
+  async getUserById(
+    @Param('id') id: number,
+    @JWTPayload() jwtPayload: JwtPayload
+  ): Promise<User> {
+    if (jwtPayload.userId != id) {
+      throw new HttpException('User access denied', HttpStatusCode.Forbidden);
+    }
     return this.userService.getUserById(+id);
   }
 }

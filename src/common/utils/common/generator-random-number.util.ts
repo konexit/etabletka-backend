@@ -1,0 +1,1 @@
+export const generateRandomNumber = (symbols: number) => Math.floor(Math.random() * 10 ** symbols).toString();
