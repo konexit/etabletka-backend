@@ -58,7 +58,7 @@ export class AuthService {
     if (user.code !== code) {
       throw new HttpException(
         'User activation code miss match',
-        HttpStatus.CONFLICT,
+        HttpStatus.BAD_REQUEST,
       );
     }
 
