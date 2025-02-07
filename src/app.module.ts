@@ -44,6 +44,7 @@ import { CartModule } from './commerce/cart/cart.module';
 import { OrderModule } from './commerce/order/order.module';
 import { TradeModule } from './providers/trade/trade.module';
 import { CDNModule } from './providers/cdn/cdn.module';
+import { SMSModule } from './providers/sms/sms.module';
 
 @Module({
   imports: [
@@ -96,7 +97,8 @@ import { CDNModule } from './providers/cdn/cdn.module';
     CartModule,
     OrderModule,
     TradeModule,
-    CDNModule
+    CDNModule,
+    SMSModule
   ],
   controllers: [AppController],
   providers: [AppService],
