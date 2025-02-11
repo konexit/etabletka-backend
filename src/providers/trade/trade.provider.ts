@@ -4,7 +4,13 @@ import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import { OrderService, OrderStatusService } from './services';
 import { TRADE_SERVICES_URL } from './trade.constants';
-import { OrdersResponse, OrdersOptions, TradeOrders } from './trade.interfaces';
+import {
+  OrdersResponse,
+  IOrdersOptions,
+  TradeOrders,
+  IStateOrdersOptions,
+  StateOrdersResponse
+} from './interfaces';
 
 @Injectable()
 export class TradeProvider {
@@ -79,10 +85,17 @@ export class TradeProvider {
     );
   }
 
-  async createOrders(orders: TradeOrders, options: OrdersOptions): Promise<OrdersResponse> {
+  async createOrders(orders: TradeOrders, options: IOrdersOptions): Promise<OrdersResponse> {
     const response = await this.axiosInstance.post<OrdersResponse>(
       `${this.apiVersion}/companies/orders/${options.orderType}?action=${options.action}`,
       orders
+    );
+    return response.data;
+  }
+
+  async getStateOrders(options: IStateOrdersOptions): Promise<StateOrdersResponse> {
+    const response = await this.axiosInstance.get<StateOrdersResponse>(
+      `${this.apiVersion}/companies/orders/state${options.getQueryParams()}`
     );
     return response.data;
   }

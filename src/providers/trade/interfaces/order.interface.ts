@@ -16,7 +16,7 @@ export interface TradeBaseOrder {
   aggregatorOrderId: string;
 }
 
-export interface TradeHandledOrder extends TradeBaseOrder {}
+export interface TradeHandledOrder extends TradeBaseOrder { }
 
 export interface TradeErrorOrder extends TradeBaseOrder {
   codeError: number;
@@ -29,7 +29,7 @@ export interface OrdersResponse {
 }
 
 
-export interface OrdersOptions {
+export interface IOrdersOptions {
   orderType: number;
   action: string;
 }

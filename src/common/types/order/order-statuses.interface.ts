@@ -3,4 +3,4 @@ export interface OrderStatus {
   status_code: string;
   status_time: string;
   sent_status_time: string;
-}
+};

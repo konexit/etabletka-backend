@@ -21,4 +21,4 @@ export interface CommonOrder extends BaseOrder {
     };
     recipient_order: string;
   };
-}
+};
