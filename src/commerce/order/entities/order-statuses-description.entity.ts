@@ -14,7 +14,7 @@ export class OrderStatusDescription {
   id: number;
 
   @Column({ name: 'trade_status_id', nullable: true })
-  orderId: string;
+  tradeStatusId: number;
 
   @Column({ name: 'code' })
   code: string;
@@ -26,7 +26,7 @@ export class OrderStatusDescription {
   orderIndex: number;
 
   @Column({ name: 'is_manual', default: false })
-  IsManual: boolean;
+  isManual: boolean;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

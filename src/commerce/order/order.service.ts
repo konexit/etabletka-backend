@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
 import { Repository, IsNull } from 'typeorm';
 import {
+  Trade,
   TRADE_CODE_ERROR_ALREADY_HAS_BEEN_SAVED,
   TRADE_PROVIDER_MANAGER,
   TradeProvider,
@@ -15,12 +16,16 @@ import {
 } from 'src/providers/trade';
 import { Order } from './entities/order.entity';
 import { OrderStatus } from './entities/order-status.entity';
+import { OrderStatusDescription } from './entities/order-statuses-description.entity';
 import { OrderTypes } from 'src/common/config/common.constants';
 import {
   ORDER_ASYNC_SENDER_SCHEDULER,
   ORDER_ASYNC_SENDER_SCHEDULER_ENABLED,
   ORDER_STATE_RECEIVER_LIMIT,
-  ORDER_STATE_RECEIVER_SCHEDULER
+  ORDER_STATE_RECEIVER_SCHEDULER,
+  ORDER_STATUS_DESCRIPTION_SCHEDULER,
+  ORDER_STATUS_DESCRIPTION_SCHEDULER_ENABLED,
+  TRADE_SEARCH_STATUS_DESCRIPTION_QUERY
 } from './order.constants';
 
 @Injectable()
@@ -33,6 +38,8 @@ export class OrderService {
     private orderRepository: Repository<Order>,
     @InjectRepository(OrderStatus)
     private orderStatusRepository: Repository<OrderStatus>,
+    @InjectRepository(OrderStatusDescription)
+    private orderStatusDescriptionRepository: Repository<OrderStatusDescription>,
     @Inject(TRADE_PROVIDER_MANAGER) private tradeProvider: TradeProvider,
   ) { }
 
@@ -190,6 +197,48 @@ export class OrderService {
 
     } catch (error) {
       this.logger.error('error processing state orders:', error.message);
+    }
+  }
+
+  @Cron(process.env[ORDER_STATUS_DESCRIPTION_SCHEDULER] || '0 0 */6 * * *', {
+    name: 'synchronization trade order statuses',
+    waitForCompletion: true,
+    disabled: !JSON.parse(process.env[ORDER_STATUS_DESCRIPTION_SCHEDULER_ENABLED] || 'true')
+  })
+  async processOrderStatusDescription(): Promise<void> {
+    try {
+      const statusDescriptions = await this.tradeProvider.search<Trade.OrderStatusDescription[]>({
+        query: TRADE_SEARCH_STATUS_DESCRIPTION_QUERY
+      });
+
+      for (const status of statusDescriptions) {
+        const existingRecord = await this.orderStatusDescriptionRepository.findOne({
+          where: { tradeStatusId: status.status_id },
+        });
+
+        if (existingRecord) {
+          Object.assign(existingRecord, {
+            code: status.code,
+            type: status.type,
+            orderIndex: status.order_index,
+            isManual: status.is_manual,
+          });
+
+          await this.orderStatusDescriptionRepository.save(existingRecord);
+        } else {
+          await this.orderStatusDescriptionRepository.insert({
+            tradeStatusId: status.status_id,
+            code: status.code,
+            type: status.type,
+            orderIndex: status.order_index,
+            isManual: status.is_manual,
+          });
+        }
+      }
+
+      this.logger.log('synchronization of trading statuses was successful');
+    } catch (error) {
+      this.logger.error('error processing order status description', error.message);
     }
   }
 }
