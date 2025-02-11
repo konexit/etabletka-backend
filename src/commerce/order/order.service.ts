@@ -1,4 +1,5 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
 import { Repository, IsNull } from 'typeorm';
@@ -15,12 +16,19 @@ import {
 import { Order } from './entities/order.entity';
 import { OrderStatus } from './entities/order-status.entity';
 import { OrderTypes } from 'src/common/config/common.constants';
+import {
+  ORDER_ASYNC_SENDER_SCHEDULER,
+  ORDER_ASYNC_SENDER_SCHEDULER_ENABLED,
+  ORDER_STATE_RECEIVER_LIMIT,
+  ORDER_STATE_RECEIVER_SCHEDULER
+} from './order.constants';
 
 @Injectable()
 export class OrderService {
   private readonly logger = new Logger(OrderService.name);
 
   constructor(
+    private readonly configService: ConfigService,
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
     @InjectRepository(OrderStatus)
@@ -28,9 +36,10 @@ export class OrderService {
     @Inject(TRADE_PROVIDER_MANAGER) private tradeProvider: TradeProvider,
   ) { }
 
-  @Cron('0 * * * * *', {
+  @Cron(process.env[ORDER_ASYNC_SENDER_SCHEDULER] || '0 * * * * *', {
     name: 'asynchronously sending order to trade',
-    waitForCompletion: true
+    waitForCompletion: true,
+    disabled: !JSON.parse(process.env[ORDER_ASYNC_SENDER_SCHEDULER_ENABLED] || 'true')
   })
   async processOrders(): Promise<void> {
     try {
@@ -118,15 +127,16 @@ export class OrderService {
     }
   }
 
-  @Cron('*/15 * * * * *', {
+  @Cron(process.env[ORDER_STATE_RECEIVER_SCHEDULER] || '*/15 * * * * *', {
     name: 'asynchronously receiving order state from trading',
-    waitForCompletion: true
+    waitForCompletion: true,
+    disabled: !JSON.parse(process.env[ORDER_ASYNC_SENDER_SCHEDULER_ENABLED] || 'true')
   })
   async processStateOrders(): Promise<void> {
     try {
       const stateOrders = await this.tradeProvider.getStateOrders(new StateOrdersOptions(
         StateOrderPickOption.One,
-        TRADE_STATE_ORDER_LIMIT_DEFAULT,
+        this.configService.get<number>(ORDER_STATE_RECEIVER_LIMIT, TRADE_STATE_ORDER_LIMIT_DEFAULT),
         [OrderTypes.Common]
       ));
 
