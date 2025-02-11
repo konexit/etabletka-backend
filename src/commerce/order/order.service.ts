@@ -13,6 +13,7 @@ import {
   TRADE_STATE_ORDER_LIMIT_DEFAULT
 } from 'src/providers/trade';
 import { Order } from './entities/order.entity';
+import { OrderStatus } from './entities/order-status.entity';
 import { OrderTypes } from 'src/common/config/common.constants';
 
 @Injectable()
@@ -22,6 +23,8 @@ export class OrderService {
   constructor(
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
+    @InjectRepository(OrderStatus)
+    private orderStatusRepository: Repository<OrderStatus>,
     @Inject(TRADE_PROVIDER_MANAGER) private tradeProvider: TradeProvider,
   ) { }
 
@@ -41,8 +44,8 @@ export class OrderService {
         where: { integrationTime: IsNull() },
       });
 
-      if (orders.length === 0) {
-        this.logger.log('No new orders to process');
+      if (!orders.length) {
+        this.logger.log('no new orders to process');
         return;
       }
 
@@ -85,9 +88,9 @@ export class OrderService {
                 integrationTime,
                 tradeOrderId: order.tradeOrderId
               });
-              this.logger.log(`order ID: ${order.aggregatorOrderId}, trade ID: ${order.tradeOrderId} successfully sent`);
+              this.logger.log(`order id: ${order.aggregatorOrderId}, trade id: ${order.tradeOrderId} successfully sent`);
             } catch (error) {
-              this.logger.error(`error when saving a processed order ID: ${order.aggregatorOrderId}`);
+              this.logger.error(`error when saving a processed order id: ${order.aggregatorOrderId}`);
             }
           }
 
@@ -98,12 +101,12 @@ export class OrderService {
                   integrationTime,
                   tradeOrderId: order.tradeOrderId
                 });
-                this.logger.log(`order ID: ${order.aggregatorOrderId}, trade ID: ${order.tradeOrderId} successfully sent`);
+                this.logger.log(`order id: ${order.aggregatorOrderId}, trade id: ${order.tradeOrderId} successfully sent`);
               } catch (error) {
-                this.logger.error(`error when saving a processed order ID: ${order.aggregatorOrderId}`);
+                this.logger.error(`error when saving a processed order id: ${order.aggregatorOrderId}`);
               }
             } else {
-              this.logger.error(`error handled order ID: ${order.aggregatorOrderId}, type: ${orderType}, message: ${order.message}`);
+              this.logger.error(`error handled order id: ${order.aggregatorOrderId}, type: ${orderType}, message: ${order.message}`);
             }
           }
         } catch (error) {
@@ -127,7 +130,54 @@ export class OrderService {
         [OrderTypes.Common]
       ));
 
-      console.log(stateOrders)
+      if (!stateOrders.statuses.length && !stateOrders.changed_orders.length) {
+        this.logger.log('no new state orders to process');
+        return;
+      }
+
+      const sentStatusTime = new Date();
+      const appliedStatuses: number[] = [];
+
+      for (const status of stateOrders.statuses) {
+        try {
+          await this.orderStatusRepository.upsert({
+            orderId: status.order_id,
+            tradeStatusId: status.status_id,
+            statusCode: status.code,
+            orderTypeId: status.order_type_id,
+            statusMsg: status.comment,
+            statusTime: status.date,
+            sentStatusTime
+          }, {
+            conflictPaths: ['tradeStatusId'],
+            skipUpdateIfNoValuesChanged: true,
+          });
+
+          this.logger.log(`order id: ${status.order_id} save status code: ${status.code}`);
+          appliedStatuses.push(status.status_id);
+
+        } catch (error) {
+          this.logger.error(`error status when saving a processed order id: ${status.aggregator_order_id}`);
+        }
+      }
+
+      const appliedChanges: number[] = [];
+
+      for (const changeOrder of stateOrders.changed_orders) {
+        appliedChanges.push(changeOrder.change_id);
+      }
+
+      if (appliedStatuses.length) {
+        const appliedStateOrders = await this.tradeProvider.applyStateOrders({
+          handled_statuses_ids: appliedStatuses,
+          handled_change_ids: appliedChanges
+        });
+
+        if (!appliedStateOrders.applied_changes && appliedStateOrders.applied_changes!) {
+          throw new Error(`handled_statuses_ids: [${appliedStatuses.join(',')}] or handled_change_ids: [${appliedChanges.join(',')}] not applied`);
+        }
+      }
+
     } catch (error) {
       this.logger.error('error processing state orders:', error.message);
     }

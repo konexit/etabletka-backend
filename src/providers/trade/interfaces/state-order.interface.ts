@@ -15,3 +15,13 @@ export interface StateOrdersResponse {
   changed_orders: TradeOrderChange[];
   statuses: TradeOrderStatus[];
 }
+
+export interface IStateOrdersAppliedOptions {
+  handled_statuses_ids: number[];
+  handled_change_ids: number[];
+}
+
+export interface StateOrdersAppliedResponse {
+  applied_statuses: boolean;
+  applied_changes: boolean;
+}

@@ -9,7 +9,9 @@ import {
   IOrdersOptions,
   TradeOrders,
   IStateOrdersOptions,
-  StateOrdersResponse
+  StateOrdersResponse,
+  StateOrdersAppliedResponse,
+  IStateOrdersAppliedOptions
 } from './interfaces';
 
 @Injectable()
@@ -96,6 +98,14 @@ export class TradeProvider {
   async getStateOrders(options: IStateOrdersOptions): Promise<StateOrdersResponse> {
     const response = await this.axiosInstance.get<StateOrdersResponse>(
       `${this.apiVersion}/companies/orders/state${options.getQueryParams()}`
+    );
+    return response.data;
+  }
+
+  async applyStateOrders(options: IStateOrdersAppliedOptions): Promise<StateOrdersAppliedResponse> {
+    const response = await this.axiosInstance.post<StateOrdersAppliedResponse>(
+      `${this.apiVersion}/companies/orders/state/applied`,
+      options
     );
     return response.data;
   }

@@ -1,3 +1,4 @@
+import { OrderTypes } from 'src/common/config/common.constants';
 import {
   Column,
   Entity,
@@ -12,7 +13,13 @@ export class OrderStatus {
   id: number;
 
   @Column({ name: 'order_id', nullable: true })
-  orderID: string;
+  orderId: number;
+
+  @Column({ name: 'trade_status_id', nullable: true, unique: true })
+  tradeStatusId: number;
+
+  @Column({ name: 'order_type_id', default: OrderTypes.Common })
+  orderTypeId: number;
 
   @Column({ name: 'status_code' })
   statusCode: string;

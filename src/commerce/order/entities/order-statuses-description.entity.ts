@@ -14,7 +14,7 @@ export class OrderStatusDescription {
   id: number;
 
   @Column({ name: 'trade_status_id', nullable: true })
-  orderID: string;
+  orderId: string;
 
   @Column({ name: 'code' })
   code: string;

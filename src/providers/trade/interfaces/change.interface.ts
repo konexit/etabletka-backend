@@ -23,6 +23,10 @@ interface OrderChange<T extends OrderChangeType> {
 
 export interface TradeOrderChange {
   order_id: number;
+  change_id: number;
+  trade_pnt_id: number;
+  order_status: string;
+  aggregator_order_id: string;
   auto_applied: OrderChangeAutoApliedMode;
   changes: Array<OrderChange<OrderChangeType>>;
 }
