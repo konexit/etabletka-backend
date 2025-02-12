@@ -220,6 +220,7 @@ export class OrderService {
           Object.assign(existingRecord, {
             code: status.code,
             type: status.type,
+            description: status.description,
             orderIndex: status.order_index,
             isManual: status.is_manual,
           });
@@ -230,6 +231,7 @@ export class OrderService {
             tradeStatusId: status.status_id,
             code: status.code,
             type: status.type,
+            description: status.description,
             orderIndex: status.order_index,
             isManual: status.is_manual,
           });

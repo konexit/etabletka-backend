@@ -22,6 +22,9 @@ export class OrderStatusDescription {
   @Column({ name: 'type' })
   type: string;
 
+  @Column({ name: 'description' })
+  description: string;
+
   @Column({ name: 'order_index' })
   orderIndex: number;
 
