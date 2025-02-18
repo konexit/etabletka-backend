@@ -2,17 +2,17 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
-import { Repository, IsNull } from 'typeorm';
+import { type Repository, IsNull } from 'typeorm';
 import {
-  Trade,
+  type Trade,
   TRADE_CODE_ERROR_ALREADY_HAS_BEEN_SAVED,
   TRADE_PROVIDER_MANAGER,
-  TradeProvider,
-  TradeOrders,
+  type TradeProvider,
+  type TradeOrders,
   TradeOrderMode,
   StateOrderPickOption,
   StateOrdersOptions,
-  TRADE_STATE_ORDER_LIMIT_DEFAULT
+  TRADE_STATE_ORDER_LIMIT_DEFAULT,
 } from 'src/providers/trade';
 import { Order } from './entities/order.entity';
 import { OrderStatus } from './entities/order-status.entity';
@@ -25,15 +25,17 @@ import {
   ORDER_STATE_RECEIVER_SCHEDULER,
   ORDER_STATUS_DESCRIPTION_SCHEDULER,
   ORDER_STATUS_DESCRIPTION_SCHEDULER_ENABLED,
-  TRADE_SEARCH_STATUS_DESCRIPTION_QUERY
+  TRADE_SEARCH_STATUS_DESCRIPTION_QUERY,
 } from './order.constants';
+import type { PaginationDto } from 'src/common/dto/pagination.dto';
+import type { User } from 'src/users/user/entities/user.entity';
 
 @Injectable()
 export class OrderService {
   private readonly logger = new Logger(OrderService.name);
 
   constructor(
-    private readonly configService: ConfigService,
+    @Inject(ConfigService) private readonly configService: ConfigService,
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
     @InjectRepository(OrderStatus)
@@ -41,12 +43,14 @@ export class OrderService {
     @InjectRepository(OrderStatusDescription)
     private orderStatusDescriptionRepository: Repository<OrderStatusDescription>,
     @Inject(TRADE_PROVIDER_MANAGER) private tradeProvider: TradeProvider,
-  ) { }
+  ) {}
 
   @Cron(process.env[ORDER_ASYNC_SENDER_SCHEDULER] || '0 * * * * *', {
     name: 'asynchronously sending order to trade',
     waitForCompletion: true,
-    disabled: !JSON.parse(process.env[ORDER_ASYNC_SENDER_SCHEDULER_ENABLED] || 'true')
+    disabled: !JSON.parse(
+      process.env[ORDER_ASYNC_SENDER_SCHEDULER_ENABLED] || 'true',
+    ),
   })
   async processOrders(): Promise<void> {
     try {
@@ -54,8 +58,8 @@ export class OrderService {
         select: {
           id: true,
           orderTypeId: true,
-          order: true as any,
-          integrationTime: true
+          order: {},
+          integrationTime: true,
         },
         where: { integrationTime: IsNull() },
       });
@@ -69,23 +73,21 @@ export class OrderService {
 
       for (const order of orders) {
         if (ordersByType.has(order.orderTypeId)) {
-          ordersByType
-            .get(order.orderTypeId)
-            .orders
-            .push({
-              aggregatorOrderId: String(order.id),
-              tradeOrderId: 0,
-              order: order.order
-            });
+          ordersByType.get(order.orderTypeId).orders.push({
+            aggregatorOrderId: String(order.id),
+            tradeOrderId: 0,
+            order: order.order,
+          });
         } else {
-          ordersByType
-            .set(order.orderTypeId, {
-              orders: [{
+          ordersByType.set(order.orderTypeId, {
+            orders: [
+              {
                 aggregatorOrderId: String(order.id),
                 tradeOrderId: 0,
-                order: order.order
-              }]
-            });
+                order: order.order,
+              },
+            ],
+          });
         }
       }
 
@@ -100,29 +102,45 @@ export class OrderService {
 
           for (const order of response.handled_orders) {
             try {
-              await this.orderRepository.update(Number(order.aggregatorOrderId), {
-                integrationTime,
-                tradeOrderId: order.tradeOrderId
-              });
-              this.logger.log(`order id: ${order.aggregatorOrderId}, trade id: ${order.tradeOrderId} successfully sent`);
+              await this.orderRepository.update(
+                Number(order.aggregatorOrderId),
+                {
+                  integrationTime,
+                  tradeOrderId: order.tradeOrderId,
+                },
+              );
+              this.logger.log(
+                `order id: ${order.aggregatorOrderId}, trade id: ${order.tradeOrderId} successfully sent`,
+              );
             } catch (error) {
-              this.logger.error(`error when saving a processed order id: ${order.aggregatorOrderId}`);
+              this.logger.error(
+                `error when saving a processed order id: ${order.aggregatorOrderId}`,
+              );
             }
           }
 
           for (const order of response.error_orders) {
             if (order.codeError === TRADE_CODE_ERROR_ALREADY_HAS_BEEN_SAVED) {
               try {
-                await this.orderRepository.update(Number(order.aggregatorOrderId), {
-                  integrationTime,
-                  tradeOrderId: order.tradeOrderId
-                });
-                this.logger.log(`order id: ${order.aggregatorOrderId}, trade id: ${order.tradeOrderId} successfully sent`);
+                await this.orderRepository.update(
+                  Number(order.aggregatorOrderId),
+                  {
+                    integrationTime,
+                    tradeOrderId: order.tradeOrderId,
+                  },
+                );
+                this.logger.log(
+                  `order id: ${order.aggregatorOrderId}, trade id: ${order.tradeOrderId} successfully sent`,
+                );
               } catch (error) {
-                this.logger.error(`error when saving a processed order id: ${order.aggregatorOrderId}`);
+                this.logger.error(
+                  `error when saving a processed order id: ${order.aggregatorOrderId}`,
+                );
               }
             } else {
-              this.logger.error(`error handled order id: ${order.aggregatorOrderId}, type: ${orderType}, message: ${order.message}`);
+              this.logger.error(
+                `error handled order id: ${order.aggregatorOrderId}, type: ${orderType}, message: ${order.message}`,
+              );
             }
           }
         } catch (error) {
@@ -137,15 +155,22 @@ export class OrderService {
   @Cron(process.env[ORDER_STATE_RECEIVER_SCHEDULER] || '*/15 * * * * *', {
     name: 'asynchronously receiving order state from trading',
     waitForCompletion: true,
-    disabled: !JSON.parse(process.env[ORDER_ASYNC_SENDER_SCHEDULER_ENABLED] || 'true')
+    disabled: !JSON.parse(
+      process.env[ORDER_ASYNC_SENDER_SCHEDULER_ENABLED] || 'true',
+    ),
   })
   async processStateOrders(): Promise<void> {
     try {
-      const stateOrders = await this.tradeProvider.getStateOrders(new StateOrdersOptions(
-        StateOrderPickOption.One,
-        this.configService.get<number>(ORDER_STATE_RECEIVER_LIMIT, TRADE_STATE_ORDER_LIMIT_DEFAULT),
-        [OrderTypes.Common]
-      ));
+      const stateOrders = await this.tradeProvider.getStateOrders(
+        new StateOrdersOptions(
+          StateOrderPickOption.One,
+          this.configService.get<number>(
+            ORDER_STATE_RECEIVER_LIMIT,
+            TRADE_STATE_ORDER_LIMIT_DEFAULT,
+          ),
+          [OrderTypes.Common],
+        ),
+      );
 
       if (!stateOrders.statuses.length && !stateOrders.changed_orders.length) {
         this.logger.log('no new state orders to process');
@@ -157,24 +182,30 @@ export class OrderService {
 
       for (const status of stateOrders.statuses) {
         try {
-          await this.orderStatusRepository.upsert({
-            orderId: status.order_id,
-            tradeStatusId: status.status_id,
-            statusCode: status.code,
-            orderTypeId: status.order_type_id,
-            statusMsg: status.comment,
-            statusTime: status.date,
-            sentStatusTime
-          }, {
-            conflictPaths: ['tradeStatusId'],
-            skipUpdateIfNoValuesChanged: true,
-          });
+          await this.orderStatusRepository.upsert(
+            {
+              orderId: status.order_id,
+              tradeStatusId: status.status_id,
+              statusCode: status.code,
+              orderTypeId: status.order_type_id,
+              statusMsg: status.comment,
+              statusTime: status.date,
+              sentStatusTime,
+            },
+            {
+              conflictPaths: ['tradeStatusId'],
+              skipUpdateIfNoValuesChanged: true,
+            },
+          );
 
-          this.logger.log(`order id: ${status.order_id} save status code: ${status.code}`);
+          this.logger.log(
+            `order id: ${status.order_id} save status code: ${status.code}`,
+          );
           appliedStatuses.push(status.status_id);
-
         } catch (error) {
-          this.logger.error(`error status when saving a processed order id: ${status.aggregator_order_id}`);
+          this.logger.error(
+            `error status when saving a processed order id: ${status.aggregator_order_id}`,
+          );
         }
       }
 
@@ -187,14 +218,15 @@ export class OrderService {
       if (appliedStatuses.length) {
         const appliedStateOrders = await this.tradeProvider.applyStateOrders({
           handled_statuses_ids: appliedStatuses,
-          handled_change_ids: appliedChanges
+          handled_change_ids: appliedChanges,
         });
 
-        if (!appliedStateOrders.applied_changes && appliedStateOrders.applied_changes!) {
-          throw new Error(`handled_statuses_ids: [${appliedStatuses.join(',')}] or handled_change_ids: [${appliedChanges.join(',')}] not applied`);
+        if (!appliedStateOrders.applied_changes) {
+          throw new Error(
+            `handled_statuses_ids: [${appliedStatuses.join(',')}] or handled_change_ids: [${appliedChanges.join(',')}] not applied`,
+          );
         }
       }
-
     } catch (error) {
       this.logger.error('error processing state orders:', error.message);
     }
@@ -203,18 +235,23 @@ export class OrderService {
   @Cron(process.env[ORDER_STATUS_DESCRIPTION_SCHEDULER] || '0 0 */6 * * *', {
     name: 'synchronization trade order statuses',
     waitForCompletion: true,
-    disabled: !JSON.parse(process.env[ORDER_STATUS_DESCRIPTION_SCHEDULER_ENABLED] || 'true')
+    disabled: !JSON.parse(
+      process.env[ORDER_STATUS_DESCRIPTION_SCHEDULER_ENABLED] || 'true',
+    ),
   })
   async processOrderStatusDescription(): Promise<void> {
     try {
-      const statusDescriptions = await this.tradeProvider.search<Trade.OrderStatusDescription[]>({
-        query: TRADE_SEARCH_STATUS_DESCRIPTION_QUERY
+      const statusDescriptions = await this.tradeProvider.search<
+        Trade.OrderStatusDescription[]
+      >({
+        query: TRADE_SEARCH_STATUS_DESCRIPTION_QUERY,
       });
 
       for (const status of statusDescriptions) {
-        const existingRecord = await this.orderStatusDescriptionRepository.findOne({
-          where: { tradeStatusId: status.status_id },
-        });
+        const existingRecord =
+          await this.orderStatusDescriptionRepository.findOne({
+            where: { tradeStatusId: status.status_id },
+          });
 
         if (existingRecord) {
           Object.assign(existingRecord, {
@@ -240,7 +277,27 @@ export class OrderService {
 
       this.logger.log('synchronization of trading statuses was successful');
     } catch (error) {
-      this.logger.error('error processing order status description', error.message);
+      this.logger.error(
+        'error processing order status description',
+        error.message,
+      );
     }
+  }
+
+  async getOrders(userId: User['id'], pagination: PaginationDto = {}) {
+    const { take = 15, skip = 0 } = pagination;
+
+    const [orders, total] = await this.orderRepository
+      .createQueryBuilder('order')
+      .where('order.userId = :userId', { userId })
+      .orderBy('created_at', 'DESC')
+      .skip(+skip)
+      .take(+take)
+      .getManyAndCount();
+
+    return {
+      orders,
+      pagination: { total, take: +take, skip: +skip },
+    };
   }
 }

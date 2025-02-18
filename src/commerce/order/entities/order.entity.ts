@@ -1,4 +1,5 @@
-import { OrderJSON } from 'src/common/types/order';
+import type { OrderJSON } from 'src/common/types/order';
+
 import {
   Column,
   CreateDateColumn,

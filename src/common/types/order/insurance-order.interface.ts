@@ -1,4 +1,4 @@
-import { BaseOrder } from "./base-order.interface";
+import type { BaseOrder } from './base-order.interface';
 
 export interface InsuranceOrder extends BaseOrder {
   order_type_id: 2;
@@ -23,4 +23,4 @@ export interface InsuranceOrder extends BaseOrder {
       policy_number: string;
     };
   };
-};
+}

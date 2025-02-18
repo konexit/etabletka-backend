@@ -1,4 +1,4 @@
-import { BaseOrder } from "./base-order.interface";
+import type { BaseOrder } from './base-order.interface';
 
 export interface CommonOrder extends BaseOrder {
   order_type_id: 1;
@@ -21,4 +21,4 @@ export interface CommonOrder extends BaseOrder {
     };
     recipient_order: string;
   };
-};
+}

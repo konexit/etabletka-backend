@@ -1,4 +1,4 @@
-import { BaseOrder } from "./base-order.interface";
+import type { BaseOrder } from './base-order.interface';
 
 export interface ToOrder extends BaseOrder {
   order_type_id: 3;
@@ -10,4 +10,4 @@ export interface ToOrder extends BaseOrder {
   company_info: {
     allow_change_order: boolean;
   };
-};
+}

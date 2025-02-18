@@ -1,9 +1,6 @@
 import { OrderTypes } from 'src/common/config/common.constants';
-import {
-  Column,
-  Entity,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({
   name: 'order_statuses',
