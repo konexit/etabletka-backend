@@ -1,4 +1,10 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  Logger,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
@@ -297,6 +303,42 @@ export class OrderService {
 
     return {
       orders,
+      pagination: { total, take: +take, skip: +skip },
+    };
+  }
+
+  async getOrderStatuses(
+    userId: User['id'],
+    orderId: Order['id'],
+    pagination: PaginationDto = {},
+  ) {
+    const order = await this.orderRepository.findOne({
+      where: {
+        id: orderId,
+      },
+      select: ['tradeOrderId', 'userId'],
+    });
+
+    if (!order) {
+      throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (userId !== order.userId) {
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    }
+
+    const { take = 5, skip = 0 } = pagination;
+
+    const [statuses, total] = await this.orderStatusRepository
+      .createQueryBuilder('order_status')
+      .where('order_status.orderId = :orderId', { orderId: order.tradeOrderId })
+      .orderBy('status_time', 'ASC')
+      .skip(+skip)
+      .take(+take)
+      .getManyAndCount();
+
+    return {
+      statuses,
       pagination: { total, take: +take, skip: +skip },
     };
   }
