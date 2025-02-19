@@ -1,5 +1,5 @@
 import { IsArray, IsNumber } from 'class-validator';
-import { Order } from '../order/entities/order.entity';
+import { Order } from '../entities/order.entity';
 
 export class GetOrdersStatusDto {
   @IsNumber({}, { each: true })

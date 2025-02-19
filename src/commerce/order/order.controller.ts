@@ -17,7 +17,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { JWTPayload } from 'src/common/decorators/jwt-payload';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Order } from './entities/order.entity';
-import { GetOrdersStatusDto } from '../dto/get-orders-status.dto';
+import { GetOrdersStatusDto } from './dto/get-orders-status.dto';
 
 @ApiTags('orders')
 @Controller('api/v1/orders')
