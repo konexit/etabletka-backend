@@ -1,12 +1,13 @@
 import type { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import {
+  Body,
   Controller,
   Get,
   HttpException,
   HttpStatus,
   Inject,
   Param,
-  ParseArrayPipe,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { JWTPayload } from 'src/common/decorators/jwt-payload';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Order } from './entities/order.entity';
+import { GetOrdersStatusDto } from '../dto/get-orders-status.dto';
 
 @ApiTags('orders')
 @Controller('api/v1/orders')
@@ -59,18 +61,20 @@ export class OrderController {
     return cart;
   }
 
-  @Get('/status')
+  @Post('/status')
   @UseGuards(JwtAuthGuard)
   getOrdersStatus(
     @JWTPayload() jwtPayload: JwtPayload,
-    @Query('ids', new ParseArrayPipe({ items: Number, separator: ',' }))
-    ids: Order['id'][],
+    @Body() idsDto: GetOrdersStatusDto,
   ) {
     if (!jwtPayload.userId) {
       throw new HttpException('User access denied', HttpStatus.FORBIDDEN);
     }
 
-    const cart = this.orderService.getOrdersStatus(jwtPayload.userId, ids);
+    const cart = this.orderService.getOrdersStatus(
+      jwtPayload.userId,
+      idsDto.ids,
+    );
 
     return cart;
   }
