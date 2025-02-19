@@ -12,7 +12,7 @@ import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { JWTPayload } from 'src/common/decorators/jwt-payload';
 import type { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
-import type { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @ApiTags('order')
 @Controller('api/v1/order')
