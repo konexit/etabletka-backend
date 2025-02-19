@@ -8,7 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
-import { type Repository, IsNull } from 'typeorm';
+import { type Repository, In, IsNull } from 'typeorm';
 import {
   type Trade,
   TRADE_CODE_ERROR_ALREADY_HAS_BEEN_SAVED,
@@ -34,7 +34,7 @@ import {
   TRADE_SEARCH_STATUS_DESCRIPTION_QUERY,
 } from './order.constants';
 import type { PaginationDto } from 'src/common/dto/pagination.dto';
-import type { User } from 'src/users/user/entities/user.entity';
+import { User } from 'src/users/user/entities/user.entity';
 
 @Injectable()
 export class OrderService {
@@ -341,5 +341,39 @@ export class OrderService {
       statuses,
       pagination: { total, take: +take, skip: +skip },
     };
+  }
+
+  async getOrdersStatus(userId: User['id'], orderIds: Order['id'][]) {
+    const orders = await this.orderRepository.find({
+      where: {
+        id: In(orderIds),
+        userId: userId,
+      },
+      select: ['id', 'tradeOrderId'],
+    });
+
+    const statuses = await this.orderStatusRepository
+      .createQueryBuilder('status')
+      .distinctOn(['status.orderId'])
+      .where('status.orderId IN (:...orderIds)', {
+        orderIds: orders.map((order) => order.tradeOrderId),
+      })
+      .orderBy('status.orderId', 'ASC')
+      .addOrderBy('status.statusTime', 'DESC')
+      .getMany();
+
+    const result: {
+      [key in string]: OrderStatus;
+    } = {};
+
+    for (let i = 0; i < statuses.length; i++) {
+      const orderId = orders.find(
+        (order) => order.tradeOrderId === statuses[i].orderId,
+      ).id;
+
+      result[orderId] = statuses[i];
+    }
+
+    return result;
   }
 }
