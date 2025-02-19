@@ -352,6 +352,10 @@ export class OrderService {
       select: ['id', 'tradeOrderId'],
     });
 
+    if (!orders.length) {
+      throw new HttpException('Orders not found', HttpStatus.NOT_FOUND);
+    }
+
     const statuses = await this.orderStatusRepository
       .createQueryBuilder('status')
       .distinctOn(['status.orderId'])
