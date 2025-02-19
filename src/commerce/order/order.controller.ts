@@ -1,3 +1,4 @@
+import type { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import {
   Controller,
   Get,
@@ -11,17 +12,16 @@ import { OrderService } from './order.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { JWTPayload } from 'src/common/decorators/jwt-payload';
-import type { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 
-@ApiTags('order')
-@Controller('api/v1/order')
+@ApiTags('orders')
+@Controller('api/v1/orders')
 export class OrderController {
   constructor(
     @Inject(OrderService) private readonly orderService: OrderService,
   ) {}
 
-  @Get('/list')
+  @Get('/')
   @UseGuards(JwtAuthGuard)
   getOrders(
     @JWTPayload() jwtPayload: JwtPayload,
