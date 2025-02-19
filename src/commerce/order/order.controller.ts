@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Inject,
   Param,
+  ParseArrayPipe,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -54,6 +55,22 @@ export class OrderController {
       orderId,
       pagination,
     );
+
+    return cart;
+  }
+
+  @Get('/status')
+  @UseGuards(JwtAuthGuard)
+  getOrdersStatus(
+    @JWTPayload() jwtPayload: JwtPayload,
+    @Query('ids', new ParseArrayPipe({ items: Number, separator: ',' }))
+    ids: Order['id'][],
+  ) {
+    if (!jwtPayload.userId) {
+      throw new HttpException('User access denied', HttpStatus.FORBIDDEN);
+    }
+
+    const cart = this.orderService.getOrdersStatus(jwtPayload.userId, ids);
 
     return cart;
   }
