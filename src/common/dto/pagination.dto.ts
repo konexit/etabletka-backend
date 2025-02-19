@@ -4,7 +4,7 @@ import { IsNumber, IsOptional, Min } from 'class-validator';
 export class PaginationDto {
   @IsOptional()
   @IsNumber()
-  @Min(15)
+  @Min(1)
   @Type(() => Number)
   readonly take?: number = 15;
 
