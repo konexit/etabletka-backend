@@ -22,10 +22,7 @@ import { Cache } from 'cache-manager';
     {
       provide: AUTH_PROVIDER_MANAGER,
       inject: [ConfigService, CACHE_MANAGER],
-      useFactory: (
-        configService: ConfigService,
-        cacheManager: Cache,
-      ) => {
+      useFactory: (configService: ConfigService, cacheManager: Cache) => {
         const authProvider = new AuthProvider(configService, cacheManager);
         authProvider.setCredentials(AUTH_PROVIDER_MANAGER, {
           login: configService.get<string>(AUTH_SERVICE_USER_LOGIN),
@@ -38,5 +35,4 @@ import { Cache } from 'cache-manager';
   ],
   exports: [AUTH_PROVIDER_MANAGER],
 })
-
 export class AuthModule {}

@@ -1,11 +1,10 @@
 import * as dayjs from 'dayjs';
 import { Cache } from 'cache-manager';
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import { Credentials, TokenResponse } from './auth.interfaces';
 import { AUTH_SERVICES_URL } from './auth.constants';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class AuthProvider {
@@ -15,7 +14,7 @@ export class AuthProvider {
 
   constructor(
     private readonly configService: ConfigService,
-    @Inject(CACHE_MANAGER) private localCacheManager: Cache,
+    private readonly localCacheManager: Cache,
   ) {
     this.axiosInstance = axios.create({
       baseURL: this.configService.get<string>(AUTH_SERVICES_URL),
