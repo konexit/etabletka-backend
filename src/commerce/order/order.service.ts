@@ -411,14 +411,14 @@ export class OrderService {
 
     type TruncatedProduct = Pick<
       Product,
-      'id' | 'syncId' | 'name' | 'price' | 'cdnData'
+      'id' | 'syncId' | 'name' | 'cdnData'
     >;
 
     const products: TruncatedProduct[] = await this.productrepository.find({
       where: {
         syncId: In(Array.from(productIds)),
       },
-      select: ['id', 'syncId', 'name', 'price', 'cdnData'],
+      select: ['id', 'syncId', 'name', 'cdnData'],
     });
 
     const result: {
