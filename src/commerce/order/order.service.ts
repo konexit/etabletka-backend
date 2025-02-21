@@ -409,12 +409,12 @@ export class OrderService {
       }
     }
 
-    type TruncatedProduct = Pick<
-      Product,
-      'id' | 'syncId' | 'name' | 'cdnData'
-    >;
+    type TruncatedProduct = Pick<Product, 'id' | 'syncId' | 'cdnData'> & {
+        name: string;
+        price: typeof orders[number]['order']['body_list'][number]['price_amount'];
+    };
 
-    const products: TruncatedProduct[] = await this.productrepository.find({
+    const products: Pick<Product, 'id' | 'syncId' | 'cdnData' | 'name'>[] = await this.productrepository.find({
       where: {
         syncId: In(Array.from(productIds)),
       },
@@ -436,9 +436,10 @@ export class OrderService {
         if (!orderProduct) continue;
 
         const serializedOrderProduct = {
-            ...orderProduct,
-            name: orderProduct.name[lang]
-        }
+          ...orderProduct,
+          name: orderProduct.name[lang] as string,
+          price: orders[i].order.body_list[j].price_amount
+        };
 
         orderProducts.push(serializedOrderProduct);
       }
