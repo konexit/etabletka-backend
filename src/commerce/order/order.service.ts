@@ -35,6 +35,7 @@ import {
 } from './order.constants';
 import type { PaginationDto } from 'src/common/dto/pagination.dto';
 import { User } from 'src/users/user/entities/user.entity';
+import { Product } from 'src/products/product/entities/product.entity';
 
 @Injectable()
 export class OrderService {
@@ -48,6 +49,8 @@ export class OrderService {
     private orderStatusRepository: Repository<OrderStatus>,
     @InjectRepository(OrderStatusDescription)
     private orderStatusDescriptionRepository: Repository<OrderStatusDescription>,
+    @InjectRepository(Product)
+    private productrepository: Repository<Product>,
     @Inject(TRADE_PROVIDER_MANAGER) private tradeProvider: TradeProvider,
   ) {}
 
@@ -376,6 +379,73 @@ export class OrderService {
       ).id;
 
       result[orderId] = statuses[i];
+    }
+
+    return result;
+  }
+
+  async getOrdersProducts(
+    userId: User['id'],
+    orderIds: Order['id'][],
+    lang = 'uk',
+  ) {
+    const orders = await this.orderRepository.find({
+      where: {
+        id: In(orderIds),
+        userId: userId,
+      },
+      select: ['id', 'order'],
+    });
+
+    if (!orders.length) {
+      throw new HttpException('Orders not found', HttpStatus.NOT_FOUND);
+    }
+
+    const productIds = new Set();
+
+    for (let i = 0; i < orders.length; i++) {
+      for (let j = 0; j < orders[i].order.body_list.length; j++) {
+        productIds.add(orders[i].order.body_list[j].goods_id);
+      }
+    }
+
+    type TruncatedProduct = Pick<
+      Product,
+      'id' | 'syncId' | 'name' | 'price' | 'cdnData'
+    >;
+
+    const products: TruncatedProduct[] = await this.productrepository.find({
+      where: {
+        syncId: In(Array.from(productIds)),
+      },
+      select: ['id', 'syncId', 'name', 'price', 'cdnData'],
+    });
+
+    const result: {
+      [key in string]: TruncatedProduct[];
+    } = {};
+
+    for (let i = 0; i < orders.length; i++) {
+      const orderProducts: TruncatedProduct[] = [];
+
+      for (let j = 0; j < orders[i].order.body_list.length; j++) {
+        const orderProduct = products.find(
+          (product) => product.syncId === orders[i].order.body_list[j].goods_id,
+        );
+
+        if (!orderProduct) continue;
+
+        const serializedOrderProduct = {
+            ...orderProduct,
+            name: orderProduct.name[lang]
+        }
+
+        orderProducts.push(serializedOrderProduct);
+      }
+
+      if (!orderProducts.length) continue;
+
+      result[orders[i].id] = orderProducts;
     }
 
     return result;

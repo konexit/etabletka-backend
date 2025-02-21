@@ -17,7 +17,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { JWTPayload } from 'src/common/decorators/jwt-payload';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Order } from './entities/order.entity';
-import { GetOrdersStatusDto } from './dto/get-orders-status.dto';
+import { GetByOrderIdsDto } from './dto/get-by-order-ids.dto';
 
 @ApiTags('orders')
 @Controller('api/v1/orders')
@@ -65,17 +65,35 @@ export class OrderController {
   @UseGuards(JwtAuthGuard)
   getOrdersStatus(
     @JWTPayload() jwtPayload: JwtPayload,
-    @Body() idsDto: GetOrdersStatusDto,
+    @Body() idsDto: GetByOrderIdsDto,
   ) {
     if (!jwtPayload.userId) {
       throw new HttpException('User access denied', HttpStatus.FORBIDDEN);
     }
 
-    const cart = this.orderService.getOrdersStatus(
+    const statuses = this.orderService.getOrdersStatus(
       jwtPayload.userId,
       idsDto.ids,
     );
 
-    return cart;
+    return statuses;
+  }
+
+  @Post('/products')
+  @UseGuards(JwtAuthGuard)
+  getOrdersProducts(
+    @JWTPayload() jwtPayload: JwtPayload,
+    @Body() idsDto: GetByOrderIdsDto,
+  ) {
+    if (!jwtPayload.userId) {
+      throw new HttpException('User access denied', HttpStatus.FORBIDDEN);
+    }
+
+    const products = this.orderService.getOrdersProducts(
+      jwtPayload.userId,
+      idsDto.ids,
+    );
+
+    return products;
   }
 }
