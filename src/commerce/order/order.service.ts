@@ -412,6 +412,7 @@ export class OrderService {
     type TruncatedProduct = Pick<Product, 'id' | 'syncId' | 'cdnData'> & {
         name: string;
         price: typeof orders[number]['order']['body_list'][number]['price_amount'];
+        count: typeof orders[number]['order']['body_list'][number]['count'];
     };
 
     const products: Pick<Product, 'id' | 'syncId' | 'cdnData' | 'name'>[] = await this.productrepository.find({
@@ -438,7 +439,8 @@ export class OrderService {
         const serializedOrderProduct = {
           ...orderProduct,
           name: orderProduct.name[lang] as string,
-          price: orders[i].order.body_list[j].price_amount
+          price: orders[i].order.body_list[j].price_amount,
+          count: orders[i].order.body_list[j].count,
         };
 
         orderProducts.push(serializedOrderProduct);
