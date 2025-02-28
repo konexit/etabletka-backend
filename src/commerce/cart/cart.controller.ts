@@ -12,7 +12,7 @@ import {
   ParseIntPipe
 } from '@nestjs/common';
 import { CartService } from './cart.service';
-import { JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
+import { JwtCartResponse, JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
 import { JWTPayload } from 'src/common/decorators/jwt-payload';
 import { OptionalJwtAuthGuard } from 'src/auth/jwt/optional-jwt-auth.guard';
 import { CartCreateDto } from './dto/cart-create.dto';
@@ -31,7 +31,7 @@ export class CartController {
   createCart(
     @JWTPayload() jwtPayload: JwtPayload,
     @Body() cartCreateDto: CartCreateDto,
-  ): Promise<JwtResponse> {
+  ): Promise<JwtCartResponse> {
     return this.cartService.createCart(jwtPayload, cartCreateDto);
   }
 

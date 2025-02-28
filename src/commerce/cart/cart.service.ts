@@ -5,7 +5,7 @@ import { OrderCart } from '../order/entities/order-cart.entity';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { TOKEN_TYPE } from 'src/auth/auth.constants';
-import { JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
+import { JwtCartResponse, JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
 import { ROLE_ANONYMOUS } from 'src/users/role/user-role.constants';
 import { CartCreateDto } from './dto/cart-create.dto';
 import { COMPANY_ETABLETKA_ID, OrderTypes } from 'src/common/config/common.constants';
@@ -21,7 +21,7 @@ export class CartService {
     private jwtService: JwtService,
   ) { }
 
-  async createCart(payload: JwtPayload, cartCreateDto: CartCreateDto): Promise<JwtResponse> {
+  async createCart(payload: JwtPayload, cartCreateDto: CartCreateDto): Promise<JwtCartResponse> {
     const jwtPayload = this.checkEmptyJwtPayload(payload);
 
     const orderCart = this.orderCartRepository.create({
@@ -35,9 +35,15 @@ export class CartService {
       },
     });
 
-    const saved = await this.orderCartRepository.save(orderCart);
+    const { id } = await this.orderCartRepository.save(orderCart);
+    const { access_token, token_type, expires_in } = await this.getCartJwtToken(this.addCartsJwt(jwtPayload, [id]))
 
-    return this.getCartJwtToken(this.addCartsJwt(jwtPayload, [saved.id]));
+    return {
+      access_token,
+      token_type,
+      expires_in,
+      cartId: id,
+    };
   }
 
   async patchCart(payload: JwtPayload, cartUpdateDto: CartUpdateDto): Promise<OrderCart> {

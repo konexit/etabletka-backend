@@ -4,6 +4,10 @@ export interface JwtResponse {
     expires_in: string;
 }
 
+export interface JwtCartResponse extends JwtResponse {
+    cartId: number;
+}
+
 export interface JwtPayload {
     rmbMe: boolean;
     userId?: number;
