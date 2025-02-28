@@ -11,7 +11,8 @@ import {
   ClassSerializerInterceptor,
   Req,
   Query,
-  HttpException
+  HttpException,
+  ParseIntPipe
 } from '@nestjs/common';
 
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -83,12 +84,12 @@ export class UserController {
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('/user/:id')
   async getUserById(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @JWTPayload() jwtPayload: JwtPayload
   ): Promise<User> {
     if (jwtPayload.userId != id) {
       throw new HttpException('User access denied', HttpStatusCode.Forbidden);
     }
-    return this.userService.getUserById(+id);
+    return this.userService.getUserById(id);
   }
 }

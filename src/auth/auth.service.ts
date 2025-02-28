@@ -102,7 +102,8 @@ export class AuthService {
   async getJwtToken(user: User): Promise<JwtResponse> {
     const payload: JwtPayload = {
       userId: user.id,
-      roles: [user.role.role]
+      roles: [user.role.role],
+      carts: []
     };
 
     return {

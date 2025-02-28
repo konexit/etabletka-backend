@@ -1,51 +1,74 @@
-import { Controller, Get, Post, Delete, Param, Body, Inject } from '@nestjs/common';
+import {
+  Controller,
+  Param,
+  Patch,
+  Post,
+  Get,
+  Delete,
+  Body,
+  UseGuards,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+  ParseIntPipe
+} from '@nestjs/common';
 import { CartService } from './cart.service';
-import { CartItem } from 'src/common/types/cart/cart.interface';
-import { TradeProvider, TRADE_PROVIDER_MANAGER } from 'src/providers/trade';
+import { JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
+import { JWTPayload } from 'src/common/decorators/jwt-payload';
+import { OptionalJwtAuthGuard } from 'src/auth/jwt/optional-jwt-auth.guard';
+import { CartCreateDto } from './dto/cart-create.dto';
+import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
+import { OrderCart } from '../order/entities/order-cart.entity';
+import { CartUpdateDto } from './dto/cart-update.dto';
 
-@Controller('cart')
+@Controller('api/v1/cart')
 export class CartController {
   constructor(
-    private readonly cartService: CartService, 
-    @Inject(TRADE_PROVIDER_MANAGER) private tradeProvider: TradeProvider,
-    ) { }
+    private readonly cartService: CartService,
+  ) { }
 
   @Post()
-  createCart(): { cartId: string } {
-    const cartId = this.cartService.createCart();
-    return { cartId };
+  @UseGuards(OptionalJwtAuthGuard)
+  createCart(
+    @JWTPayload() jwtPayload: JwtPayload,
+    @Body() cartCreateDto: CartCreateDto,
+  ): Promise<JwtResponse> {
+    return this.cartService.createCart(jwtPayload, cartCreateDto);
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  getCarts(
+    @JWTPayload() jwtPayload: JwtPayload
+  ): Promise<OrderCart[]> {
+    return this.cartService.getCarts(jwtPayload);
   }
 
   @Get(':cartId')
-  getCart(@Param('cartId') cartId: string) {
-    const cart = this.cartService.getCart(cartId);
-    if (!cart) {
-      return { message: 'Cart not found' };
-    }
-    return cart;
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  getCart(
+    @JWTPayload() jwtPayload: JwtPayload,
+    @Param('cartId', ParseIntPipe) cartId: number,
+  ): Promise<OrderCart> {
+    return this.cartService.getCart(jwtPayload, cartId);
   }
 
-  @Post(':cartId/items')
-  addItemToCart(
-    @Param('cartId') cartId: string,
-    @Body() item: CartItem,
-  ) {
-    const updatedCart = this.cartService.addItemToCart(cartId, item);
-    if (!updatedCart) {
-      return { message: 'Cart not found' };
-    }
-    return updatedCart;
+  @Patch()
+  @UseGuards(JwtAuthGuard)
+  patchCart(
+    @JWTPayload() jwtPayload: JwtPayload,
+    @Body() cartUpdateDto: CartUpdateDto,
+  ): Promise<OrderCart> {
+    return this.cartService.patchCart(jwtPayload, cartUpdateDto);
   }
 
-  @Delete(':cartId/items/:productId')
-  removeItemFromCart(
-    @Param('cartId') cartId: string,
-    @Param('productId') productId: string,
-  ) {
-    const updatedCart = this.cartService.removeItemFromCart(cartId, productId);
-    if (!updatedCart) {
-      return { message: 'Cart not found' };
-    }
-    return updatedCart;
+  @Delete()
+  @UseGuards(JwtAuthGuard)
+  deleteCart(
+    @JWTPayload() jwtPayload: JwtPayload,
+    @Body() cartUpdateDto: CartUpdateDto,
+  ): Promise<JwtResponse> {
+    return this.cartService.deleteCart(jwtPayload, cartUpdateDto);
   }
 }

@@ -23,8 +23,9 @@ import { GetByOrderIdsDto } from './dto/get-by-order-ids.dto';
 @Controller('api/v1/orders')
 export class OrderController {
   constructor(
-    @Inject(OrderService) private readonly orderService: OrderService,
-  ) {}
+    @Inject(OrderService)
+    private readonly orderService: OrderService,
+  ) { }
 
   @Get('/')
   @UseGuards(JwtAuthGuard)
@@ -36,9 +37,7 @@ export class OrderController {
       throw new HttpException('User access denied', HttpStatus.FORBIDDEN);
     }
 
-    const cart = this.orderService.getOrders(jwtPayload.userId, pagination);
-
-    return cart;
+    return this.orderService.getOrders(jwtPayload.userId, pagination);
   }
 
   @Get('/:orderId/statuses')
@@ -52,13 +51,11 @@ export class OrderController {
       throw new HttpException('User access denied', HttpStatus.FORBIDDEN);
     }
 
-    const cart = this.orderService.getOrderStatuses(
+    return this.orderService.getOrderStatuses(
       jwtPayload.userId,
       orderId,
       pagination,
     );
-
-    return cart;
   }
 
   @Post('/status')
@@ -89,11 +86,9 @@ export class OrderController {
       throw new HttpException('User access denied', HttpStatus.FORBIDDEN);
     }
 
-    const products = this.orderService.getOrdersProducts(
+    return this.orderService.getOrdersProducts(
       jwtPayload.userId,
       idsDto.ids,
     );
-
-    return products;
   }
 }

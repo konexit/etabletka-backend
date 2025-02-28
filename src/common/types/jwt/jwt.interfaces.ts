@@ -5,6 +5,9 @@ export interface JwtResponse {
 }
 
 export interface JwtPayload {
-    userId: number;
-    roles: string[];
+    userId?: number;
+    roles?: string[];
+    carts?: number[];
+    exp?: number;
+    iat?: number;
 }

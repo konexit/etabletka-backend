@@ -1,5 +1,4 @@
-import type { OrderJSON } from 'src/common/types/order';
-
+import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -34,8 +33,9 @@ export class OrderCart {
   cityId: number;
 
   @Column({ type: 'jsonb', nullable: true })
-  order: OrderJSON;
+  order: Cart.Order;
 
+  @Exclude()
   @Column({ name: 'move_to_order', default: false })
   moveToOrder: boolean;
 
