@@ -1,15 +1,16 @@
-import { Injectable, Inject, HttpStatus, HttpException } from '@nestjs/common';
+import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { OrderCart } from '../order/entities/order-cart.entity';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { JWT_CART_EXPIRES_IN, JWT_EXPIRES_IN, TOKEN_TYPE } from 'src/auth/auth.constants';
+import { TOKEN_TYPE } from 'src/auth/auth.constants';
 import { JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
 import { ROLE_ANONYMOUS } from 'src/users/role/user-role.constants';
 import { CartCreateDto } from './dto/cart-create.dto';
-import { OrderTypes } from 'src/common/config/common.constants';
+import { COMPANY_ETABLETKA_ID, OrderTypes } from 'src/common/config/common.constants';
 import { CartUpdateDto } from './dto/cart-update.dto';
+import { getJwtExpiresInEnv } from 'src/common/utils/common/jwt';
 
 @Injectable()
 export class CartService {
@@ -27,7 +28,7 @@ export class CartService {
       userId: jwtPayload.userId ?? null,
       orderTypeId: cartCreateDto.orderTypeId ?? OrderTypes.Common,
       storeId: cartCreateDto.storeId ?? null,
-      companyId: cartCreateDto.companyId ?? null,
+      companyId: cartCreateDto.companyId ?? COMPANY_ETABLETKA_ID,
       cityId: cartCreateDto.cityId ?? null,
       order: {
         items: []
@@ -106,6 +107,17 @@ export class CartService {
     return this.getCartJwtToken(this.removeCartsJwt(payload, [cartUpdateDto.cartId]), true);
   }
 
+  async deanonymizationCart(payload: JwtPayload, userId: number): Promise<number[]> {
+    if (payload && payload.carts && payload.carts.length) {
+      await this.orderCartRepository.update(
+        { id: In(payload.carts) },
+        { userId }
+      );
+      return payload.carts;
+    }
+    return [];
+  }
+
   private addCartsJwt(payload: JwtPayload, carts: number[]): JwtPayload {
     const { exp, iat, ...cleanPayload } = payload;
     payload = cleanPayload;
@@ -131,6 +143,7 @@ export class CartService {
   private checkEmptyJwtPayload(payload: JwtPayload): JwtPayload {
     if (!payload) {
       payload = {
+        rmbMe: false,
         roles: [ROLE_ANONYMOUS],
         carts: []
       };
@@ -139,7 +152,7 @@ export class CartService {
   }
 
   private async getCartJwtToken(payload: JwtPayload, reset: boolean = false): Promise<JwtResponse> {
-    const expiresIn = this.configService.get<string>(reset ? JWT_EXPIRES_IN : JWT_CART_EXPIRES_IN);
+    const expiresIn = this.configService.get<string>(getJwtExpiresInEnv(payload.rmbMe, reset));
     return {
       access_token: await this.jwtService.signAsync(payload, { expiresIn }),
       token_type: TOKEN_TYPE,

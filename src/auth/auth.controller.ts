@@ -6,16 +6,18 @@ import {
   HttpCode,
   UseGuards,
   HttpStatus,
-  UseInterceptors,
-  ClassSerializerInterceptor
+  ValidationPipe,
+  UsePipes
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import AuthDto from './dto/auth.dto';
 import { ApiTags } from '@nestjs/swagger';
-import { JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
+import { JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
 import { JwtAuthGuard } from './jwt/jwt-auth.guard';
 import { ActivationCodeDto, ActivationDto } from './dto/activation.dto';
 import { UniqueLoginDto } from 'src/users/user/dto/unique-login.dto';
+import { JWTPayload } from 'src/common/decorators/jwt-payload';
+import { OptionalJwtAuthGuard } from './jwt/optional-jwt-auth.guard';
 
 @ApiTags('auth')
 @Controller('api/v1/auth')
@@ -24,23 +26,29 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async signIn(@Body() authDto: AuthDto): Promise<JwtResponse> {
-    return this.authService.signIn(authDto);
+  @UseGuards(OptionalJwtAuthGuard)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async signIn(
+    @JWTPayload() jwtPayload: JwtPayload,
+    @Body() authDto: AuthDto
+  ): Promise<JwtResponse> {
+    return this.authService.signIn(jwtPayload, authDto);
   }
 
-  @UseInterceptors(ClassSerializerInterceptor)
   @Post('login/check')
   async checkUniqueLogin(@Body() uniqueLoginDto: UniqueLoginDto): Promise<void> {
     return this.authService.checkUniqueLogin(uniqueLoginDto.login);
   }
 
-  @UseInterceptors(ClassSerializerInterceptor)
   @Post('user/activation')
-  async activation(@Body() activationDto: ActivationDto): Promise<JwtResponse> {
-    return this.authService.activation(activationDto.login, activationDto.code);
+  @UseGuards(OptionalJwtAuthGuard)
+  async activation(
+    @JWTPayload() jwtPayload: JwtPayload,
+    @Body() activationDto: ActivationDto
+  ): Promise<JwtResponse> {
+    return this.authService.activation(jwtPayload, activationDto);
   }
 
-  @UseInterceptors(ClassSerializerInterceptor)
   @Post('activation/code')
   async activationCode(@Body() activationCodeDto: ActivationCodeDto): Promise<void> {
     return this.authService.activationCode(activationCodeDto);

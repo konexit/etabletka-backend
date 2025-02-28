@@ -3,14 +3,16 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/users/user/user.service';
+import { CartService } from 'src/commerce/cart/cart.service';
 import { JWT_EXPIRES_IN, SALT, TOKEN_TYPE } from './auth.constants';
 import { JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
 import { User } from 'src/users/user/entities/user.entity';
 import AuthDto from './dto/auth.dto';
 import { generateRandomNumber, getPasswordWithSHA512 } from 'src/common/utils';
 import { USER_ACTIVATION_CODE_DELAY, USER_PASSWORD_ACTIVATION_CODE_SIZE } from 'src/common/config/common.constants';
-import { ActivationCodeDto } from './dto/activation.dto';
+import { ActivationCodeDto, ActivationDto } from './dto/activation.dto';
 import { SMSProvider } from 'src/providers/sms';
+import { getJwtExpiresInEnv } from 'src/common/utils/common/jwt';
 
 @Injectable()
 export class AuthService {
@@ -18,10 +20,11 @@ export class AuthService {
     private configService: ConfigService,
     private jwtService: JwtService,
     private userService: UserService,
+    private cartService: CartService,
     private smsProvider: SMSProvider
   ) { }
 
-  async signIn(authDto: AuthDto): Promise<JwtResponse> {
+  async signIn(payload: JwtPayload, authDto: AuthDto): Promise<JwtResponse> {
     const user = await this.userService.getUserForJwtByLogin(authDto.login);
     if (!user) {
       throw new HttpException(
@@ -39,15 +42,15 @@ export class AuthService {
       );
     }
 
-    return this.getJwtToken(user);
+    return this.getJwtToken(payload, user, authDto.rememberMe ?? false);
   }
 
   async checkUniqueLogin(login: string): Promise<void> {
     return this.userService.checkUniqueLogin(login);
   }
 
-  async activation(login: string, code: string): Promise<JwtResponse> {
-    const user = await this.userService.getUserForJwtByLogin(login, false);
+  async activation(payload: JwtPayload, activationDto: ActivationDto): Promise<JwtResponse> {
+    const user = await this.userService.getUserForJwtByLogin(activationDto.login, false);
     if (!user) {
       throw new HttpException(
         'User with this login does not exist',
@@ -55,7 +58,7 @@ export class AuthService {
       );
     }
 
-    if (user.code !== code) {
+    if (user.code !== activationDto.code) {
       throw new HttpException(
         'User activation code miss match',
         HttpStatus.BAD_REQUEST,
@@ -67,7 +70,7 @@ export class AuthService {
 
     await this.userService.save(user);
 
-    return this.getJwtToken(user);
+    return this.getJwtToken(payload, user, payload?.rmbMe ?? false);
   }
 
   async activationCode(activationCodeDto: ActivationCodeDto): Promise<void> {
@@ -99,17 +102,19 @@ export class AuthService {
     return;
   }
 
-  async getJwtToken(user: User): Promise<JwtResponse> {
-    const payload: JwtPayload = {
+  async getJwtToken(payload: JwtPayload, user: User, rememberMe: boolean = false): Promise<JwtResponse> {
+    const carts = await this.cartService.deanonymizationCart(payload, user.id);
+    const jwtPayload: JwtPayload = {
+      rmbMe: rememberMe,
       userId: user.id,
       roles: [user.role.role],
-      carts: []
+      carts
     };
 
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      access_token: await this.jwtService.signAsync(jwtPayload),
       token_type: TOKEN_TYPE,
-      expires_in: this.configService.get<string>(JWT_EXPIRES_IN)
+      expires_in: this.configService.get<string>(getJwtExpiresInEnv(rememberMe, !!carts.length))
     };
   }
 }

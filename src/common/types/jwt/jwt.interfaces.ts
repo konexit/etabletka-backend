@@ -5,6 +5,7 @@ export interface JwtResponse {
 }
 
 export interface JwtPayload {
+    rmbMe: boolean;
     userId?: number;
     roles?: string[];
     carts?: number[];
