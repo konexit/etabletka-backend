@@ -56,6 +56,7 @@ export class CartController {
 
   @Patch()
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
   patchCart(
     @JWTPayload() jwtPayload: JwtPayload,
     @Body() cartUpdateDto: CartUpdateDto,
@@ -69,6 +70,6 @@ export class CartController {
     @JWTPayload() jwtPayload: JwtPayload,
     @Body() cartUpdateDto: CartUpdateDto,
   ): Promise<JwtResponse> {
-    return this.cartService.deleteCart(jwtPayload, cartUpdateDto);
+    return this.cartService.deleteCart(jwtPayload, cartUpdateDto.cartId);
   }
 }

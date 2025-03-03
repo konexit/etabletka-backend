@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
+import { JwtTokenModule } from './auth/jwt/jwt-token.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
@@ -58,6 +59,7 @@ import { SMSModule } from './providers/sms/sms.module';
       isGlobal: true,
       ttl: 0,
     }),
+    JwtTokenModule,
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot(dataSourceOptions),
     AuthModule,

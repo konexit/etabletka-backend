@@ -1,10 +1,9 @@
 import * as dayjs from 'dayjs';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/users/user/user.service';
 import { CartService } from 'src/commerce/cart/cart.service';
-import { JWT_EXPIRES_IN, SALT, TOKEN_TYPE } from './auth.constants';
+import { SALT } from './auth.constants';
 import { JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
 import { User } from 'src/users/user/entities/user.entity';
 import AuthDto from './dto/auth.dto';
@@ -12,13 +11,13 @@ import { generateRandomNumber, getPasswordWithSHA512 } from 'src/common/utils';
 import { USER_ACTIVATION_CODE_DELAY, USER_PASSWORD_ACTIVATION_CODE_SIZE } from 'src/common/config/common.constants';
 import { ActivationCodeDto, ActivationDto } from './dto/activation.dto';
 import { SMSProvider } from 'src/providers/sms';
-import { getJwtExpiresInEnv } from 'src/common/utils/common/jwt';
+import { JwtTokenService } from './jwt/jwt-token.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private configService: ConfigService,
-    private jwtService: JwtService,
+    private jwtTokenService: JwtTokenService,
     private userService: UserService,
     private cartService: CartService,
     private smsProvider: SMSProvider
@@ -103,7 +102,7 @@ export class AuthService {
   }
 
   async getJwtToken(payload: JwtPayload, user: User, rememberMe: boolean = false): Promise<JwtResponse> {
-    const carts = await this.cartService.deanonymizationCart(payload, user.id);
+    const carts = await this.cartService.associateCartsWithUser(payload, user.id);
     const jwtPayload: JwtPayload = {
       rmbMe: rememberMe,
       userId: user.id,
@@ -111,10 +110,6 @@ export class AuthService {
       carts
     };
 
-    return {
-      access_token: await this.jwtService.signAsync(jwtPayload),
-      token_type: TOKEN_TYPE,
-      expires_in: this.configService.get<string>(getJwtExpiresInEnv(rememberMe, !!carts.length))
-    };
+    return this.jwtTokenService.generateToken(jwtPayload, !!carts.length);
   }
 }
