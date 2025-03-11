@@ -10,27 +10,27 @@ export enum TradeOrderMode {
     Forward = 'forward'
 };
 
-export enum OrderChangeAutoApliedMode {
+export enum TradeOrderChangeAutoApliedMode {
     All = 'all',
     None = 'none',
     Pharmacy = 'pharmacy',
     Aggregator = 'aggregator'
 };
 
-export enum OrderChangeType {
+export enum TradeOrderChangeType {
     Head = 'head',
     BodyList = 'body_list',
     StatusCode = 'status_code',
     Comment = 'comment'
 };
 
-export enum OrderChangeActionType {
+export enum TradeOrderChangeActionType {
     Update = 'update',
     Add = 'add',
     Delete = 'delete'
 };
 
-export enum StateOrderPickOption {
+export enum TradeStateOrderPickOption {
     One = 'one',
     Many = 'many'
 };

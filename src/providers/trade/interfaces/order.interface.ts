@@ -23,13 +23,13 @@ export interface TradeErrorOrder extends TradeBaseOrder {
   message: string;
 }
 
-export interface OrdersResponse {
+export interface TradeOrdersResponse {
   handled_orders: TradeHandledOrder[];
   error_orders: TradeErrorOrder[];
 }
 
 
-export interface IOrdersOptions {
+export interface ITradeOrdersOptions {
   orderType: number;
   action: string;
 }

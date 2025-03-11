@@ -1,11 +1,11 @@
 import { BodyList, OrderJSON } from "src/common/types/order";
-import { OrderChangeType, OrderChangeActionType, OrderChangeAutoApliedMode } from "../trade.constants";
+import { TradeOrderChangeType, TradeOrderChangeActionType, TradeOrderChangeAutoApliedMode } from "../trade.constants";
 
 type OrderChangeActionMap = {
-  head: OrderChangeActionType.Update;
-  body_list: OrderChangeActionType;
-  status_code: OrderChangeActionType.Update;
-  comment: OrderChangeActionType.Update;
+  head: TradeOrderChangeActionType.Update;
+  body_list: TradeOrderChangeActionType;
+  status_code: TradeOrderChangeActionType.Update;
+  comment: TradeOrderChangeActionType.Update;
 };
 
 type OrderChangePayloadMap = {
@@ -15,7 +15,7 @@ type OrderChangePayloadMap = {
   comment: { comment: string; };
 };
 
-interface OrderChange<T extends OrderChangeType> {
+interface OrderChange<T extends TradeOrderChangeType> {
   type: T;
   action: OrderChangeActionMap[T];
   payload: OrderChangePayloadMap[T];
@@ -27,6 +27,6 @@ export interface TradeOrderChange {
   trade_pnt_id: number;
   order_status: string;
   aggregator_order_id: string;
-  auto_applied: OrderChangeAutoApliedMode;
-  changes: Array<OrderChange<OrderChangeType>>;
+  auto_applied: TradeOrderChangeAutoApliedMode;
+  changes: Array<OrderChange<TradeOrderChangeType>>;
 }

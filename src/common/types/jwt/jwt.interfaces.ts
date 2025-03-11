@@ -11,7 +11,7 @@ export interface JwtCartResponse extends JwtResponse {
 export interface JwtCheckoutResponse extends JwtResponse {
     cartId: number;
     aggregatorOrderId: number;
-    tradeOrderId: number;
+    tradeOrderId: number | null;
     bookingDate: string;
 }
 

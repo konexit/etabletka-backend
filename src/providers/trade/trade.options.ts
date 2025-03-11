@@ -1,9 +1,9 @@
-import { IStateOrdersOptions } from "./interfaces";
-import { StateOrderPickOption } from "./trade.constants";
+import { ITradeStateOrdersOptions } from "./interfaces";
+import { TradeStateOrderPickOption } from "./trade.constants";
 
-export class StateOrdersOptions implements IStateOrdersOptions {
+export class StateOrdersOptions implements ITradeStateOrdersOptions {
   constructor(
-    public pick: StateOrderPickOption,
+    public pick: TradeStateOrderPickOption,
     public limit: number,
     public orderTypes: number[] = [],
     public tradePoints: number[] = []

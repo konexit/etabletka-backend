@@ -12,15 +12,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
 import { type Repository, In, IsNull } from 'typeorm';
 import {
-  type Trade,
   TRADE_CODE_ERROR_ALREADY_HAS_BEEN_SAVED,
   TRADE_PROVIDER_MANAGER,
   type TradeProvider,
   type TradeOrders,
   TradeOrderMode,
-  StateOrderPickOption,
+  TradeStateOrderPickOption,
   StateOrdersOptions,
   TRADE_STATE_ORDER_LIMIT_DEFAULT,
+  TradeOrderStatusDescription,
+  TradeOrdersResponse,
 } from 'src/providers/trade';
 import { Order } from './entities/order.entity';
 import { OrderStatus } from './entities/order-status.entity';
@@ -187,7 +188,7 @@ export class OrderService {
     try {
       const stateOrders = await this.tradeProvider.getStateOrders(
         new StateOrdersOptions(
-          StateOrderPickOption.One,
+          TradeStateOrderPickOption.One,
           this.configService.get<number>(
             ORDER_STATE_RECEIVER_LIMIT,
             TRADE_STATE_ORDER_LIMIT_DEFAULT,
@@ -265,9 +266,7 @@ export class OrderService {
   })
   async processOrderStatusDescription(): Promise<void> {
     try {
-      const statusDescriptions = await this.tradeProvider.search<
-        Trade.OrderStatusDescription[]
-      >({
+      const statusDescriptions = await this.tradeProvider.search<TradeOrderStatusDescription[]>({
         query: TRADE_SEARCH_STATUS_DESCRIPTION_QUERY,
       });
 
@@ -546,15 +545,38 @@ export class OrderService {
           targetOrder = this.tradeProvider.createToOrderBuilder().build();
           break;
         default:
+          await this.orderRepository.update(savedOrder.id, { sentStatus: SentStatus.FAILED });
           throw new NotFoundException(`Order type ${cart.orderTypeId} is not supported`);
       }
 
       await this.orderRepository.update(savedOrder.id, { order: targetOrder });
 
-      const response = await this.tradeProvider.createOrders(
-        { orders: [{ tradeOrderId: 0, aggregatorOrderId: String(savedOrder.id), order: targetOrder }] },
-        { orderType: cart.orderTypeId, action: TradeOrderMode.Forward }
-      );
+      let response: TradeOrdersResponse;
+      try {
+        response = await this.tradeProvider.createOrders(
+          { orders: [{ tradeOrderId: 0, aggregatorOrderId: String(savedOrder.id), order: targetOrder }] },
+          { orderType: cart.orderTypeId, action: TradeOrderMode.Forward }
+        );
+
+      } catch (error) {
+        this.logger.error(error);
+
+        await this.orderRepository.update(savedOrder.id, { sentStatus: SentStatus.PENDING });
+        await this.orderCartRepository.remove(cart);
+
+        const token = await this.jwtTokenService.generateToken(
+          this.jwtTokenService.removeCartsFromJwt(jwtPayload, [checkoutDto.cartId]),
+          !!jwtPayload.carts.length
+        );
+
+        return {
+          ...token,
+          cartId: checkoutDto.cartId,
+          aggregatorOrderId: savedOrder.id,
+          tradeOrderId: null,
+          bookingDate: expiration,
+        };
+      }
 
       for (const order of response.handled_orders) {
         await this.orderRepository.update(order.aggregatorOrderId, {

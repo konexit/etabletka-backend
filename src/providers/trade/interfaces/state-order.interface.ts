@@ -1,9 +1,9 @@
-import { StateOrderPickOption } from "../trade.constants";
+import { TradeStateOrderPickOption } from "../trade.constants";
 import { TradeOrderChange } from "./change.interface";
 import { TradeOrderStatus } from "./status.interface";
 
-export interface IStateOrdersOptions {
-  pick: StateOrderPickOption;
+export interface ITradeStateOrdersOptions {
+  pick: TradeStateOrderPickOption;
   limit: number;
   orderTypes?: number[];
   tradePoints?: number[];
@@ -11,17 +11,17 @@ export interface IStateOrdersOptions {
   getQueryParams(): string;
 }
 
-export interface StateOrdersResponse {
+export interface TradeStateOrdersResponse {
   changed_orders: TradeOrderChange[];
   statuses: TradeOrderStatus[];
 }
 
-export interface IStateOrdersAppliedOptions {
+export interface ITradeStateOrdersAppliedOptions {
   handled_statuses_ids: number[];
   handled_change_ids: number[];
 }
 
-export interface StateOrdersAppliedResponse {
+export interface TradeStateOrdersAppliedResponse {
   applied_statuses: boolean;
   applied_changes: boolean;
 }

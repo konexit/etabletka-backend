@@ -12,13 +12,13 @@ import {
   ToOrderBuilder
 } from './services';
 import {
-  OrdersResponse,
-  IOrdersOptions,
+  TradeOrdersResponse,
+  ITradeOrdersOptions,
   TradeOrders,
-  IStateOrdersOptions,
-  StateOrdersResponse,
-  StateOrdersAppliedResponse,
-  IStateOrdersAppliedOptions,
+  ITradeStateOrdersOptions,
+  TradeStateOrdersResponse,
+  TradeStateOrdersAppliedResponse,
+  ITradeStateOrdersAppliedOptions,
   ISearchOptions
 } from './interfaces';
 
@@ -95,23 +95,23 @@ export class TradeProvider {
     );
   }
 
-  async createOrders(orders: TradeOrders, options: IOrdersOptions): Promise<OrdersResponse> {
-    const response = await this.axiosInstance.post<OrdersResponse>(
+  async createOrders(orders: TradeOrders, options: ITradeOrdersOptions): Promise<TradeOrdersResponse> {
+    const response = await this.axiosInstance.post<TradeOrdersResponse>(
       `${this.apiVersion}/companies/orders/${options.orderType}?action=${options.action}`,
       orders
     );
     return response.data;
   }
 
-  async getStateOrders(options: IStateOrdersOptions): Promise<StateOrdersResponse> {
-    const response = await this.axiosInstance.get<StateOrdersResponse>(
+  async getStateOrders(options: ITradeStateOrdersOptions): Promise<TradeStateOrdersResponse> {
+    const response = await this.axiosInstance.get<TradeStateOrdersResponse>(
       `${this.apiVersion}/companies/orders/state${options.getQueryParams()}`
     );
     return response.data;
   }
 
-  async applyStateOrders(options: IStateOrdersAppliedOptions): Promise<StateOrdersAppliedResponse> {
-    const response = await this.axiosInstance.post<StateOrdersAppliedResponse>(
+  async applyStateOrders(options: ITradeStateOrdersAppliedOptions): Promise<TradeStateOrdersAppliedResponse> {
+    const response = await this.axiosInstance.post<TradeStateOrdersAppliedResponse>(
       `${this.apiVersion}/companies/orders/state/applied`,
       options
     );
