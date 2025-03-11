@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Product } from 'src/products/product/entities/product.entity';
 import { Store } from 'src/stores/store/entities/store.entity';
+import { Transform } from 'class-transformer';
 
 @Entity({
   name: 'product_remnants',
@@ -26,6 +27,7 @@ export class ProductRemnant {
   storeId: number;
 
   @Column({ type: 'decimal', precision: 1000, scale: 3, default: 0 })
+  @Transform(({ value }) => Number.parseFloat(value))
   quantity: number;
 
   @Column({ name: 'active', default: true })
