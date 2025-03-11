@@ -557,7 +557,6 @@ export class OrderService {
           { orders: [{ tradeOrderId: 0, aggregatorOrderId: String(savedOrder.id), order: targetOrder }] },
           { orderType: cart.orderTypeId, action: TradeOrderMode.Forward }
         );
-
       } catch (error) {
         this.logger.error(error);
 
