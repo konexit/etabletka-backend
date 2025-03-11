@@ -1,9 +1,16 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { AUTH_PROVIDER_MANAGER, AuthProvider } from '../auth';
 import { ConfigService } from '@nestjs/config';
-import axios, { AxiosInstance } from 'axios';
-import { OrderService, OrderStatusService } from './services';
 import { TRADE_SERVICES_URL } from './trade.constants';
+import axios, { AxiosInstance } from 'axios';
+import {
+  BodyListBuilder,
+  CommonOrderBuilder,
+  InsuranceOrderBuilder,
+  OrderService,
+  OrderStatusService,
+  ToOrderBuilder
+} from './services';
 import {
   OrdersResponse,
   IOrdersOptions,
@@ -117,6 +124,22 @@ export class TradeProvider {
       options
     );
     return response.data;
+  }
+
+  createCommonBodyListBuilder(): BodyListBuilder {
+    return this.orderService.createCommonBodyListBuilder();
+  }
+
+  createCommonOrderBuilder(): CommonOrderBuilder {
+    return this.orderService.createCommonOrderBuilder();
+  }
+
+  createInsuranceOrderBuilder(): InsuranceOrderBuilder {
+    return this.orderService.createInsuranceOrderBuilder();
+  }
+
+  createToOrderBuilder(): ToOrderBuilder {
+    return this.orderService.createToOrderBuilder();
   }
 }
 

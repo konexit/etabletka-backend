@@ -1,4 +1,4 @@
-import type { OrderJSON } from 'src/common/types/order';
+import { OrderJSON, SentStatus } from 'src/common/types/order';
 
 import {
   Column,
@@ -38,6 +38,9 @@ export class Order {
 
   @Column({ name: 'integration_time', type: 'timestamp', nullable: true })
   integrationTime: Date;
+
+  @Column({ name: 'sent_status', type: 'enum', enum: SentStatus, default: SentStatus.PENDING })
+  sentStatus: SentStatus;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

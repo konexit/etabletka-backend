@@ -35,10 +35,6 @@ export class OrderCart {
   @Column({ type: 'jsonb', nullable: true })
   order: Cart.Order;
 
-  @Exclude()
-  @Column({ name: 'move_to_order', default: false })
-  moveToOrder: boolean;
-
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 

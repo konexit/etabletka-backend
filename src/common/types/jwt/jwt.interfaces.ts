@@ -8,6 +8,13 @@ export interface JwtCartResponse extends JwtResponse {
     cartId: number;
 }
 
+export interface JwtCheckoutResponse extends JwtResponse {
+    cartId: number;
+    aggregatorOrderId: number;
+    tradeOrderId: number;
+    bookingDate: string;
+}
+
 export interface JwtPayload {
     rmbMe: boolean;
     userId?: number;

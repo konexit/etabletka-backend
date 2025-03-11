@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class OrderStatusService {
-    constructor(
-        private readonly configService: ConfigService,
-    ) { }
+  constructor(
+    private readonly configService: ConfigService,
+  ) { }
 }

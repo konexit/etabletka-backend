@@ -1,4 +1,4 @@
-import type { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
+import type { JwtCheckoutResponse, JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import {
   Body,
   Controller,
@@ -18,14 +18,24 @@ import { JWTPayload } from 'src/common/decorators/jwt-payload';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Order } from './entities/order.entity';
 import { GetByOrderIdsDto } from './dto/get-by-order-ids.dto';
+import { CheckoutDto } from './dto/checkout.dto';
 
-@ApiTags('orders')
-@Controller('api/v1/orders')
+@ApiTags('order')
+@Controller('api/v1/order')
 export class OrderController {
   constructor(
     @Inject(OrderService)
     private readonly orderService: OrderService,
   ) { }
+
+  @Post('checkout')
+  @UseGuards(JwtAuthGuard)
+  async checkout(
+    @JWTPayload() jwtPayload: JwtPayload,
+    @Body() checkoutDto: CheckoutDto
+  ): Promise<JwtCheckoutResponse> {
+    return this.orderService.createOrderFromCart(jwtPayload, checkoutDto);
+  }
 
   @Get('/')
   @UseGuards(JwtAuthGuard)

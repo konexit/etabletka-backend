@@ -7,3 +7,9 @@ export { BodyList } from './order-body-list.interface';
 export { OrderStatus } from './order-statuses.interface';
 export type OrderJSON = CommonOrder | InsuranceOrder | ToOrder;
 export type OrderStatusesJSON = OrderStatus[];
+export enum SentStatus {
+  PENDING = 'pending',
+  SENT = 'sent',
+  FAILED = 'failed',
+  IN_PROGRESS = 'in_progress',
+}
