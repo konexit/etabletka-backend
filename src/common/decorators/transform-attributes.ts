@@ -78,17 +78,11 @@ export function TransformAttributes(
                     });
                   }
                   return acc;
-                },
-                  initialValueTypeViewsObject(),
-                );
-              if (
-                result.attributes[priceConfig.denominatorKey] &&
-                result.attributes[priceConfig.wholeKey] &&
-                result.attributes[priceConfig.partKey]
-              ) {
-                prepareResult.price.denominator = +result.attributes[priceConfig.denominatorKey]?.name?.[lang];
-                prepareResult.price.wholeName = result.attributes[priceConfig.wholeKey]?.name?.[lang];
-                prepareResult.price.partName = result.attributes[priceConfig.partKey]?.name?.[lang];
+                }, initialValueTypeViewsObject());
+              if (result.attributes[priceConfig.denominatorKey] && result.attributes[priceConfig.wholeKey] && result.attributes[priceConfig.partKey]) {
+                prepareResult.price.denominator = +(result.attributes[priceConfig.denominatorKey]?.name?.[lang] ?? 1);
+                prepareResult.price.wholeName = result.attributes[priceConfig.wholeKey]?.name?.[lang] ?? '';
+                prepareResult.price.partName = result.attributes[priceConfig.partKey]?.name?.[lang] ?? '';
               }
               result.attributes = prepareResult;
             }
