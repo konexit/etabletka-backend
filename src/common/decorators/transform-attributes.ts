@@ -67,13 +67,16 @@ export function TransformAttributes(
                 .keys(result.attributes)
                 .reduce((acc, key) => {
                   const value = getValueByLang(result.attributes[key], lang);
-                  attributes[key].sectionViews.forEach((view) => {
-                    acc[view].push({
-                      name: attributes[key]?.name?.[lang],
-                      order: attributes[key]?.order,
-                      value
-                    })
-                  });
+                  const attr = attributes[key];
+                  if (attr) {
+                    attr.sectionViews.forEach((view) => {
+                      acc[view].push({
+                        name: attributes[key]?.name?.[lang],
+                        order: attributes[key]?.order,
+                        value
+                      })
+                    });
+                  }
                   return acc;
                 },
                   initialValueTypeViewsObject(),
