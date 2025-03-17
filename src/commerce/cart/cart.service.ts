@@ -58,7 +58,7 @@ export class CartService {
     if (!payload.carts?.length) {
       throw new HttpException('Carts not found', HttpStatus.NOT_FOUND);
     }
-    return this.orderCartRepository.find({ where: { id: In(payload.carts) } });
+    return this.orderCartRepository.find({ where: { id: In(payload.carts) }, order: { id: 'ASC' } });
   }
 
   async deleteCart(payload: JwtPayload, cartId: number): Promise<JwtResponse> {
