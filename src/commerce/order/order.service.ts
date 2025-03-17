@@ -31,7 +31,9 @@ import {
   COMPANY_MARKETPLACE,
   COMPANY_ORDER_COMPANY_INFO,
   COMPANY_ORDER_DATE_FORMAT,
-  OrderTypes
+  OrderTypes,
+  PaymentStatus,
+  PaymentType
 } from 'src/common/config/common.constants';
 import {
   ORDER_ASYNC_SENDER_SCHEDULER,
@@ -45,6 +47,7 @@ import {
 import type { PaginationDto } from 'src/common/dto/pagination.dto';
 import { User } from 'src/users/user/entities/user.entity';
 import { Product } from 'src/products/product/entities/product.entity';
+import { Store } from 'src/stores/store/entities/store.entity';
 import { CheckoutDto } from './dto/checkout.dto';
 import { JwtCheckoutResponse, JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { JwtTokenService } from 'src/auth/jwt/jwt-token.service';
@@ -71,6 +74,8 @@ export class OrderService {
     private orderStatusDescriptionRepository: Repository<OrderStatusDescription>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(Store)
+    private storeRepository: Repository<Store>,
     @InjectRepository(OrderCart)
     private orderCartRepository: Repository<OrderCart>,
     @Inject(TRADE_PROVIDER_MANAGER)
@@ -479,9 +484,15 @@ export class OrderService {
 
       const integrationTime = new Date();
       const orderTime = dayjs();
+      let rowId = 1;
       let tradeOrderId = 0;
       let orderAmountSum = 0;
       const bodyList: BodyList[] = [];
+
+      const tradePoint = await this.storeRepository.findOne({ where: { id: cart.storeId }, select: ['syncId'] });
+      if (!tradePoint) {
+        throw new NotFoundException(`Store with ID ${cart.storeId} not found`);
+      }
 
       for (const item of cart.order.items) {
         const product = await this.productRepository.findOne({ where: { id: item.id } });
@@ -495,7 +506,7 @@ export class OrderService {
         bodyList.push(
           this.tradeProvider
             .createCommonBodyListBuilder()
-            .setRowId(item.id)
+            .setRowId(rowId)
             .setName(product.name['uk'])
             .setProducer(product.attributes['manufacturer']?.name?.uk || 'unknown')
             .setCount(item.quantity)
@@ -504,6 +515,7 @@ export class OrderService {
             .setPriceAmount(priceAmount)
             .build()
         );
+        rowId++;
       }
 
       const order = this.orderRepository.create({
@@ -534,15 +546,19 @@ export class OrderService {
             .setClientInfo(checkoutDto.clientInfo)
             .setCompanyInfo(COMPANY_ORDER_COMPANY_INFO)
             .setDeliveryInfo({ delivery_type_id: 0, delivery_status_id: 0 })
-            .setPaymentInfo({ payment_type_id: 4, payment_status_id: 1 })
-            .setTradePointId(cart.storeId)
+            .setPaymentInfo({ payment_type_id: PaymentType.Cash, payment_status_id: PaymentStatus.Pending })
+            .setTradePointId(tradePoint.syncId)
             .build();
           break;
         case OrderTypes.Insurance:
-          targetOrder = this.tradeProvider.createInsuranceOrderBuilder().build();
+          targetOrder = this.tradeProvider
+            .createInsuranceOrderBuilder()
+            .build();
           break;
         case OrderTypes.ToOrder:
-          targetOrder = this.tradeProvider.createToOrderBuilder().build();
+          targetOrder = this.tradeProvider
+            .createToOrderBuilder()
+            .build();
           break;
         default:
           await this.orderRepository.update(savedOrder.id, { sentStatus: SentStatus.FAILED });

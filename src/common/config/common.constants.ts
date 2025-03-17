@@ -17,6 +17,26 @@ export const COMPANY_ORDER_COMPANY_INFO = {
 
 export const JWT_DEFAULT_EXPIRES_IN = '3600s';
 
+export enum PaymentStatus {
+  Pending = 1,
+  Paid = 2,
+  Refunded = 3,
+  Canceled = 4
+}
+
+export enum PaymentType {
+  Card = 1,
+  Credit = 2,
+  Check = 3,
+  Cash = 4,
+  Certificate = 5,
+  Voucher = 6,
+  EMoney = 7,
+  InsurancePayout = 8,
+  Prepayment = 9,
+  Payment = 10
+}
+
 export enum OrderTypes {
   Common = 1,
   Insurance = 2,
