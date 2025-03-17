@@ -79,8 +79,10 @@ export class CartService {
   async associateCartsWithUser(payload: JwtPayload, userId: number): Promise<number[]> {
     if (payload?.carts?.length) {
       await this.orderCartRepository.update({ id: In(payload.carts) }, { userId });
-      return payload.carts;
     }
-    return [];
+
+    const userCarts = await this.orderCartRepository.find({ where: { userId }, select: ['id'] });
+
+    return userCarts.map(cart => cart.id);
   }
 }

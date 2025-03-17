@@ -34,7 +34,8 @@ export class TradeProvider {
     private readonly configService: ConfigService,
     private readonly orderService: OrderService,
     private readonly orderStatusService: OrderStatusService,
-    @Inject(AUTH_PROVIDER_MANAGER) private readonly authProvider: AuthProvider
+    @Inject(AUTH_PROVIDER_MANAGER) 
+    private readonly authProvider: AuthProvider
   ) {
     this.axiosInstance = axios.create({
       baseURL: this.configService.get<string>(TRADE_SERVICES_URL),
