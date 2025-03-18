@@ -19,16 +19,16 @@ export class CartService {
   async createCart(payload: JwtPayload, cartCreateDto: CartCreateDto): Promise<JwtCartResponse> {
     const jwtPayload = this.jwtTokenService.ensureJwtPayload(payload);
 
-    const orderCart = this.orderCartRepository.create({
+    const cart = this.orderCartRepository.create({
       userId: jwtPayload.userId ?? null,
       orderTypeId: cartCreateDto.orderTypeId ?? OrderTypes.Common,
       storeId: cartCreateDto.storeId ?? null,
       companyId: cartCreateDto.companyId ?? COMPANY_ETABLETKA_ID,
       cityId: cartCreateDto.cityId ?? null,
-      order: { items: [] },
+      order: cartCreateDto.order ?? { items: [] },
     });
 
-    const { id } = await this.orderCartRepository.save(orderCart);
+    const { id } = await this.orderCartRepository.save(cart);
     const token = await this.jwtTokenService.generateToken(
       this.jwtTokenService.addCartsToJwt(jwtPayload, [id]),
       true

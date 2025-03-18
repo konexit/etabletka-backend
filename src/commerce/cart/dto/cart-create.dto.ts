@@ -1,4 +1,6 @@
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsNumber, IsOptional, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { CartOrderDto } from './cart-order.dto';
 
 export class CartCreateDto {
 	@IsOptional()
@@ -16,4 +18,9 @@ export class CartCreateDto {
 	@IsOptional()
 	@IsNumber()
 	cityId?: number;
+
+	@IsOptional()
+	@ValidateNested()
+	@Type(() => CartOrderDto)
+	order?: CartOrderDto;
 }
