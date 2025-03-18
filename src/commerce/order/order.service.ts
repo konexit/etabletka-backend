@@ -33,7 +33,7 @@ import {
   COMPANY_ORDER_DATE_FORMAT,
   OrderTypes,
   PaymentStatus,
-  PaymentType
+  PaymentType,
 } from 'src/common/config/common.constants';
 import {
   ORDER_ASYNC_SENDER_SCHEDULER,
@@ -49,14 +49,13 @@ import { User } from 'src/users/user/entities/user.entity';
 import { Product } from 'src/products/product/entities/product.entity';
 import { Store } from 'src/stores/store/entities/store.entity';
 import { CheckoutDto } from './dto/checkout.dto';
-import { JwtCheckoutResponse, JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
+import {
+  JwtCheckoutResponse,
+  JwtPayload,
+} from 'src/common/types/jwt/jwt.interfaces';
 import { JwtTokenService } from 'src/auth/jwt/jwt-token.service';
 import { OrderCart } from './entities/order-cart.entity';
-import {
-  BodyList,
-  OrderJSON,
-  SentStatus
-} from 'src/common/types/order';
+import { BodyList, OrderJSON, SentStatus } from 'src/common/types/order';
 
 @Injectable()
 export class OrderService {
@@ -79,8 +78,8 @@ export class OrderService {
     @InjectRepository(OrderCart)
     private orderCartRepository: Repository<OrderCart>,
     @Inject(TRADE_PROVIDER_MANAGER)
-    private tradeProvider: TradeProvider
-  ) { }
+    private tradeProvider: TradeProvider,
+  ) {}
 
   @Cron(process.env[ORDER_ASYNC_SENDER_SCHEDULER] || '0 * * * * *', {
     name: 'asynchronously sending order to trade',
@@ -94,8 +93,8 @@ export class OrderService {
       const orders = await this.orderRepository.find({
         where: {
           integrationTime: IsNull(),
-          sentStatus: SentStatus.PENDING
-        }
+          sentStatus: SentStatus.PENDING,
+        },
       });
 
       if (!orders.length) {
@@ -136,11 +135,14 @@ export class OrderService {
 
           for (const order of response.handled_orders) {
             try {
-              await this.orderRepository.update(Number(order.aggregatorOrderId), {
-                integrationTime,
-                sentStatus: SentStatus.SENT,
-                tradeOrderId: order.tradeOrderId,
-              });
+              await this.orderRepository.update(
+                Number(order.aggregatorOrderId),
+                {
+                  integrationTime,
+                  sentStatus: SentStatus.SENT,
+                  tradeOrderId: order.tradeOrderId,
+                },
+              );
               this.logger.log(
                 `order id: ${order.aggregatorOrderId}, trade id: ${order.tradeOrderId} successfully sent`,
               );
@@ -154,11 +156,14 @@ export class OrderService {
           for (const order of response.error_orders) {
             if (order.codeError === TRADE_CODE_ERROR_ALREADY_HAS_BEEN_SAVED) {
               try {
-                await this.orderRepository.update(Number(order.aggregatorOrderId), {
-                  integrationTime,
-                  sentStatus: SentStatus.SENT,
-                  tradeOrderId: order.tradeOrderId,
-                });
+                await this.orderRepository.update(
+                  Number(order.aggregatorOrderId),
+                  {
+                    integrationTime,
+                    sentStatus: SentStatus.SENT,
+                    tradeOrderId: order.tradeOrderId,
+                  },
+                );
                 this.logger.log(
                   `order id: ${order.aggregatorOrderId}, trade id: ${order.tradeOrderId} successfully sent`,
                 );
@@ -271,7 +276,9 @@ export class OrderService {
   })
   async processOrderStatusDescription(): Promise<void> {
     try {
-      const statusDescriptions = await this.tradeProvider.search<TradeOrderStatusDescription[]>({
+      const statusDescriptions = await this.tradeProvider.search<
+        TradeOrderStatusDescription[]
+      >({
         query: TRADE_SEARCH_STATUS_DESCRIPTION_QUERY,
       });
 
@@ -310,6 +317,23 @@ export class OrderService {
         error.message,
       );
     }
+  }
+
+  async getOrder(userId: User['id'], orderId: Order['id']) {
+    const order = await this.orderRepository
+      .createQueryBuilder('order')
+      .where('order.id = :orderId', { orderId })
+      .getOne();
+
+    if (!order) {
+      throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (userId !== order.userId) {
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    }
+
+    return order;
   }
 
   async getOrders(userId: User['id'], pagination: PaginationDto = {}) {
@@ -430,16 +454,17 @@ export class OrderService {
 
     type TruncatedProduct = Pick<Product, 'id' | 'syncId' | 'cdnData'> & {
       name: string;
-      price: typeof orders[number]['order']['body_list'][number]['price_amount'];
-      count: typeof orders[number]['order']['body_list'][number]['count'];
+      price: (typeof orders)[number]['order']['body_list'][number]['price_amount'];
+      count: (typeof orders)[number]['order']['body_list'][number]['count'];
     };
 
-    const products: Pick<Product, 'id' | 'syncId' | 'cdnData' | 'name'>[] = await this.productRepository.find({
-      where: {
-        syncId: In(Array.from(productIds)),
-      },
-      select: ['id', 'syncId', 'name', 'cdnData'],
-    });
+    const products: Pick<Product, 'id' | 'syncId' | 'cdnData' | 'name'>[] =
+      await this.productRepository.find({
+        where: {
+          syncId: In(Array.from(productIds)),
+        },
+        select: ['id', 'syncId', 'name', 'cdnData'],
+      });
 
     const result: {
       [key in string]: TruncatedProduct[];
@@ -473,13 +498,20 @@ export class OrderService {
     return result;
   }
 
-  async createOrderFromCart(jwtPayload: JwtPayload, checkoutDto: CheckoutDto): Promise<JwtCheckoutResponse> {
+  async createOrderFromCart(
+    jwtPayload: JwtPayload,
+    checkoutDto: CheckoutDto,
+  ): Promise<JwtCheckoutResponse> {
     try {
       this.jwtTokenService.validateCartAccess(jwtPayload, checkoutDto.cartId);
 
-      const cart = await this.orderCartRepository.findOneBy({ id: checkoutDto.cartId });
+      const cart = await this.orderCartRepository.findOneBy({
+        id: checkoutDto.cartId,
+      });
       if (!cart) {
-        throw new NotFoundException(`Cart with ID ${checkoutDto.cartId} not found`);
+        throw new NotFoundException(
+          `Cart with ID ${checkoutDto.cartId} not found`,
+        );
       }
 
       const integrationTime = new Date();
@@ -489,13 +521,18 @@ export class OrderService {
       let orderAmountSum = 0;
       const bodyList: BodyList[] = [];
 
-      const tradePoint = await this.storeRepository.findOne({ where: { id: cart.storeId }, select: ['syncId'] });
+      const tradePoint = await this.storeRepository.findOne({
+        where: { id: cart.storeId },
+        select: ['syncId'],
+      });
       if (!tradePoint) {
         throw new NotFoundException(`Store with ID ${cart.storeId} not found`);
       }
 
       for (const item of cart.order.items) {
-        const product = await this.productRepository.findOne({ where: { id: item.id } });
+        const product = await this.productRepository.findOne({
+          where: { id: item.id },
+        });
         if (!product) {
           throw new NotFoundException(`Product with ID ${item.id} not found`);
         }
@@ -508,12 +545,14 @@ export class OrderService {
             .createCommonBodyListBuilder()
             .setRowId(rowId)
             .setName(product.name['uk'])
-            .setProducer(product.attributes['manufacturer']?.name?.uk || 'unknown')
+            .setProducer(
+              product.attributes['manufacturer']?.name?.uk || 'unknown',
+            )
             .setCount(item.quantity)
             .setGoodsId(product.syncId)
             .setPriceInternet(product.price)
             .setPriceAmount(priceAmount)
-            .build()
+            .build(),
         );
         rowId++;
       }
@@ -529,7 +568,9 @@ export class OrderService {
       });
       const savedOrder = await this.orderRepository.save(order);
 
-      const expiration = orderTime.add(COMPANY_BOOKING_DATE, 'day').format(COMPANY_ORDER_DATE_FORMAT);
+      const expiration = orderTime
+        .add(COMPANY_BOOKING_DATE, 'day')
+        .format(COMPANY_ORDER_DATE_FORMAT);
       let targetOrder: OrderJSON;
 
       switch (cart.orderTypeId) {
@@ -546,7 +587,10 @@ export class OrderService {
             .setClientInfo(checkoutDto.clientInfo)
             .setCompanyInfo(COMPANY_ORDER_COMPANY_INFO)
             .setDeliveryInfo({ delivery_type_id: 0, delivery_status_id: 0 })
-            .setPaymentInfo({ payment_type_id: PaymentType.Cash, payment_status_id: PaymentStatus.Pending })
+            .setPaymentInfo({
+              payment_type_id: PaymentType.Cash,
+              payment_status_id: PaymentStatus.Pending,
+            })
             .setTradePointId(tradePoint.syncId)
             .build();
           break;
@@ -556,13 +600,15 @@ export class OrderService {
             .build();
           break;
         case OrderTypes.ToOrder:
-          targetOrder = this.tradeProvider
-            .createToOrderBuilder()
-            .build();
+          targetOrder = this.tradeProvider.createToOrderBuilder().build();
           break;
         default:
-          await this.orderRepository.update(savedOrder.id, { sentStatus: SentStatus.FAILED });
-          throw new NotFoundException(`Order type ${cart.orderTypeId} is not supported`);
+          await this.orderRepository.update(savedOrder.id, {
+            sentStatus: SentStatus.FAILED,
+          });
+          throw new NotFoundException(
+            `Order type ${cart.orderTypeId} is not supported`,
+          );
       }
 
       await this.orderRepository.update(savedOrder.id, { order: targetOrder });
@@ -570,18 +616,30 @@ export class OrderService {
       let response: TradeOrdersResponse;
       try {
         response = await this.tradeProvider.createOrders(
-          { orders: [{ tradeOrderId: 0, aggregatorOrderId: String(savedOrder.id), order: targetOrder }] },
-          { orderType: cart.orderTypeId, action: TradeOrderMode.Forward }
+          {
+            orders: [
+              {
+                tradeOrderId: 0,
+                aggregatorOrderId: String(savedOrder.id),
+                order: targetOrder,
+              },
+            ],
+          },
+          { orderType: cart.orderTypeId, action: TradeOrderMode.Forward },
         );
       } catch (error) {
         this.logger.error(error);
 
-        await this.orderRepository.update(savedOrder.id, { sentStatus: SentStatus.PENDING });
+        await this.orderRepository.update(savedOrder.id, {
+          sentStatus: SentStatus.PENDING,
+        });
         await this.orderCartRepository.remove(cart);
 
         const token = await this.jwtTokenService.generateToken(
-          this.jwtTokenService.removeCartsFromJwt(jwtPayload, [checkoutDto.cartId]),
-          !!jwtPayload.carts.length
+          this.jwtTokenService.removeCartsFromJwt(jwtPayload, [
+            checkoutDto.cartId,
+          ]),
+          !!jwtPayload.carts.length,
         );
 
         return {
@@ -611,19 +669,23 @@ export class OrderService {
           });
           tradeOrderId = order.tradeOrderId;
         } else {
-          throw new Error(`Order processing error: ID ${order.aggregatorOrderId}, type ${cart.orderTypeId}, message: ${order.message}`);
+          throw new Error(
+            `Order processing error: ID ${order.aggregatorOrderId}, type ${cart.orderTypeId}, message: ${order.message}`,
+          );
         }
       }
 
       await this.orderCartRepository.remove(cart);
 
       this.logger.log(
-        `Cart ID ${checkoutDto.cartId} successfully converted to Order ID ${savedOrder.id}, Trade Order ID ${tradeOrderId}`
+        `Cart ID ${checkoutDto.cartId} successfully converted to Order ID ${savedOrder.id}, Trade Order ID ${tradeOrderId}`,
       );
 
       const token = await this.jwtTokenService.generateToken(
-        this.jwtTokenService.removeCartsFromJwt(jwtPayload, [checkoutDto.cartId]),
-        !!jwtPayload.carts.length
+        this.jwtTokenService.removeCartsFromJwt(jwtPayload, [
+          checkoutDto.cartId,
+        ]),
+        !!jwtPayload.carts.length,
       );
 
       return {
@@ -635,7 +697,10 @@ export class OrderService {
       };
     } catch (error) {
       this.logger.error(`Order creation failed: ${error.message}`, error);
-      throw new HttpException(error.message || 'Order processing failed', HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(
+        error.message || 'Order processing failed',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     }
   }
 }
