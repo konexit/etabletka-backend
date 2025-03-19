@@ -1,4 +1,7 @@
-import type { JwtCheckoutResponse, JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
+import type {
+  JwtCheckoutResponse,
+  JwtPayload,
+} from 'src/common/types/jwt/jwt.interfaces';
 import {
   Body,
   Controller,
@@ -27,13 +30,13 @@ export class OrderController {
   constructor(
     @Inject(OrderService)
     private readonly orderService: OrderService,
-  ) { }
+  ) {}
 
   @Post('checkout')
   @UseGuards(JwtAuthGuard)
   async checkout(
     @JWTPayload() jwtPayload: JwtPayload,
-    @Body() checkoutDto: CheckoutDto
+    @Body() checkoutDto: CheckoutDto,
   ): Promise<JwtCheckoutResponse> {
     return this.orderService.createOrderFromCart(jwtPayload, checkoutDto);
   }
@@ -58,6 +61,19 @@ export class OrderController {
     }
 
     return this.orderService.getOrders(jwtPayload.userId, pagination);
+  }
+
+  @Get('/:orderId')
+  @UseGuards(JwtAuthGuard)
+  getOrder(
+    @Param('orderId') orderId: Order['id'],
+    @JWTPayload() jwtPayload: JwtPayload,
+  ) {
+    if (!jwtPayload.userId) {
+      throw new HttpException('User access denied', HttpStatus.FORBIDDEN);
+    }
+
+    return this.orderService.getOrder(jwtPayload.userId, orderId);
   }
 
   @Get('/:orderId/statuses')
@@ -106,9 +122,6 @@ export class OrderController {
       throw new HttpException('User access denied', HttpStatus.FORBIDDEN);
     }
 
-    return this.orderService.getOrdersProducts(
-      jwtPayload.userId,
-      idsDto.ids,
-    );
+    return this.orderService.getOrdersProducts(jwtPayload.userId, idsDto.ids);
   }
 }
