@@ -356,8 +356,19 @@ export class OrderService {
       .take(+take)
       .getManyAndCount();
 
+    const statuses = await this.orderStatusRepository
+      .createQueryBuilder('status')
+      .distinctOn(['status.orderId'])
+      .where('status.orderId IN (:...orderIds)', {
+        orderIds: orders.map((order) => order.id),
+      })
+      .orderBy('status.orderId', 'ASC')
+      .addOrderBy('status.id', 'DESC')
+      .getMany();
+
     return {
       orders,
+      statuses,
       pagination: { total, take: +take, skip: +skip },
     };
   }
@@ -371,7 +382,7 @@ export class OrderService {
       where: {
         id: orderId,
       },
-      select: ['tradeOrderId', 'userId'],
+      select: ['id', 'userId'],
     });
 
     if (!order) {
@@ -385,8 +396,8 @@ export class OrderService {
     const { take = 5, skip = 0 } = pagination;
 
     const [statuses, total] = await this.orderStatusRepository
-      .createQueryBuilder('order_status')
-      .where('order_status.orderId = :orderId', { orderId: order.tradeOrderId })
+      .createQueryBuilder('status')
+      .where('status.orderId = :orderId', { orderId: order.id })
       .orderBy('status_time', 'ASC')
       .skip(+skip)
       .take(+take)
@@ -396,44 +407,6 @@ export class OrderService {
       statuses,
       pagination: { total, take: +take, skip: +skip },
     };
-  }
-
-  async getOrdersStatus(userId: User['id'], orderIds: Order['id'][]) {
-    const orders = await this.orderRepository.find({
-      where: {
-        id: In(orderIds),
-        userId: userId,
-      },
-      select: ['id', 'tradeOrderId'],
-    });
-
-    if (!orders.length) {
-      throw new HttpException('Orders not found', HttpStatus.NOT_FOUND);
-    }
-
-    const statuses = await this.orderStatusRepository
-      .createQueryBuilder('status')
-      .distinctOn(['status.orderId'])
-      .where('status.orderId IN (:...orderIds)', {
-        orderIds: orders.map((order) => order.tradeOrderId),
-      })
-      .orderBy('status.orderId', 'ASC')
-      .addOrderBy('status.statusTime', 'DESC')
-      .getMany();
-
-    const result: {
-      [key in string]: OrderStatus;
-    } = {};
-
-    for (let i = 0; i < statuses.length; i++) {
-      const orderId = orders.find(
-        (order) => order.tradeOrderId === statuses[i].orderId,
-      ).id;
-
-      result[orderId] = statuses[i];
-    }
-
-    return result;
   }
 
   async getOrdersProducts(
