@@ -1,6 +1,6 @@
 export * from './trade.order.service'
-export * from './trade.order-status.service'
 export * from './trade.common-order-builder.service'
 export * from './trade.insurance-order-builder.service'
 export * from './trade.to-order-builder.service'
 export * from './trade.common-body-list-builder.service' 
+export * from './trade.change-order-builder.service' 

@@ -8,8 +8,8 @@ import {
   CommonOrderBuilder,
   InsuranceOrderBuilder,
   OrderService,
-  OrderStatusService,
-  ToOrderBuilder
+  ToOrderBuilder,
+  TradeOrderChangesAggregatorBuilder
 } from './services';
 import {
   TradeOrdersResponse,
@@ -19,7 +19,9 @@ import {
   TradeStateOrdersResponse,
   TradeStateOrdersAppliedResponse,
   ITradeStateOrdersAppliedOptions,
-  ISearchOptions
+  ISearchOptions,
+  TradeOrderChangesAggregator,
+  TradeOrderChangeResponse
 } from './interfaces';
 
 @Injectable()
@@ -33,8 +35,7 @@ export class TradeProvider {
   constructor(
     private readonly configService: ConfigService,
     private readonly orderService: OrderService,
-    private readonly orderStatusService: OrderStatusService,
-    @Inject(AUTH_PROVIDER_MANAGER) 
+    @Inject(AUTH_PROVIDER_MANAGER)
     private readonly authProvider: AuthProvider
   ) {
     this.axiosInstance = axios.create({
@@ -104,6 +105,14 @@ export class TradeProvider {
     return response.data;
   }
 
+  async changeOrders(orders: TradeOrderChangesAggregator): Promise<TradeOrderChangeResponse> {
+    const response = await this.axiosInstance.post<TradeOrderChangeResponse>(
+      `${this.apiVersion}/orders/change`,
+      orders
+    );
+    return response.data;
+  }
+
   async getStateOrders(options: ITradeStateOrdersOptions): Promise<TradeStateOrdersResponse> {
     const response = await this.axiosInstance.get<TradeStateOrdersResponse>(
       `${this.apiVersion}/companies/orders/state${options.getQueryParams()}`
@@ -141,6 +150,10 @@ export class TradeProvider {
 
   createToOrderBuilder(): ToOrderBuilder {
     return this.orderService.createToOrderBuilder();
+  }
+
+  createOrderChangesAggregatorBuilder(): TradeOrderChangesAggregatorBuilder {
+    return this.orderService.createOrderChangesAggregatorBuilder();
   }
 }
 

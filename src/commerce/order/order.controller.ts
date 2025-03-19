@@ -19,6 +19,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Order } from './entities/order.entity';
 import { GetByOrderIdsDto } from './dto/get-by-order-ids.dto';
 import { CheckoutDto } from './dto/checkout.dto';
+import { CancelDto } from './dto/cancel.dto';
 
 @ApiTags('order')
 @Controller('api/v1/order')
@@ -35,6 +36,15 @@ export class OrderController {
     @Body() checkoutDto: CheckoutDto
   ): Promise<JwtCheckoutResponse> {
     return this.orderService.createOrderFromCart(jwtPayload, checkoutDto);
+  }
+
+  @Post('cancel')
+  @UseGuards(JwtAuthGuard)
+  async cancel(
+    @JWTPayload() jwtPayload: JwtPayload,
+    @Body() cancelDto: CancelDto
+  ): Promise<void> {
+    return this.orderService.cancelOrder(jwtPayload, cancelDto);
   }
 
   @Get('/')

@@ -3,6 +3,7 @@ import { CommonOrderBuilder } from './trade.common-order-builder.service';
 import { InsuranceOrderBuilder } from './trade.insurance-order-builder.service';
 import { ToOrderBuilder } from './trade.to-order-builder.service';
 import { BodyListBuilder } from './trade.common-body-list-builder.service';
+import { TradeOrderChangesAggregatorBuilder } from './trade.change-order-builder.service';
 
 @Injectable()
 export class OrderService {
@@ -20,5 +21,9 @@ export class OrderService {
 
   createToOrderBuilder(): ToOrderBuilder {
     return new ToOrderBuilder();
+  }
+
+  createOrderChangesAggregatorBuilder(): TradeOrderChangesAggregatorBuilder {
+    return new TradeOrderChangesAggregatorBuilder();
   }
 }

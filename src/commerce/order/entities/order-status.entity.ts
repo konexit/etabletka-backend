@@ -12,6 +12,9 @@ export class OrderStatus {
   @Column({ name: 'order_id', nullable: true })
   orderId: number;
 
+  @Column({ name: 'trade_order_id', nullable: true })
+  tradeOrderId: number;
+
   @Column({ name: 'trade_status_id', nullable: true, unique: true })
   tradeStatusId: number;
 

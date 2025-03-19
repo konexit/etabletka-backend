@@ -1,6 +1,6 @@
 import { Module, Global } from '@nestjs/common';
 import { TradeProvider, TRADE_PROVIDER_MANAGER } from '.';
-import { OrderService, OrderStatusService } from './services';
+import { OrderService } from './services';
 import { AuthModule } from '../auth/auth.module';
 
 @Global()
@@ -8,7 +8,6 @@ import { AuthModule } from '../auth/auth.module';
 	imports: [AuthModule],
 	providers: [
 		OrderService,
-		OrderStatusService,
 		{
 			provide: TRADE_PROVIDER_MANAGER,
 			useClass: TradeProvider,

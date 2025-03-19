@@ -22,6 +22,12 @@ import {
   TRADE_STATE_ORDER_LIMIT_DEFAULT,
   TradeOrderStatusDescription,
   TradeOrdersResponse,
+  TradeOrderChangeAutoApliedMode,
+  TradeOrderChangeType,
+  TradeOrderChangeActionType,
+  TradeOrderStatusOwners,
+  TradeStatusActions,
+  TradeOrderStatusCodes,
 } from 'src/providers/trade';
 import { Order } from './entities/order.entity';
 import { OrderStatus } from './entities/order-status.entity';
@@ -57,6 +63,7 @@ import {
   OrderJSON,
   SentStatus
 } from 'src/common/types/order';
+import { CancelDto } from './dto/cancel.dto';
 
 @Injectable()
 export class OrderService {
@@ -214,7 +221,8 @@ export class OrderService {
         try {
           await this.orderStatusRepository.upsert(
             {
-              orderId: status.order_id,
+              orderId: Number(status.aggregator_order_id),
+              tradeOrderId: status.order_id,
               tradeStatusId: status.status_id,
               statusCode: status.code,
               orderTypeId: status.order_type_id,
@@ -269,7 +277,7 @@ export class OrderService {
       process.env[ORDER_STATUS_DESCRIPTION_SCHEDULER_ENABLED] || 'true',
     ),
   })
-  async processOrderStatusDescription(): Promise<void> {
+  async processOrderStatusDescriptions(): Promise<void> {
     try {
       const statusDescriptions = await this.tradeProvider.search<TradeOrderStatusDescription[]>({
         query: TRADE_SEARCH_STATUS_DESCRIPTION_QUERY,
@@ -540,7 +548,7 @@ export class OrderService {
             .setMarketplace(COMPANY_MARKETPLACE)
             .setOrderTime(orderTime.format(COMPANY_ORDER_DATE_FORMAT))
             .setExpiration(expiration)
-            .setStatusCode('10013')
+            .setStatusCode(`${TradeOrderStatusCodes.Confirmed}${TradeOrderStatusOwners.Trade}${TradeStatusActions.Process.ReadyForPharmacy}`)
             .setOrderSum(orderAmountSum)
             .setBodyList(bodyList)
             .setClientInfo(checkoutDto.clientInfo)
@@ -636,6 +644,29 @@ export class OrderService {
     } catch (error) {
       this.logger.error(`Order creation failed: ${error.message}`, error);
       throw new HttpException(error.message || 'Order processing failed', HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+  }
+
+  async cancelOrder(jwtPayload: JwtPayload, cancelDto: CancelDto): Promise<void> {
+    if (!jwtPayload.userId) {
+      throw new HttpException(`Order ID: ${cancelDto.orderId} not found or access denied.`, HttpStatus.CONFLICT);
+    }
+
+    const { statusCode, tradeOrderId } = await this.orderStatusRepository.findOne({ where: { orderId: cancelDto.orderId }, order: { id: 'DESC' } });
+    const code = `${statusCode ? statusCode.slice(0, 2) : TradeOrderStatusCodes.Created}${TradeOrderStatusOwners.Aggregator}${TradeStatusActions.Cancel.Customer}`;
+
+    const orderChanges = this.tradeProvider.createOrderChangesAggregatorBuilder()
+      .addOrderChange(tradeOrderId, TradeOrderChangeAutoApliedMode.None)
+      .addChange(TradeOrderChangeType.StatusCode, TradeOrderChangeActionType.Update, { status_code: code })
+      .addChange(TradeOrderChangeType.Comment, TradeOrderChangeActionType.Update, { status_msg: cancelDto.reason })
+      .end()
+      .build();
+
+    const response = await this.tradeProvider.changeOrders(orderChanges);
+    if (!response.handled_orders.includes(tradeOrderId)) {
+      const errorMsg = `Orders${response.error_orders.map(order => `: ID ${order.order_id} - ${order.message}`)}`;
+      this.logger.error(errorMsg);
+      throw new HttpException(errorMsg, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
 }

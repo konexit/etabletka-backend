@@ -1,5 +1,5 @@
 import { TradeStateOrderPickOption } from "../trade.constants";
-import { TradeOrderChange } from "./change.interface";
+import { TradeOrderChange } from "./order-change.interface";
 import { TradeOrderStatus } from "./status.interface";
 
 export interface ITradeStateOrdersOptions {
