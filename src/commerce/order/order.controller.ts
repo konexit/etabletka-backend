@@ -93,17 +93,4 @@ export class OrderController {
       pagination,
     );
   }
-
-  @Post('/products')
-  @UseGuards(JwtAuthGuard)
-  getOrdersProducts(
-    @JWTPayload() jwtPayload: JwtPayload,
-    @Body() idsDto: GetByOrderIdsDto,
-  ) {
-    if (!jwtPayload.userId) {
-      throw new HttpException('User access denied', HttpStatus.FORBIDDEN);
-    }
-
-    return this.orderService.getOrdersProducts(jwtPayload.userId, idsDto.ids);
-  }
 }

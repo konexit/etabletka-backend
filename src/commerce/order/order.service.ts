@@ -61,11 +61,7 @@ import {
 } from 'src/common/types/jwt/jwt.interfaces';
 import { JwtTokenService } from 'src/auth/jwt/jwt-token.service';
 import { OrderCart } from './entities/order-cart.entity';
-import {
-  BodyList,
-  OrderJSON,
-  SentStatus
-} from 'src/common/types/order';
+import { BodyList, OrderJSON, SentStatus } from 'src/common/types/order';
 import { CancelDto } from './dto/cancel.dto';
 
 @Injectable()
@@ -90,7 +86,7 @@ export class OrderService {
     private orderCartRepository: Repository<OrderCart>,
     @Inject(TRADE_PROVIDER_MANAGER)
     private tradeProvider: TradeProvider,
-  ) { }
+  ) {}
 
   @Cron(process.env[ORDER_ASYNC_SENDER_SCHEDULER] || '0 * * * * *', {
     name: 'asynchronously sending order to trade',
@@ -332,7 +328,9 @@ export class OrderService {
   }
 
   async getOrder(userId: User['id'], orderId: Order['id']) {
-    const order = await this.orderRepository.findOne({ where: { id: orderId } });
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+    });
 
     if (!order) {
       throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
@@ -345,7 +343,11 @@ export class OrderService {
     return order;
   }
 
-  async getOrders(userId: User['id'], pagination: PaginationDto = {}) {
+  async getOrders(
+    userId: User['id'],
+    pagination: PaginationDto = {},
+    lang = 'uk',
+  ) {
     const { take = 15, skip = 0 } = pagination;
 
     const [orders, total] = await this.orderRepository
@@ -366,9 +368,65 @@ export class OrderService {
       .addOrderBy('status.id', 'DESC')
       .getMany();
 
+    const productIds = new Set<Product['id']>();
+
+    for (let i = 0; i < orders.length; i++) {
+      for (let j = 0; j < orders[i].order.body_list.length; j++) {
+        productIds.add(orders[i].order.body_list[j].goods_id);
+      }
+    }
+
+    const products: Pick<Product, 'id' | 'syncId' | 'cdnData' | 'name'>[] =
+      await this.productRepository.find({
+        where: {
+          syncId: In(Array.from(productIds)),
+        },
+        select: ['id', 'syncId', 'name', 'cdnData'],
+      });
+
+    const statusesResult: { [key in Order['id']]: OrderStatus } = {};
+
+    for (let i = 0; i < statuses.length; i++) {
+      statusesResult[statuses[i].orderId] = statuses[i];
+    }
+
+    type TruncatedProduct = Pick<Product, 'id' | 'syncId' | 'cdnData'> & {
+      name: string;
+      price: (typeof orders)[number]['order']['body_list'][number]['price_amount'];
+      count: (typeof orders)[number]['order']['body_list'][number]['count'];
+    };
+
+    const productsResult: { [key in Order['id']]: TruncatedProduct[] } = {};
+
+    for (let i = 0; i < orders.length; i++) {
+      const orderProducts: TruncatedProduct[] = [];
+
+      for (let j = 0; j < orders[i].order.body_list.length; j++) {
+        const orderProduct = products.find(
+          (product) => product.syncId === orders[i].order.body_list[j].goods_id,
+        );
+
+        if (!orderProduct) continue;
+
+        const serializedOrderProduct = {
+          ...orderProduct,
+          name: orderProduct.name[lang] as string,
+          price: orders[i].order.body_list[j].price_amount,
+          count: orders[i].order.body_list[j].count,
+        };
+
+        orderProducts.push(serializedOrderProduct);
+      }
+
+      if (!orderProducts.length) continue;
+
+      productsResult[orders[i].id] = orderProducts;
+    }
+
     return {
       orders,
-      statuses,
+      statuses: statusesResult,
+      products: productsResult,
       pagination: { total, take: +take, skip: +skip },
     };
   }
@@ -563,7 +621,9 @@ export class OrderService {
             .setMarketplace(COMPANY_MARKETPLACE)
             .setOrderTime(orderTime.format(COMPANY_ORDER_DATE_FORMAT))
             .setExpiration(expiration)
-            .setStatusCode(`${TradeOrderStatusCodes.Confirmed}${TradeOrderStatusOwners.Trade}${TradeStatusActions.Process.ReadyForPharmacy}`)
+            .setStatusCode(
+              `${TradeOrderStatusCodes.Confirmed}${TradeOrderStatusOwners.Trade}${TradeStatusActions.Process.ReadyForPharmacy}`,
+            )
             .setOrderSum(orderAmountSum)
             .setBodyList(bodyList)
             .setClientInfo(checkoutDto.clientInfo)
@@ -686,24 +746,43 @@ export class OrderService {
     }
   }
 
-  async cancelOrder(jwtPayload: JwtPayload, cancelDto: CancelDto): Promise<void> {
+  async cancelOrder(
+    jwtPayload: JwtPayload,
+    cancelDto: CancelDto,
+  ): Promise<void> {
     if (!jwtPayload.userId) {
-      throw new HttpException(`Order ID: ${cancelDto.orderId} not found or access denied.`, HttpStatus.CONFLICT);
+      throw new HttpException(
+        `Order ID: ${cancelDto.orderId} not found or access denied.`,
+        HttpStatus.CONFLICT,
+      );
     }
 
-    const { statusCode, tradeOrderId } = await this.orderStatusRepository.findOne({ where: { orderId: cancelDto.orderId }, order: { id: 'DESC' } });
+    const { statusCode, tradeOrderId } =
+      await this.orderStatusRepository.findOne({
+        where: { orderId: cancelDto.orderId },
+        order: { id: 'DESC' },
+      });
     const code = `${statusCode ? statusCode.slice(0, 2) : TradeOrderStatusCodes.Created}${TradeOrderStatusOwners.Aggregator}${TradeStatusActions.Cancel.Customer}`;
 
-    const orderChanges = this.tradeProvider.createOrderChangesAggregatorBuilder()
+    const orderChanges = this.tradeProvider
+      .createOrderChangesAggregatorBuilder()
       .addOrderChange(tradeOrderId, TradeOrderChangeAutoApliedMode.None)
-      .addChange(TradeOrderChangeType.StatusCode, TradeOrderChangeActionType.Update, { status_code: code })
-      .addChange(TradeOrderChangeType.Comment, TradeOrderChangeActionType.Update, { status_msg: cancelDto.reason })
+      .addChange(
+        TradeOrderChangeType.StatusCode,
+        TradeOrderChangeActionType.Update,
+        { status_code: code },
+      )
+      .addChange(
+        TradeOrderChangeType.Comment,
+        TradeOrderChangeActionType.Update,
+        { status_msg: cancelDto.reason },
+      )
       .end()
       .build();
 
     const response = await this.tradeProvider.changeOrders(orderChanges);
     if (!response.handled_orders.includes(tradeOrderId)) {
-      const errorMsg = `Orders${response.error_orders.map(order => `: ID ${order.order_id} - ${order.message}`)}`;
+      const errorMsg = `Orders${response.error_orders.map((order) => `: ID ${order.order_id} - ${order.message}`)}`;
       this.logger.error(errorMsg);
       throw new HttpException(errorMsg, HttpStatus.UNPROCESSABLE_ENTITY);
     }
