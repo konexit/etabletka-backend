@@ -1,9 +1,10 @@
 import {
   Column,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn, ManyToOne, JoinColumn
+  UpdateDateColumn,
 } from "typeorm";
 import { Exclude } from 'class-transformer';
 import { Product } from "src/products/product/entities/product.entity";
@@ -69,6 +70,6 @@ export class Brand {
   @Exclude()
   updatedAt: Date;
 
-  @ManyToOne(() => Product, (product) => product.brand)
+  @OneToMany(() => Product, (product) => product.brand)
   products: Product[];
 }
