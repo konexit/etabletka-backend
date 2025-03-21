@@ -58,10 +58,13 @@ export class Store {
   @Column({ name: 'work_time', nullable: true, length: 125 })
   workTime: string;
 
-  @Column({ nullable: true, length: 125 })
+  @Column({ name: 'work_schedule', nullable: true })
+  workSchedule: string;
+
+  @Column({ nullable: true })
   contacts: string;
 
-  @Column({ nullable: true, length: 125 })
+  @Column({ nullable: true })
   address: string;
 
   @Column({ name: 'active', default: false })
@@ -69,6 +72,12 @@ export class Store {
 
   @Column({ name: 'online', default: false })
   isOnline: boolean;
+
+  @Column({ name: 'is_closed', default: false })
+  isClosed: boolean;
+
+  @Column({ name: 'is_whs_order', default: false })
+  isWHSOrder: boolean;
 
   @Column({ name: 'sell_type_id', default: 1 })
   sellTypeId: number;
