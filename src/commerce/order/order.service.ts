@@ -757,11 +757,20 @@ export class OrderService {
       );
     }
 
-    const { statusCode, tradeOrderId } =
-      await this.orderStatusRepository.findOne({
-        where: { orderId: cancelDto.orderId },
-        order: { id: 'DESC' },
-      });
+    const orderStatus = await this.orderStatusRepository.findOne({
+      where: { orderId: cancelDto.orderId },
+      order: { id: 'DESC' },
+    });
+
+    if (!orderStatus) {
+      throw new HttpException(
+        'Order not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const { statusCode, tradeOrderId } = orderStatus;
+
     const code = `${statusCode ? statusCode.slice(0, 2) : TradeOrderStatusCodes.Created}${TradeOrderStatusOwners.Aggregator}${TradeStatusActions.Cancel.Customer}`;
 
     const orderChanges = this.tradeProvider
