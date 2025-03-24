@@ -26,17 +26,8 @@ export class Store {
   @Column({ name: 'company_id', nullable: true })
   companyId: number;
 
-  @Column({ name: 'country_id', default: 1 })
-  countryId: number;
-
-  @Column({ name: 'region_id', nullable: true })
-  regionId: number;
-
-  @Column({ name: 'district_id', nullable: true })
-  districtId: number;
-
-  @Column({ name: 'city_id', nullable: true })
-  cityId: number;
+  @Column({ name: 'katottg_id', nullable: true })
+  katottgId: number;
 
   @Column({ nullable: true })
   lat: string;

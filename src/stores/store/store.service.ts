@@ -178,7 +178,7 @@ export class StoreService {
 
   async getStoresByCityId(cityId: number): Promise<Store[]> {
     const store = await this.storeRepository.findBy({
-      cityId,
+      katottgId: cityId,
       isActive: true,
     });
 
