@@ -1,20 +1,19 @@
 import { BodyList, OrderJSON } from "src/common/types/order";
 import { TradeOrderChangeType, TradeOrderChangeActionType, TradeOrderChangeAutoApliedMode } from "../trade.constants";
-import { type } from "os";
 
 export type OrderChangeActionMap = {
   head: TradeOrderChangeActionType.Update;
   body_list: TradeOrderChangeActionType;
   status_code: TradeOrderChangeActionType.Update;
   comment: TradeOrderChangeActionType.Update;
-};
+}
 
 export type OrderChangePayloadMap = {
   head: OrderJSON;
   body_list: BodyList;
   status_code: { status_code: string; };
   comment: { status_msg: string; };
-};
+}
 
 export interface OrderChange<T extends TradeOrderChangeType> {
   type: T;
