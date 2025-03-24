@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { JWT_CART_EXPIRES_IN, JWT_EXPIRES_IN, JWT_REMEMBER_ME_EXPIRES_IN, TOKEN_TYPE } from 'src/auth/auth.constants';
 import { JWT_DEFAULT_EXPIRES_IN } from 'src/common/config/common.constants';
 import { JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
-import { ROLE_ANONYMOUS } from 'src/users/role/user-role.constants';
+import { ROLE_JWT_ANONYMOUS } from 'src/users/role/user-role.constants';
 
 @Injectable()
 export class JwtTokenService {
@@ -41,7 +41,7 @@ export class JwtTokenService {
   }
 
   ensureJwtPayload(payload: JwtPayload): JwtPayload {
-    return payload || { rmbMe: false, roles: [ROLE_ANONYMOUS], carts: [] };
+    return payload || { rmbMe: false, roles: [ROLE_JWT_ANONYMOUS], carts: [] };
   }
 
   private getJwtExpiresInEnv(remember = false, isCart = false): string {

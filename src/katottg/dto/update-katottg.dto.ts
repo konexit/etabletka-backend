@@ -1,10 +1,33 @@
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { Store } from 'src/stores/store/entities/store.entity';
 
-export class UpdateCity {
+export class UpdateKatottgDto {
+  @IsNumber()
+  id: number;
+
   @IsOptional()
   @IsString()
   name: JSON;
+
+  @IsOptional()
+  @IsString()
+  region: string;
+
+  @IsOptional()
+  @IsString()
+  regDistrict: string;
+
+  @IsOptional()
+  @IsString()
+  regDistCommunity: string;
+
+  @IsOptional()
+  @IsString()
+  regDistCommSettlement: string;
+
+  @IsOptional()
+  @IsString()
+  objectCategory: string;
 
   @IsOptional()
   @IsString()
@@ -17,22 +40,6 @@ export class UpdateCity {
   @IsOptional()
   @IsString()
   lng: string;
-
-  @IsOptional()
-  @IsNumber()
-  countryId: number;
-
-  @IsOptional()
-  @IsNumber()
-  regionId: number;
-
-  @IsOptional()
-  @IsNumber()
-  districtId: number;
-
-  @IsOptional()
-  @IsNumber()
-  communityId: number;
 
   @IsOptional()
   stores: Store[];

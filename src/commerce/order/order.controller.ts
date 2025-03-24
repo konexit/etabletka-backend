@@ -13,6 +13,7 @@ import {
   Post,
   Query,
   UseGuards,
+  ParseIntPipe
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
@@ -20,7 +21,6 @@ import { ApiTags } from '@nestjs/swagger';
 import { JWTPayload } from 'src/common/decorators/jwt-payload';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Order } from './entities/order.entity';
-import { GetByOrderIdsDto } from './dto/get-by-order-ids.dto';
 import { CheckoutDto } from './dto/checkout.dto';
 import { CancelDto } from './dto/cancel.dto';
 
@@ -30,7 +30,7 @@ export class OrderController {
   constructor(
     @Inject(OrderService)
     private readonly orderService: OrderService,
-  ) {}
+  ) { }
 
   @Post('checkout')
   @UseGuards(JwtAuthGuard)
@@ -66,7 +66,7 @@ export class OrderController {
   @Get('/:orderId')
   @UseGuards(JwtAuthGuard)
   getOrder(
-    @Param('orderId') orderId: Order['id'],
+    @Param('orderId', ParseIntPipe) orderId: Order['id'],
     @JWTPayload() jwtPayload: JwtPayload,
   ) {
     if (!jwtPayload.userId) {
@@ -79,7 +79,7 @@ export class OrderController {
   @Get('/:orderId/statuses')
   @UseGuards(JwtAuthGuard)
   getOrderStatuses(
-    @Param('orderId') orderId: Order['id'],
+    @Param('orderId', ParseIntPipe) orderId: Order['id'],
     @JWTPayload() jwtPayload: JwtPayload,
     @Query() pagination?: PaginationDto,
   ) {

@@ -8,9 +8,7 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { City } from 'src/katottg/city/entities/city.entity';
-import { District } from 'src/katottg/district/entities/district.entity';
-import { Region } from 'src/katottg/region/entities/region.entity';
+import { Katottg } from 'src/katottg/entities/katottg.entity';
 import { ProductRemnant } from 'src/products/remnants/entities/product-remnant.entity';
 import { StoreBrand } from 'src/stores/brand/entities/store-brand.entity';
 import { SellType } from 'src/stores/sell-type/entities/sell-type.entity';
@@ -94,17 +92,9 @@ export class Store {
   @OneToMany(() => ProductRemnant, (productRemnant) => productRemnant.store)
   productRemnants: ProductRemnant[];
 
-  @ManyToOne(() => City, (city: City) => city.stores)
-  @JoinColumn({ name: 'city_id' })
-  city: City;
-
-  @ManyToOne(() => District, (district: District) => district.stores)
-  @JoinColumn({ name: 'district_id' })
-  district: District;
-
-  @ManyToOne(() => Region, (region: Region) => region.stores)
-  @JoinColumn({ name: 'region_id' })
-  region: Region;
+  @ManyToOne(() => Katottg, (katottg: Katottg) => katottg.stores)
+  @JoinColumn({ name: 'katottg_id' })
+  katottg: Katottg;
 
   @ManyToOne(() => StoreBrand, (storeBrand: StoreBrand) => storeBrand.stores)
   @JoinColumn({ name: 'store_brand_id' })

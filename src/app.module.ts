@@ -15,10 +15,7 @@ import { ProductModule } from './products/product/product.module';
 import { ProductRemnantModule } from './products/remnants/product-remnant.module';
 import { ProductTypeModule } from './products/types/product-type.module';
 import { AnotherPointModule } from './settings/another-point/another-point.module';
-import { RegionModule } from './katottg/region/region.module';
-import { CityModule } from './katottg/city/city.module';
-import { CommunityModule } from './katottg/communitiy/community.module';
-import { DistrictModule } from './katottg/district/district.module';
+import { KatottgModule } from './katottg/katottg.module';
 import { CategoriesModule } from './categories/categories.module';
 import { PageModule } from './ui/pages/page/page.module';
 import { FaqItemModule } from './ui/pages/page/faq-item/faq-item.module';
@@ -74,11 +71,8 @@ import { SMSModule } from './providers/sms/sms.module';
     ProductRemnantModule,
     ProductGroupModule,
     ProductCommentModule,
-    CityModule,
+    KatottgModule,
     AnotherPointModule,
-    CommunityModule,
-    DistrictModule,
-    RegionModule,
     RoleModule,
     UserModule,
     UserProfileModule,
