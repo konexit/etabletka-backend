@@ -55,14 +55,10 @@ export class Discount {
   discountPrice: number;
 
   @ManyToMany(() => Product)
-  @JoinTable({
-    name: 'cross_discounts_products',
-  })
+  @JoinTable({ name: 'products_discounts' })
   products: Product[];
 
   @ManyToMany(() => DiscountGroup)
-  @JoinTable({
-    name: 'cross_discounts_groups',
-  })
+  @JoinTable({ name: 'cross_discounts_groups' })
   discountGroups: DiscountGroup[];
 }

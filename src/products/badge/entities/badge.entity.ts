@@ -16,7 +16,7 @@ export class Badge {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'json' })
+  @Column({ type: 'jsonb' })
   title: JSON;
 
   @Column({ unique: true })
@@ -32,8 +32,6 @@ export class Badge {
   updatedAt: Date;
 
   @ManyToMany(() => Product)
-  @JoinTable({
-    name: 'cross_badges_products',
-  })
+  @JoinTable({ name: 'products_badges' })
   products: Product[];
 }

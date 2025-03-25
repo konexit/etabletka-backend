@@ -3,12 +3,9 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn,
-  ManyToMany,
-  JoinTable,
+  UpdateDateColumn
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Product } from 'src/products/product/entities/product.entity';
 @Entity({
   name: 'categories',
 })
@@ -100,10 +97,4 @@ export class Category {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   @Exclude()
   updatedAt: Date;
-
-  @ManyToMany(() => Product)
-  @JoinTable({
-    name: 'cross_categories_products',
-  })
-  products: Product[];
 }

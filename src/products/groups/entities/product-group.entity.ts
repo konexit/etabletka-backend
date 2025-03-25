@@ -57,8 +57,6 @@ export class ProductGroup {
     description: 'Array of products SyncId',
   })
   @ManyToMany(() => Product)
-  @JoinTable({
-    name: 'cross_groups_products',
-  })
+  @JoinTable({ name: 'products_groups' })
   products: Product[];
 }

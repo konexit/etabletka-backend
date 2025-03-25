@@ -34,10 +34,10 @@ export class Product {
   @Column({ name: 'brand_id', nullable: true })
   brandId: number;
 
-  @Column({ type: 'json' })
+  @Column({ type: 'jsonb' })
   name: JSON;
 
-  @Column({ name: 'short_name', type: 'json' })
+  @Column({ name: 'short_name', type: 'jsonb' })
   shortName: JSON;
 
   @Column({ nullable: true })
@@ -46,10 +46,10 @@ export class Product {
   @Column({ unique: true })
   slug: string;
 
-  @Column({ name: 'cdn_data', type: 'json', nullable: true })
+  @Column({ name: 'cdn_data', type: 'jsonb', nullable: true })
   cdnData: JSON;
 
-  @Column({ name: 'cdn_instruction', type: 'json', nullable: true })
+  @Column({ name: 'cdn_instruction', type: 'jsonb', nullable: true })
   cdnInstruction: JSON;
 
   @Column({ name: 'instruction_uk', nullable: true })
@@ -64,10 +64,10 @@ export class Product {
   @Column({ name: 'seo_h1', type: 'json', nullable: true })
   seoH1: JSON;
 
-  @Column({ name: 'seo_title', type: 'json', nullable: true })
+  @Column({ name: 'seo_title', type: 'jsonb', nullable: true })
   seoTitle: JSON;
 
-  @Column({ name: 'seo_description', type: 'json', nullable: true })
+  @Column({ name: 'seo_description', type: 'jsonb', nullable: true })
   seoDescription: JSON;
 
   @Column({ default: 0, type: 'float' })
@@ -103,12 +103,7 @@ export class Product {
   @Column({ type: 'jsonb', nullable: true })
   attributes: JSON;
 
-  @Column({
-    name: 'categories',
-    type: 'int',
-    array: true,
-    default: () => 'ARRAY[]::int[]'
-  })
+  @Column({ name: 'categories', type: 'int', array: true, default: () => 'ARRAY[]::int[]' })
   categories: number[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
@@ -117,23 +112,14 @@ export class Product {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(
-    () => ProductRemnant,
-    (productRemnant: ProductRemnant) => productRemnant.product,
-  )
+  @OneToMany(() => ProductRemnant, (productRemnant: ProductRemnant) => productRemnant.product)
   productRemnants: ProductRemnant[];
 
-  @OneToMany(
-    () => ProductComment,
-    (productComment: ProductComment) => productComment.product,
-  )
+  @OneToMany(() => ProductComment, (productComment: ProductComment) => productComment.product)
   @JoinColumn({ name: 'id', referencedColumnName: 'product_id' })
   productComments: ProductComment[];
 
-  @ManyToOne(
-    () => ProductType,
-    (productType: ProductType) => productType.products,
-  )
+  @ManyToOne(() => ProductType, (productType: ProductType) => productType.products)
   @JoinColumn({ name: 'product_type_id' })
   productType: ProductType;
 
@@ -142,20 +128,14 @@ export class Product {
   brand: Brand;
 
   @ManyToMany(() => Badge)
-  @JoinTable({
-    name: 'cross_badges_products',
-  })
+  @JoinTable({ name: 'products_badges' })
   badges: Badge[];
 
   @ManyToMany(() => Discount)
-  @JoinTable({
-    name: 'cross_discounts_products',
-  })
+  @JoinTable({ name: 'products_discounts' })
   discounts: Discount[];
 
   @ManyToMany(() => ProductGroup)
-  @JoinTable({
-    name: 'cross_groups_products',
-  })
+  @JoinTable({ name: 'products_groups' })
   productGroups: ProductGroup[];
 }
