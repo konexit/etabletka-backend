@@ -2,6 +2,7 @@ import {
     IsNotEmpty,
     IsString,
     IsBoolean,
+    IsOptional,
     IsArray
 } from 'class-validator';
 
@@ -14,8 +15,20 @@ export class SearchEngineRefreshDto {
     @IsNotEmpty()
     index: string;
     
+    @IsOptional()
+    @IsString()
     primaryKey?: string;
+
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
     primaryKeys?: string[];
+
+    @IsOptional()
+    @IsString()
     lang?: string;
+
+    @IsOptional()
+    @IsBoolean()
     fullReplace?: boolean;
 }

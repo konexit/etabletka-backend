@@ -28,7 +28,7 @@ import { groupBy, isEmpty } from './utils';
 import { CacheKeys } from 'src/settings/refresh/refresh-keys';
 import { TypeSource } from 'src/products/attributes/product-attributes.enum';
 
-const attributeValue = {};
+const attributeValues = {};
 // Documentation:  https://www.npmjs.com/package/meilisearch
 @Injectable()
 export class SearchService {
@@ -102,7 +102,7 @@ export class SearchService {
           HttpStatus.NOT_FOUND,
         );
     }
-    return fullReplace ? await this.updateDocumentsInIndex(document, index, primaryKey) : await this.addDocumentsToIndex(document, index, primaryKey);
+    return fullReplace ? this.updateDocumentsInIndex(document, index, primaryKey) : this.addDocumentsToIndex(document, index, primaryKey);
   }
 
   async deleteDocsByIndex(index: string, primaryKeys?: string[]) {
@@ -120,37 +120,37 @@ export class SearchService {
   async makeProductsIndex(lang: string, productIds?: string[]): Promise<Array<any>> {
     const start = performance.now();
     const filters = await this.getFilters();
-    const [products, values] = await Promise.all([this.productRepository.query(this.productIndexQuery(lang, filters, productIds)), this.getAttributeValue(productIds)]);
-    if (!products) {
-      throw new HttpException('Products does not exist', HttpStatus.NOT_FOUND);
-    }
+    const [products, attrValues] = await Promise.all([
+      this.productRepository.query(this.productIndexQuery(lang, filters, productIds)),
+      this.getAttributeValue(productIds)
+    ]);
 
-    const _attributeValue = values[0]?.result ?? {};
-    if (isEmpty(_attributeValue)) {
-      throw new HttpException('Products attributes values does not exist', HttpStatus.NOT_FOUND);
-    }
-
-    filters.forEach(f => {
-      if (f.mergeKeys.length) {
-        f.mergeKeys.forEach(key => Object.assign(_attributeValue[f.key], _attributeValue[key]));
-      }
-    });
-
-    if (productIds && productIds.length) {
-      Object.keys(_attributeValue).forEach(key => {
-        if (!attributeValue[key]) {
-          attributeValue[key] = _attributeValue[key];
-        } else {
-          Object.assign(attributeValue[key], _attributeValue[key]);
+    if (attrValues) {
+      for (const filter of filters) {
+        if (filter.mergeKeys.length) {
+          for (const key of filter.mergeKeys) {
+            if (attrValues[key]) {
+              Object.assign(attrValues[filter.key] ??= {}, attrValues[key]);
+            }
+          }
         }
-      });
-    } else {
-      Object.assign(attributeValue, _attributeValue);
+      }
+
+      if (isEmpty(attributeValues)) {
+        Object.assign(attributeValues, attrValues);
+      } else {
+        for (const key of Object.keys(attrValues)) {
+          attributeValues[key] = attributeValues[key]
+            ? Object.assign(attributeValues[key], attrValues[key])
+            : { ...attrValues[key] };
+        }
+      }
     }
 
     this.logger.log(
-      `products indexing was successful, count: ${products.length} time: ${(performance.now() - start).toFixed(3)} ms`,
+      `Products indexing was successful, count: ${products.length}, time: ${(performance.now() - start).toFixed(3)} ms`,
     );
+
     return products;
   }
 
@@ -198,7 +198,7 @@ export class SearchService {
     primaryKey: string
   ): Promise<any> {
     try {
-      return await this.client.index(index).addDocuments(documents, { primaryKey });
+      return this.client.index(index).addDocuments(documents, { primaryKey });
     } catch (error) {
       this.logger.error('Error adding documents:', error);
       throw error;
@@ -211,7 +211,7 @@ export class SearchService {
     primaryKey: string
   ): Promise<any> {
     try {
-      return await this.client.index(index).updateDocuments(documents, { primaryKey });
+      return this.client.index(index).updateDocuments(documents, { primaryKey });
     } catch (error) {
       this.logger.error('Error updating documents:', error);
       throw error;
@@ -464,7 +464,7 @@ export class SearchService {
   private createCheckboxFilterValues(facetDistribution: CategoriesDistribution, filterAttr: Search.Attribute): Search.FilterCheckBoxValue[] {
     return Object.keys(facetDistribution).map((item) => {
       return {
-        name: attributeValue[filterAttr.key][item],
+        name: attributeValues[filterAttr.key][item],
         alias: item,
         count: facetDistribution[item],
       };
@@ -524,28 +524,30 @@ export class SearchService {
 
   private async getAttributeValue(productIds?: string[]) {
     const productIdsSQL = productIds ? ` AND id IN(${productIds.join(',')})` : '';
-    const attributeValueSQL = `SELECT jsonb_object_agg(key, value) AS result
-    FROM (
-        SELECT key,
-              jsonb_object_agg(elem->>'slug', elem->'name'->>'uk') AS value
-        FROM products p,
-            jsonb_each(p.attributes) AS attr(key, val),
-            jsonb_array_elements(val) AS elem
-        WHERE jsonb_typeof(val) = 'array'
-          AND elem->>'slug' IS NOT NULL
-          AND elem->'name'->>'uk' IS NOT NULL ${productIdsSQL}
-        GROUP BY key
-        UNION ALL
-        SELECT key,
-              jsonb_object_agg(val->>'slug', val->'name'->>'uk') AS value
-        FROM products p,
-            jsonb_each(p.attributes) AS attr(key, val)
-        WHERE jsonb_typeof(val) = 'object'
-          AND val->>'slug' IS NOT NULL
-          AND val->'name'->>'uk' IS NOT NULL ${productIdsSQL}
-        GROUP BY key
-    )`;
+    const attributeValueSQL = `
+      SELECT jsonb_object_agg(key, value) AS attrs
+      FROM (
+          SELECT key,
+                jsonb_object_agg(elem->>'slug', elem->'name'->>'uk') AS value
+          FROM products p,
+              jsonb_each(p.attributes) AS attr(key, val),
+              jsonb_array_elements(val) AS elem
+          WHERE jsonb_typeof(val) = 'array'
+            AND elem->>'slug' IS NOT NULL
+            AND elem->'name'->>'uk' IS NOT NULL ${productIdsSQL}
+          GROUP BY key
+          UNION ALL
+          SELECT key,
+                jsonb_object_agg(val->>'slug', val->'name'->>'uk') AS value
+          FROM products p,
+              jsonb_each(p.attributes) AS attr(key, val)
+          WHERE jsonb_typeof(val) = 'object'
+            AND val->>'slug' IS NOT NULL
+            AND val->'name'->>'uk' IS NOT NULL ${productIdsSQL}
+          GROUP BY key
+      )`;
 
-    return this.productRepository.query(attributeValueSQL);
+    const [{ attrs }] = await this.productRepository.query(attributeValueSQL);
+    return attrs;
   }
 }
