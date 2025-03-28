@@ -127,9 +127,9 @@ export class KatottgService {
 
     const storeCounts = await this.storeRepository
       .createQueryBuilder('stores')
-      .select('stores.city_id', 'cityId')
+      .select('stores.katottg_id', 'katottgId')
       .addSelect('CAST(COUNT(stores.id) AS int)', 'storeCount')
-      .groupBy('stores.city_id')
+      .groupBy('stores.katottg_id')
       .getRawMany();
 
     if (!storeCounts.length) {
@@ -139,15 +139,15 @@ export class KatottgService {
       };
     }
 
-    const cityIds = storeCounts.map((r) => r.cityId);
+    const cityIds = storeCounts.map((r) => r.katottgId);
     if (cityIds) {
       const queryBuilder = this.katottgRepository
-        .createQueryBuilder('city')
-        .select('city')
-        .addSelect(`(city.name->'${lang}')::varchar`, 'langname')
-        .addSelect(`(city.prefix->'${lang}')::varchar`, 'langprefix')
-        .leftJoin('city.stores', 'stores')
-        .where('city.id IN (:...ids)', { ids: cityIds });
+        .createQueryBuilder('katottg')
+        .select('katottg')
+        .addSelect(`(katottg.name->'${lang}')::varchar`, 'langname')
+        .addSelect(`(katottg.prefix->'${lang}')::varchar`, 'langprefix')
+        .leftJoin('katottg.stores', 'stores')
+        .where('katottg.id IN (:...ids)', { ids: cityIds });
 
       if (orderBy) {
         if (orderBy?.orderName) {
@@ -170,7 +170,7 @@ export class KatottgService {
         if (city.prefix) city.prefix = city.prefix[lang];
 
         city.storesCount =
-          storeCounts.find((r) => r.cityId === city.id)?.storeCount || 0;
+          storeCounts.find((r) => r.katottgId === city.id)?.storeCount || 0;
         if (city.stores) {
           for (const store of city.stores) {
             store.name = store.name[lang];
@@ -178,11 +178,13 @@ export class KatottgService {
         }
       });
 
-      const total = await queryBuilder.getCount();
-
       return {
         cities,
-        pagination: { total, take, skip },
+        pagination: {
+          total: await queryBuilder.getCount(),
+          take,
+          skip
+        },
       };
     }
 
