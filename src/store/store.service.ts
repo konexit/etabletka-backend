@@ -51,8 +51,7 @@ export class StoreService {
 
     const queryBuilder = this.storeRepository
       .createQueryBuilder('stores')
-      .select('stores')
-      .addSelect(`stores.name->>'${lang}'`, 'langname');
+      .select('stores');
 
     if (where?.isActive !== undefined) {
       queryBuilder.andWhere('stores.isActive = :isActive', { isActive: where.isActive });
@@ -60,7 +59,7 @@ export class StoreService {
 
     if (orderBy) {
       if (orderBy.name) {
-        queryBuilder.orderBy(`langname`, orderBy.name);
+        queryBuilder.orderBy(`stores.name->>'${lang}'`, orderBy.name);
       }
     }
 
@@ -70,6 +69,10 @@ export class StoreService {
 
     if (!stores.length) {
       throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
+    }
+
+    for (const store of stores) {
+      store.name = store.name[lang] ?? '';
     }
 
     return {

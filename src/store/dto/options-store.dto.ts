@@ -10,7 +10,7 @@ class WhereDto {
 
 class OrderByDto {
   @IsOptional()
-  @Matches(/^(ASC|DESC)$/i, { message: 'name must be "ASC" or "DESC"' })
+  @Matches(/^(ASC|DESC)$/, { message: 'name must be "ASC" or "DESC"' })
   name?: "ASC" | "DESC";
 }
 
