@@ -18,6 +18,21 @@ export class Company {
   @Column()
   name: string;
 
+  @Column({ name: 'sync_id', nullable: true })
+  syncId: number;
+
+  @Column({ name: 'edrpou', type: 'bigint' })
+  edrpou: number;
+
+  @Column({ nullable: true })
+  email: string;
+
+  @Column({ nullable: true })
+  phone: string;
+
+  @Column({ nullable: true })
+  address: string;
+
   @Column({ name: 'cdn_data', type: 'jsonb', nullable: true })
   cdnData: JSON;
 

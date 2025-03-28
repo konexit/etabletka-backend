@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { JwtService } from '@nestjs/jwt';
 import { Store } from 'src/store/entities/store.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -22,7 +21,6 @@ export class KatottgService {
     private storeRepository: Repository<Store>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
-    private jwtService: JwtService,
   ) { }
 
   cacheCitiesKey = 'cities';
@@ -30,7 +28,7 @@ export class KatottgService {
   cacheCitiesTTL = 3600000; // 1Hour
 
   async update(jwtPayload: JwtPayload, updateKatottg: UpdateKatottgDto, lang: string = 'uk'): Promise<Katottg> {
-    if (!jwtPayload && !jwtPayload.roles && !jwtPayload.roles.includes(ROLE_JWT_ADMIN)) {
+    if (!jwtPayload || !jwtPayload.roles || !jwtPayload.roles.includes(ROLE_JWT_ADMIN)) {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
 
@@ -121,7 +119,7 @@ export class KatottgService {
   }
 
   async getCitiesWithStores(jwtPayload: JwtPayload, pagination: PaginationDto = {}, orderBy: any = {}, lang: string = 'uk'): Promise<any> {
-    if (!jwtPayload && jwtPayload.roles && !jwtPayload.roles.includes(ROLE_JWT_ADMIN)) {
+    if (!jwtPayload || !jwtPayload.roles || !jwtPayload.roles.includes(ROLE_JWT_ADMIN)) {
       return this.getCitiesWithStoresForUser(lang);
     }
 
@@ -191,15 +189,15 @@ export class KatottgService {
     return [];
   }
 
-  async citiesWithStores(lang) {
+  private async citiesWithStores(lang: string = 'uk') {
     const storeCounts = await this.storeRepository
       .createQueryBuilder('stores')
-      .select('stores.city_id', 'cityId')
+      .select('stores.katottg_id', 'katottgId')
       .addSelect('CAST(COUNT(stores.id) AS int)', 'storeCount')
-      .groupBy('stores.city_id')
+      .groupBy('stores.katottg_id')
       .getRawMany();
 
-    const cityIds = storeCounts.map((r) => r.cityId);
+    const cityIds = storeCounts.map((r) => r.katottgId);
     if (cityIds) {
       const citiesWithStores = await this.katottgRepository.find({
         where: { id: In(cityIds) },
@@ -208,10 +206,11 @@ export class KatottgService {
 
       citiesWithStores.forEach((city) => {
         city.name = city.name[lang];
-        if (city.prefix) city.prefix = city.prefix[lang];
+        if (city.prefix) {
+          city.prefix = city.prefix[lang];
+        }
 
-        city.storesCount =
-          storeCounts.find((r) => r.cityId === city.id)?.storeCount || 0;
+        city.storesCount = storeCounts.find((r) => r.katottgId === city.id)?.storeCount || 0;
         if (city.stores) {
           for (const store of city.stores) {
             store.name = store.name[lang];
@@ -241,6 +240,6 @@ export class KatottgService {
       this.cacheCitiesTTL,
     );
 
-    return await this.cacheManager.get(this.cacheCitiesKey);
+    return this.cacheManager.get(this.cacheCitiesKey);
   }
 }

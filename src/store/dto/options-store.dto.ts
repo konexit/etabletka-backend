@@ -10,10 +10,6 @@ class WhereDto {
 
 class OrderByDto {
   @IsOptional()
-  @Type(() => Boolean)
-  isActive?: boolean;
-
-  @IsOptional()
   @Matches(/^(ASC|DESC)$/i, { message: 'name must be "ASC" or "DESC"' })
   name?: "ASC" | "DESC";
 }

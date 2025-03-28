@@ -30,13 +30,8 @@ export class KatottgController {
     return this.katottgService.update(jwtPayload, updateKatottg);
   }
 
-  @Get('city/:id')
-  async getCityById(@Param('id', ParseIntPipe) id: number): Promise<Katottg> {
-    return this.katottgService.getCityById(id);
-  }
-
   @UseGuards(OptionalJwtAuthGuard)
-  @Get('cities')
+  @Get()
   async findAll(@JWTPayload() jwtPayload: JwtPayload): Promise<any> {
     return this.katottgService.getCities(jwtPayload);
   }
@@ -47,12 +42,17 @@ export class KatottgController {
   }
 
   @UseGuards(OptionalJwtAuthGuard)
-  @Get('cities/stores')
+  @Get('stores')
   async getCitiesWithStores(
     @JWTPayload() jwtPayload: JwtPayload,
     @Query('pagination') pagination?: any,
     @Query('orderBy') orderBy?: any,
   ): Promise<Katottg[]> {
     return this.katottgService.getCitiesWithStores(jwtPayload, pagination, orderBy);
+  }
+
+  @Get(':id')
+  async getCityById(@Param('id', ParseIntPipe) id: number): Promise<Katottg> {
+    return this.katottgService.getCityById(id);
   }
 }

@@ -47,8 +47,4 @@ export class UpdateStoreDto {
   @IsOptional()
   @IsNumber()
   companyId: number;
-
-  @IsOptional()
-  @IsNumber()
-  sellTypeId: number;
 }

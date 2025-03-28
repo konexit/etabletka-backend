@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { OptionsStoreDto } from './dto/options-store.dto';
+import { ROLE_JWT_ADMIN } from 'src/users/role/user-role.constants';
+import { Stores } from 'src/common/types/store/store';
 
 @Injectable()
 export class StoreService {
@@ -13,17 +15,13 @@ export class StoreService {
     private storeRepository: Repository<Store>
   ) { }
 
-  async update(
-    token: string,
-    id: number,
-    updateStore: UpdateStoreDto,
-    lang: string = 'uk',
-  ): Promise<any> {
-    if (!token || typeof token !== 'string') {
+  async update(jwtPayload: JwtPayload, id: number, updateStore: UpdateStoreDto, lang: string = 'uk'): Promise<any> {
+    if (!jwtPayload || !jwtPayload.roles || !jwtPayload.roles.includes(ROLE_JWT_ADMIN)) {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
 
     await this.storeRepository.update(id, updateStore);
+
     const store = await this.storeRepository.findOneBy({ id: id });
     if (!store) {
       throw new HttpException(
@@ -33,7 +31,18 @@ export class StoreService {
     }
 
     store.name = store.name[lang];
+
     return store;
+  }
+
+  async getStores(lang: string = 'uk'): Promise<Store[]> {
+    const stores = await this.storeRepository.find({});
+
+    for (const store of stores) {
+      store.name = store.name[lang];
+    }
+
+    return stores;
   }
 
   async getStoresByOptions(jwtPayload: JwtPayload, optionsStoreDto: OptionsStoreDto): Promise<any> {
@@ -43,10 +52,7 @@ export class StoreService {
     const queryBuilder = this.storeRepository
       .createQueryBuilder('stores')
       .select('stores')
-      .addSelect(`stores.name->>'${lang}'`, 'langname')
-      .addSelect('company')
-      .leftJoin('stores.company', 'company')
-      .where('stores.id is not null');
+      .addSelect(`stores.name->>'${lang}'`, 'langname');
 
     if (where?.isActive !== undefined) {
       queryBuilder.andWhere('stores.isActive = :isActive', { isActive: where.isActive });
@@ -76,9 +82,9 @@ export class StoreService {
     };
   }
 
-  async getStoresByCityId(cityId: number): Promise<Store[]> {
+  async getStoresByKatottgId(id: number): Promise<Store[]> {
     const store = await this.storeRepository.findBy({
-      katottgId: cityId,
+      katottgId: id,
       isActive: true,
     });
 
@@ -88,13 +94,10 @@ export class StoreService {
     return store;
   }
 
-  async getStoreById(
-    token: string,
-    id: number,
-    lang: string = 'uk',
-  ): Promise<Store> {
-    const store = await this.storeRepository.findOneBy({
-      id,
+  async getStoreById(id: number, lang: string = 'uk'): Promise<Store> {
+    const store = await this.storeRepository.findOne({
+      where: { id },
+      relations: ['company']
     });
 
     if (!store) {
@@ -104,5 +107,20 @@ export class StoreService {
     store.name = store.name[lang];
 
     return store;
+  }
+
+  async getCoords(): Promise<Stores.Coorditates[]> {
+    const stores = await this.storeRepository
+      .createQueryBuilder('store')
+      .leftJoinAndSelect('store.company', 'company')
+      .select(['store.id', 'store.lat', 'store.lng', 'company.cdnData'])
+      .getRawMany();
+
+    return stores.map(item => ({
+      id: item.store_id,
+      lat: item.store_lat,
+      lng: item.store_lng,
+      icon: item?.company_cdn_data?.url ?? '',
+    }));
   }
 }
