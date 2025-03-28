@@ -10,8 +10,7 @@ import {
 } from 'typeorm';
 import { Katottg } from 'src/katottg/entities/katottg.entity';
 import { ProductRemnant } from 'src/products/remnants/entities/product-remnant.entity';
-import { StoreBrand } from 'src/stores/brand/entities/store-brand.entity';
-import { SellType } from 'src/stores/sell-type/entities/sell-type.entity';
+import { Company } from 'src/company/entities/company.entity';
 
 @Entity({
   name: 'stores',
@@ -35,13 +34,13 @@ export class Store {
   @Column({ nullable: true })
   lng: string;
 
-  @Column({ type: 'json' })
+  @Column({ type: 'jsonb' })
   name: JSON;
 
   @Column({ unique: true })
   slug: string;
 
-  @Column({ name: 'cdn_data', type: 'json', nullable: true })
+  @Column({ name: 'cdn_data', type: 'jsonb', nullable: true })
   cdnData: JSON;
 
   @Column({ name: 'work_time', nullable: true, length: 125 })
@@ -68,30 +67,20 @@ export class Store {
   @Column({ name: 'is_whs_order', default: false })
   isWHSOrder: boolean;
 
-  @Column({ name: 'sell_type_id', default: 1 })
-  sellTypeId: number;
-
-  @Column({ name: 'store_brand_id', default: 1 })
-  storeBrandId: number;
-
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(() => ProductRemnant, (productRemnant) => productRemnant.store)
-  productRemnants: ProductRemnant[];
-
   @ManyToOne(() => Katottg, (katottg: Katottg) => katottg.stores)
   @JoinColumn({ name: 'katottg_id' })
   katottg: Katottg;
 
-  @ManyToOne(() => StoreBrand, (storeBrand: StoreBrand) => storeBrand.stores)
-  @JoinColumn({ name: 'store_brand_id' })
-  storeBrand: StoreBrand;
+  @ManyToOne(() => Company, (company: Company) => company.stores)
+  @JoinColumn({ name: 'company_id' })
+  company: Company;
 
-  @ManyToOne(() => SellType, (sellType: SellType) => sellType.stores)
-  @JoinColumn({ name: 'sell_type_id' })
-  sellType: SellType;
+  @OneToMany(() => ProductRemnant, (productRemnant) => productRemnant.store)
+  productRemnants: ProductRemnant[];
 }

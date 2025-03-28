@@ -1,6 +1,4 @@
 import { IsNumber, IsOptional, IsString } from 'class-validator';
-import { Store } from 'src/stores/store/entities/store.entity';
-
 export class UpdateKatottgDto {
   @IsNumber()
   id: number;
@@ -40,7 +38,4 @@ export class UpdateKatottgDto {
   @IsOptional()
   @IsString()
   lng: string;
-
-  @IsOptional()
-  stores: Store[];
 }

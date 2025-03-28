@@ -1,4 +1,3 @@
-import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -29,8 +28,8 @@ export class OrderCart {
   @Column({ name: 'user_id', nullable: true })
   userId: number;
 
-  @Column({ name: 'city_id', nullable: true })
-  cityId: number;
+  @Column({ name: 'katottg_id', nullable: true })
+  katottgId: number;
 
   @Column({ type: 'jsonb', nullable: true })
   order: Cart.Order;

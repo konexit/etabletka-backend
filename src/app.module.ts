@@ -21,7 +21,7 @@ import { PageModule } from './ui/pages/page/page.module';
 import { FaqItemModule } from './ui/pages/page/faq-item/faq-item.module';
 import { BannerModule } from 'src/ui/banner/banner.module';
 import { BadgeModule } from './products/badge/badge.module';
-import { StoreModule } from 'src/stores/store/store.module';
+import { StoreModule } from 'src/store/store.module';
 import { MenuModule } from './ui/menu/menu.module';
 import { SiteOptionModule } from './settings/site-options/site-option.module';
 import { RoleModule } from 'src/users/role/user-role.module';
@@ -30,8 +30,7 @@ import { BrandsModule } from './brands/brands.module';
 import { BlogCategoryModule } from './ui/pages/blogs/category/blog-category.module';
 import { BlogPostModule } from './ui/pages/blogs/post/blog-post.module';
 import { BlogCommentModule } from './ui/pages/blogs/comment/blog-comment.module';
-import { StoreBrandModule } from 'src/stores/brand/store-brand.module';
-import { SellTypeModule } from './stores/sell-type/sell-type.module';
+import { CompanyModule } from 'src/company/company.module';
 import { SearchModule } from './search/search.module';
 import { ProductGroupModule } from './products/groups/product-group.module';
 import { ProductCommentModule } from './products/comment/product-comment.module';
@@ -77,7 +76,7 @@ import { SMSModule } from './providers/sms/sms.module';
     UserModule,
     UserProfileModule,
     CategoriesModule,
-    StoreBrandModule,
+    CompanyModule,
     StoreModule,
     MenuModule,
     SiteOptionModule,
@@ -85,7 +84,6 @@ import { SMSModule } from './providers/sms/sms.module';
     BlogCategoryModule,
     BlogPostModule,
     BlogCommentModule,
-    SellTypeModule,
     SearchModule,
     RefreshModule,
     WsModule,

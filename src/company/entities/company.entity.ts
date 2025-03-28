@@ -1,3 +1,4 @@
+import { Store } from 'src/store/entities/store.entity';
 import {
   Column,
   CreateDateColumn,
@@ -6,19 +7,18 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Store } from '../../store/entities/store.entity';
 
 @Entity({
-  name: 'store_brands',
+  name: 'companies',
 })
-export class StoreBrand {
+export class Company {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
+  @Column()
   name: string;
 
-  @Column({ name: 'cdn_data', type: 'json', nullable: true })
+  @Column({ name: 'cdn_data', type: 'jsonb', nullable: true })
   cdnData: JSON;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
@@ -27,6 +27,6 @@ export class StoreBrand {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToMany(() => Store, (store) => store.sellType)
+  @OneToMany(() => Store, (store) => store.company)
   stores: Store[];
 }

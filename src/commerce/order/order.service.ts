@@ -53,7 +53,7 @@ import {
 import type { PaginationDto } from 'src/common/dto/pagination.dto';
 import { User } from 'src/users/user/entities/user.entity';
 import { Product } from 'src/products/product/entities/product.entity';
-import { Store } from 'src/stores/store/entities/store.entity';
+import { Store } from 'src/store/entities/store.entity';
 import { CheckoutDto } from './dto/checkout.dto';
 import {
   JwtCheckoutResponse,
@@ -601,7 +601,7 @@ export class OrderService {
         userId: jwtPayload.userId,
         orderTypeId: cart.orderTypeId,
         storeId: cart.storeId,
-        cityId: cart.cityId,
+        katottgId: cart.katottgId,
         companyId: cart.companyId,
         order: null,
         sentStatus: SentStatus.IN_PROGRESS,

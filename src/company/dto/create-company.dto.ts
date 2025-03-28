@@ -1,9 +1,6 @@
 import { IsString } from 'class-validator';
 
-export class CreateSellTypeDto {
+export class CreateCompany {
   @IsString()
   name: string;
-
-  @IsString()
-  code: string;
 }

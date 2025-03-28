@@ -30,8 +30,8 @@ export class Order {
   @Column({ name: 'user_id', nullable: true })
   userId: number;
 
-  @Column({ name: 'city_id', nullable: true })
-  cityId: number;
+  @Column({ name: 'katottg_id', nullable: true })
+  katottgId: number;
 
   @Column({ type: 'jsonb', nullable: true })
   order: OrderJSON;

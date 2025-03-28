@@ -2,9 +2,9 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ProductRemnant } from './entities/product-remnant.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { Store } from 'src/stores/store/entities/store.entity';
 import { CreateProductRemnant } from './dto/create-product-remnant.dto';
 import { UpdateProductRemnant } from './dto/update-product-remnant.dto';
+import { Store } from 'src/store/entities/store.entity';
 
 @Injectable()
 export class ProductRemnantService {

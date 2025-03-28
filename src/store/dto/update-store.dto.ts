@@ -8,10 +8,6 @@ import {
 
 export class UpdateStoreDto {
   @IsOptional()
-  @IsBoolean()
-  isActive: boolean;
-
-  @IsOptional()
   @IsString()
   name: JSON;
 
@@ -41,20 +37,16 @@ export class UpdateStoreDto {
   address: string;
 
   @IsOptional()
-  @IsNumber()
-  regionId: number;
+  @IsBoolean()
+  isActive: boolean;
 
   @IsOptional()
   @IsNumber()
-  districtId: number;
+  katottgId: number;
 
   @IsOptional()
   @IsNumber()
-  cityId: number;
-
-  @IsOptional()
-  @IsNumber()
-  storeBrandId: number;
+  companyId: number;
 
   @IsOptional()
   @IsNumber()

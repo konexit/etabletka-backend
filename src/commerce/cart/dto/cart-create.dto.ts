@@ -17,7 +17,7 @@ export class CartCreateDto {
 
 	@IsOptional()
 	@IsNumber()
-	cityId?: number;
+	katottgId?: number;
 
 	@IsOptional()
 	@ValidateNested()

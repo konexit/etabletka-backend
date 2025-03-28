@@ -24,7 +24,7 @@ export class CartService {
       orderTypeId: cartCreateDto.orderTypeId ?? OrderTypes.Common,
       storeId: cartCreateDto.storeId ?? null,
       companyId: cartCreateDto.companyId ?? COMPANY_ETABLETKA_ID,
-      cityId: cartCreateDto.cityId ?? null,
+      katottgId: cartCreateDto.katottgId ?? null,
       order: cartCreateDto.order ?? { items: [] },
     });
 

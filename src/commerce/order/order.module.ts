@@ -6,7 +6,7 @@ import { OrderStatus } from './entities/order-status.entity';
 import { OrderStatusDescription } from './entities/order-statuses-description.entity';
 import { OrderController } from './order.controller';
 import { Product } from 'src/products/product/entities/product.entity';
-import { Store } from 'src/stores/store/entities/store.entity';
+import { Store } from 'src/store/entities/store.entity';
 import { OrderCart } from './entities/order-cart.entity';
 
 @Module({

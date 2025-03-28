@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Store } from 'src/stores/store/entities/store.entity';
+import { Store } from 'src/store/entities/store.entity';
 
 @Entity({
   name: 'katottg',

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { KatottgService } from './katottg.service';
 import { KatottgController } from './katottg.controller';
-import { Store } from 'src/stores/store/entities/store.entity';
+import { Store } from 'src/store/entities/store.entity';
 import { CacheModule } from '@nestjs/cache-manager';
 import { Katottg } from './entities/katottg.entity';
 
