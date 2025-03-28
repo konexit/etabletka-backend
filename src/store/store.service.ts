@@ -85,16 +85,20 @@ export class StoreService {
     };
   }
 
-  async getStoresByKatottgId(id: number): Promise<Store[]> {
-    const store = await this.storeRepository.findBy({
+  async getStoresByKatottgId(id: number, lang: string = 'uk'): Promise<Store[]> {
+    const stores = await this.storeRepository.findBy({
       katottgId: id,
       isActive: true,
     });
 
-    if (!store) {
-      throw new HttpException('Store not found', HttpStatus.NOT_FOUND);
+    for (const store of stores) {
+      store.name = store.name[lang] ?? ''
     }
-    return store;
+
+    if (!stores) {
+      throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
+    }
+    return stores;
   }
 
   async getStoreById(id: number, lang: string = 'uk'): Promise<Store> {
