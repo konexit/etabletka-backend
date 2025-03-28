@@ -343,6 +343,23 @@ export class OrderService {
     return order;
   }
 
+  async getOrderStatusDescriptions(type: OrderStatusDescription['type']) {
+    const statusActions = await this.orderStatusDescriptionRepository.find({
+      where: {
+        type: type,
+      },
+    });
+
+    if (!statusActions.length) {
+      throw new HttpException(
+        'Order status descriptions not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return statusActions;
+  }
+
   async getOrders(
     userId: User['id'],
     pagination: PaginationDto = {},
@@ -763,10 +780,7 @@ export class OrderService {
     });
 
     if (!orderStatus) {
-      throw new HttpException(
-        'Order not found',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
     }
 
     const { statusCode, tradeOrderId } = orderStatus;

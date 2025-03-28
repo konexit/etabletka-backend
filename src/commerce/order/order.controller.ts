@@ -23,6 +23,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Order } from './entities/order.entity';
 import { CheckoutDto } from './dto/checkout.dto';
 import { CancelDto } from './dto/cancel.dto';
+import { OrderStatusDescription } from './entities/order-statuses-description.entity';
 
 @ApiTags('order')
 @Controller('api/v1/order')
@@ -61,6 +62,13 @@ export class OrderController {
     }
 
     return this.orderService.getOrders(jwtPayload.userId, pagination);
+  }
+
+  @Get('/status/descriptions')
+  getOrderStatusDescriptions(
+    @Query('type') type?: OrderStatusDescription['type'],
+  ) {
+    return this.orderService.getOrderStatusDescriptions(type);
   }
 
   @Get('/:orderId')
