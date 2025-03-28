@@ -202,8 +202,7 @@ export class KatottgService {
     const cityIds = storeCounts.map((r) => r.katottgId);
     if (cityIds) {
       const citiesWithStores = await this.katottgRepository.find({
-        where: { id: In(cityIds) },
-        relations: ['stores'],
+        where: { id: In(cityIds) }
       });
 
       citiesWithStores.forEach((city) => {
@@ -220,10 +219,9 @@ export class KatottgService {
         }
       });
 
-      return citiesWithStores;
+      return citiesWithStores.sort((a, b) => b.storesCount - a.storesCount);
     }
   }
-
 
   private async getCitiesWithStoresForUser(lang: string = 'uk') {
     const cacheCitiesWithStores = await this.cacheManager.get(this.cacheCitiesKey);
