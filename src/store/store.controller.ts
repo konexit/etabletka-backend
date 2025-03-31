@@ -39,6 +39,13 @@ export class StoreController {
     return this.storeService.getStoresByOptions(jwtPayload, optionsStoreDto);
   }
 
+  @Post('/ids')
+  async getStoresByIds(
+    @Body('ids') storeIds: Store['id'][]
+  ): Promise<Store[]> {
+    return this.storeService.getStoresByIds(storeIds);
+  }
+
   @Get('coords')
   async getCoords(): Promise<Stores.Coorditates[]> {
     return this.storeService.getCoords();
