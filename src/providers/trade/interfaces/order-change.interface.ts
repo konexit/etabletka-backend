@@ -15,6 +15,11 @@ export type OrderChangePayloadMap = {
   comment: { status_msg: string; };
 }
 
+export type OrderChangeOptions = {
+  apply_previous_changes?: boolean;
+  allow_additional_change?: boolean;
+}
+
 export interface OrderChange<T extends TradeOrderChangeType> {
   type: T;
   action: OrderChangeActionMap[T];
@@ -29,12 +34,14 @@ export interface TradeOrderChange {
   aggregator_order_id: string;
   auto_applied: TradeOrderChangeAutoApliedMode;
   changes: Array<OrderChange<TradeOrderChangeType>>;
+  options?: OrderChangeOptions;
 }
 
 export interface TradeOrderChangeAggregator {
   order_id: number;
   auto_applied: TradeOrderChangeAutoApliedMode;
   changes: Array<OrderChange<TradeOrderChangeType>>;
+  options?: OrderChangeOptions;
 }
 
 export interface TradeOrderChangesAggregator {

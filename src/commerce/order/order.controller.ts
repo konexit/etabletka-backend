@@ -15,6 +15,14 @@ import {
   UseGuards,
   ParseIntPipe
 } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
+import {
+  ORDER_ASYNC_SENDER_SCHEDULER,
+  ORDER_ASYNC_SENDER_SCHEDULER_ENABLED,
+  ORDER_STATE_RECEIVER_SCHEDULER,
+  ORDER_STATUS_DESCRIPTION_SCHEDULER,
+  ORDER_STATUS_DESCRIPTION_SCHEDULER_ENABLED,
+} from './order.constants';
 import { OrderService } from './order.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { ApiTags } from '@nestjs/swagger';
@@ -100,5 +108,38 @@ export class OrderController {
       orderId,
       pagination,
     );
+  }
+
+  @Cron(process.env[ORDER_ASYNC_SENDER_SCHEDULER] || '0 * * * * *', {
+    name: 'asynchronously sending order to trade',
+    waitForCompletion: true,
+    disabled: !JSON.parse(
+      process.env[ORDER_ASYNC_SENDER_SCHEDULER_ENABLED] || 'true',
+    ),
+  })
+  async processOrders(): Promise<void> {
+    await this.orderService.processOrders();
+  }
+
+  @Cron(process.env[ORDER_STATE_RECEIVER_SCHEDULER] || '*/15 * * * * *', {
+    name: 'asynchronously receiving order state from trading',
+    waitForCompletion: true,
+    disabled: !JSON.parse(
+      process.env[ORDER_ASYNC_SENDER_SCHEDULER_ENABLED] || 'true',
+    ),
+  })
+  async processStateOrders(): Promise<void> {
+    await this.orderService.processStateOrders();
+  }
+
+  @Cron(process.env[ORDER_STATUS_DESCRIPTION_SCHEDULER] || '0 0 */6 * * *', {
+    name: 'synchronization trade order statuses',
+    waitForCompletion: true,
+    disabled: !JSON.parse(
+      process.env[ORDER_STATUS_DESCRIPTION_SCHEDULER_ENABLED] || 'true',
+    ),
+  })
+  async processOrderStatusDescriptions(): Promise<void> {
+    await this.orderService.processOrderStatusDescriptions();
   }
 }

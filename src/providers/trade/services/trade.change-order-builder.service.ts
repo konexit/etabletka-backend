@@ -1,4 +1,10 @@
-import { OrderChangeActionMap, OrderChangePayloadMap, TradeOrderChangeAggregator, TradeOrderChangesAggregator } from "../interfaces";
+import {
+  OrderChangeActionMap,
+  OrderChangeOptions,
+  OrderChangePayloadMap,
+  TradeOrderChangeAggregator,
+  TradeOrderChangesAggregator
+} from "../interfaces";
 import { TradeOrderChangeAutoApliedMode, TradeOrderChangeType } from "../trade.constants";
 
 export class TradeOrderChangesAggregatorBuilder {
@@ -10,8 +16,12 @@ export class TradeOrderChangesAggregatorBuilder {
     };
   }
 
-  addOrderChange(orderId: number, autoApplied: TradeOrderChangeAutoApliedMode = TradeOrderChangeAutoApliedMode.Aggregator): TradeOrderChangeBuilder {
-    const builder = new TradeOrderChangeBuilder(orderId, autoApplied, this);
+  addOrderChange(
+    orderId: number,
+    autoApplied: TradeOrderChangeAutoApliedMode = TradeOrderChangeAutoApliedMode.Aggregator,
+    options?: OrderChangeOptions
+  ): TradeOrderChangeBuilder {
+    const builder = new TradeOrderChangeBuilder(orderId, autoApplied, this, options);
     this.tradeOrderChangesAggregator.order_changes.push(builder.getTradeOrderChange());
     return builder;
   }
@@ -25,12 +35,20 @@ export class TradeOrderChangeBuilder {
   private tradeOrderChangeAggregator: TradeOrderChangeAggregator;
   private parent: TradeOrderChangesAggregatorBuilder;
 
-  constructor(orderId: number, autoApplied: TradeOrderChangeAutoApliedMode, parent: TradeOrderChangesAggregatorBuilder) {
+  constructor(
+    orderId: number,
+    autoApplied: TradeOrderChangeAutoApliedMode,
+    parent: TradeOrderChangesAggregatorBuilder,
+    options?: OrderChangeOptions
+  ) {
     this.tradeOrderChangeAggregator = {
       order_id: orderId,
       auto_applied: autoApplied,
       changes: [],
     };
+    if (!options) {
+      this.tradeOrderChangeAggregator.options = options;
+    }
     this.parent = parent;
   }
 

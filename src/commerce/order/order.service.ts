@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Cron } from '@nestjs/schedule';
 import { type Repository, In, IsNull } from 'typeorm';
 import {
   TRADE_CODE_ERROR_ALREADY_HAS_BEEN_SAVED,
@@ -41,15 +40,7 @@ import {
   PaymentStatus,
   PaymentType,
 } from 'src/common/config/common.constants';
-import {
-  ORDER_ASYNC_SENDER_SCHEDULER,
-  ORDER_ASYNC_SENDER_SCHEDULER_ENABLED,
-  ORDER_STATE_RECEIVER_LIMIT,
-  ORDER_STATE_RECEIVER_SCHEDULER,
-  ORDER_STATUS_DESCRIPTION_SCHEDULER,
-  ORDER_STATUS_DESCRIPTION_SCHEDULER_ENABLED,
-  TRADE_SEARCH_STATUS_DESCRIPTION_QUERY,
-} from './order.constants';
+import { ORDER_STATE_RECEIVER_LIMIT, TRADE_SEARCH_STATUS_DESCRIPTION_QUERY, } from './order.constants';
 import type { PaginationDto } from 'src/common/dto/pagination.dto';
 import { User } from 'src/users/user/entities/user.entity';
 import { Product } from 'src/products/product/entities/product.entity';
@@ -86,15 +77,9 @@ export class OrderService {
     private orderCartRepository: Repository<OrderCart>,
     @Inject(TRADE_PROVIDER_MANAGER)
     private tradeProvider: TradeProvider,
-  ) {}
+  ) { }
 
-  @Cron(process.env[ORDER_ASYNC_SENDER_SCHEDULER] || '0 * * * * *', {
-    name: 'asynchronously sending order to trade',
-    waitForCompletion: true,
-    disabled: !JSON.parse(
-      process.env[ORDER_ASYNC_SENDER_SCHEDULER_ENABLED] || 'true',
-    ),
-  })
+
   async processOrders(): Promise<void> {
     try {
       const orders = await this.orderRepository.find({
@@ -194,13 +179,6 @@ export class OrderService {
     }
   }
 
-  @Cron(process.env[ORDER_STATE_RECEIVER_SCHEDULER] || '*/15 * * * * *', {
-    name: 'asynchronously receiving order state from trading',
-    waitForCompletion: true,
-    disabled: !JSON.parse(
-      process.env[ORDER_ASYNC_SENDER_SCHEDULER_ENABLED] || 'true',
-    ),
-  })
   async processStateOrders(): Promise<void> {
     try {
       const stateOrders = await this.tradeProvider.getStateOrders(
@@ -224,6 +202,30 @@ export class OrderService {
 
       for (const status of stateOrders.statuses) {
         try {
+          if (status.code == `${TradeOrderStatusCodes.Collected}${TradeOrderStatusOwners.Pharmacist}`) {
+            const orderChanges = this.tradeProvider
+              .createOrderChangesAggregatorBuilder()
+              .addOrderChange(
+                status.order_id,
+                TradeOrderChangeAutoApliedMode.Aggregator,
+                { allow_additional_change: true }
+              )
+              .addChange(
+                TradeOrderChangeType.StatusCode,
+                TradeOrderChangeActionType.Update,
+                { status_code: `${TradeOrderStatusCodes.WaitClient}${TradeOrderStatusOwners.Aggregator}` },
+              )
+              .end()
+              .build();
+
+            const response = await this.tradeProvider.changeOrders(orderChanges);
+            if (!response.handled_orders.includes(status.order_id)) {
+              const errorMsg = `Orders${response.error_orders.map((order) => `: ID ${order.order_id} - ${order.message}`)}`;
+              this.logger.error(errorMsg);
+              throw new Error(errorMsg);
+            }
+          }
+
           await this.orderStatusRepository.upsert(
             {
               orderId: Number(status.aggregator_order_id),
@@ -275,13 +277,6 @@ export class OrderService {
     }
   }
 
-  @Cron(process.env[ORDER_STATUS_DESCRIPTION_SCHEDULER] || '0 0 */6 * * *', {
-    name: 'synchronization trade order statuses',
-    waitForCompletion: true,
-    disabled: !JSON.parse(
-      process.env[ORDER_STATUS_DESCRIPTION_SCHEDULER_ENABLED] || 'true',
-    ),
-  })
   async processOrderStatusDescriptions(): Promise<void> {
     try {
       const statusDescriptions = await this.tradeProvider.search<
