@@ -5,7 +5,6 @@ import { Store } from 'src/store/entities/store.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { In } from 'typeorm';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { UpdateKatottgDto } from './dto/update-katottg.dto';
 import { Katottg } from './entities/katottg.entity';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
@@ -25,7 +24,7 @@ export class KatottgService {
 
   cacheCitiesKey = 'cities';
   cacheDefaultCityKey = 'defaultCity';
-  cacheCitiesTTL = 3600000; // 1Hour
+  cacheCitiesTTL = 3600_000; // 1Hour
 
   async update(jwtPayload: JwtPayload, updateKatottg: UpdateKatottgDto, lang: string = 'uk'): Promise<Katottg> {
     if (!jwtPayload || !jwtPayload.roles || !jwtPayload.roles.includes(ROLE_JWT_ADMIN)) {
@@ -118,128 +117,57 @@ export class KatottgService {
     return city;
   }
 
-  async getCitiesWithStores(jwtPayload: JwtPayload, pagination: PaginationDto = {}, orderBy: any = {}, lang: string = 'uk'): Promise<any> {
-    if (!jwtPayload || !jwtPayload.roles || !jwtPayload.roles.includes(ROLE_JWT_ADMIN)) {
-      return this.getCitiesWithStoresForUser(lang);
-    }
-
-    const { take = 16, skip = 0 } = pagination;
-
-    const storeCounts = await this.storeRepository
-      .createQueryBuilder('stores')
-      .select('stores.katottg_id', 'katottgId')
-      .addSelect('CAST(COUNT(stores.id) AS int)', 'storeCount')
-      .groupBy('stores.katottg_id')
-      .getRawMany();
-
-    if (!storeCounts.length) {
-      return {
-        cities: [],
-        pagination: { total: 0, take, skip },
-      };
-    }
-
-    const cityIds = storeCounts.map((r) => r.katottgId);
-    if (cityIds) {
-      const queryBuilder = this.katottgRepository
-        .createQueryBuilder('katottg')
-        .select('katottg')
-        .addSelect(`(katottg.name->'${lang}')::varchar`, 'langname')
-        .addSelect(`(katottg.prefix->'${lang}')::varchar`, 'langprefix')
-        .leftJoin('katottg.stores', 'stores')
-        .where('katottg.id IN (:...ids)', { ids: cityIds });
-
-      if (orderBy) {
-        if (orderBy?.orderName) {
-          queryBuilder.orderBy(`langname`, orderBy?.orderName);
-        }
-      }
-
-      queryBuilder.take(+take).skip(+skip);
-
-      const cities: Katottg[] = await queryBuilder.getMany();
-      if (!cities) {
-        return {
-          cities,
-          pagination: { total: 0, take, skip },
-        };
-      }
-
-      cities.forEach((city) => {
-        city.name = city.name[lang];
-        if (city.prefix) city.prefix = city.prefix[lang];
-
-        city.storesCount =
-          storeCounts.find((r) => r.katottgId === city.id)?.storeCount || 0;
-        if (city.stores) {
-          for (const store of city.stores) {
-            store.name = store.name[lang];
-          }
-        }
-      });
-
-      return {
-        cities,
-        pagination: {
-          total: await queryBuilder.getCount(),
-          take,
-          skip
-        },
-      };
-    }
-
-    return [];
-  }
-
-  private async citiesWithStores(lang: string = 'uk') {
-    const storeCounts = await this.storeRepository
-      .createQueryBuilder('stores')
-      .select('stores.katottg_id', 'katottgId')
-      .addSelect('CAST(COUNT(stores.id) AS int)', 'storeCount')
-      .groupBy('stores.katottg_id')
-      .getRawMany();
-
-    const cityIds = storeCounts.map((r) => r.katottgId);
-    if (cityIds) {
-      const citiesWithStores = await this.katottgRepository.find({
-        where: { id: In(cityIds) }
-      });
-
-      citiesWithStores.forEach((city) => {
-        city.name = city.name[lang];
-        if (city.prefix) {
-          city.prefix = city.prefix[lang];
-        }
-
-        city.storesCount = storeCounts.find((r) => r.katottgId === city.id)?.storeCount || 0;
-        if (city.stores) {
-          for (const store of city.stores) {
-            store.name = store.name[lang];
-          }
-        }
-      });
-
-      return citiesWithStores.sort((a, b) => b.storesCount - a.storesCount);
-    }
-  }
-
-  private async getCitiesWithStoresForUser(lang: string = 'uk') {
-    const cacheCitiesWithStores = await this.cacheManager.get(this.cacheCitiesKey);
+  async getCitiesWithStores(lang: string = 'uk'): Promise<Katottg[]> {
+    const cacheCitiesWithStores = await this.cacheManager.get<Katottg[]>(this.cacheCitiesKey);
     if (cacheCitiesWithStores) {
       return cacheCitiesWithStores;
     }
 
     const citiesWithStores = await this.citiesWithStores(lang);
-    if (!citiesWithStores) {
+    if (!citiesWithStores.length) {
       throw new HttpException('Cities not found', HttpStatus.NOT_FOUND);
     }
 
-    await this.cacheManager.set(
-      this.cacheCitiesKey,
-      citiesWithStores,
-      this.cacheCitiesTTL,
-    );
+    await this.cacheManager.set(this.cacheCitiesKey, citiesWithStores, this.cacheCitiesTTL);
 
-    return this.cacheManager.get(this.cacheCitiesKey);
+    return citiesWithStores;
+  }
+
+  private async citiesWithStores(lang: string = 'uk'): Promise<Katottg[]> {
+    const storeCounts = await this.storeRepository
+      .createQueryBuilder('stores')
+      .select('stores.katottg_id', 'katottgId')
+      .addSelect('CAST(COUNT(stores.id) AS int)', 'storeCount')
+      .where('stores.active=true')
+      .groupBy('stores.katottg_id')
+      .getRawMany();
+
+    const cityIds = storeCounts.map((r) => r.katottgId);
+
+    if (cityIds.length == 0) {
+      return [];
+    }
+
+    const citiesWithStores = await this.katottgRepository.find({
+      where: { id: In(cityIds) }
+    });
+
+    for (const city of citiesWithStores) {
+      city.name = typeof city.name === 'object' ? city.name?.[lang] ?? city.name : city.name;
+
+      if (city.prefix && typeof city.prefix === 'object') {
+        city.prefix = city.prefix?.[lang] ?? city.prefix;
+      }
+
+      city.storesCount = storeCounts.find((r) => r.katottgId === city.id)?.storeCount || 0;
+
+      if (city.stores) {
+        for (const store of city.stores) {
+          store.name = typeof store.name === 'object' ? store.name?.[lang] ?? store.name : store.name;
+        }
+      }
+    }
+
+    return citiesWithStores.sort((a, b) => b.storesCount - a.storesCount);
   }
 }

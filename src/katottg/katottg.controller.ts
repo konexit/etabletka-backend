@@ -4,7 +4,6 @@ import {
   Get,
   Param,
   Patch,
-  Query,
   UseGuards,
   ParseIntPipe
 } from "@nestjs/common";
@@ -41,14 +40,9 @@ export class KatottgController {
     return this.katottgService.getDefaultCity();
   }
 
-  @UseGuards(OptionalJwtAuthGuard)
   @Get('stores')
-  async getCitiesWithStores(
-    @JWTPayload() jwtPayload: JwtPayload,
-    @Query('pagination') pagination?: any,
-    @Query('orderBy') orderBy?: any,
-  ): Promise<Katottg[]> {
-    return this.katottgService.getCitiesWithStores(jwtPayload, pagination, orderBy);
+  async getCitiesWithStores(): Promise<Katottg[]> {
+    return this.katottgService.getCitiesWithStores();
   }
 
   @Get(':id')
