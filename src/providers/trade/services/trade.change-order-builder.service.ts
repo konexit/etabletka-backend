@@ -46,7 +46,7 @@ export class TradeOrderChangeBuilder {
       auto_applied: autoApplied,
       changes: [],
     };
-    if (!options) {
+    if (options) {
       this.tradeOrderChangeAggregator.options = options;
     }
     this.parent = parent;
