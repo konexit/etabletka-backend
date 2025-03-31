@@ -12,11 +12,20 @@ import { Stores } from 'src/common/types/store/store';
 export class StoreService {
   constructor(
     @InjectRepository(Store)
-    private storeRepository: Repository<Store>
-  ) { }
+    private storeRepository: Repository<Store>,
+  ) {}
 
-  async update(jwtPayload: JwtPayload, id: number, updateStore: UpdateStoreDto, lang: string = 'uk'): Promise<any> {
-    if (!jwtPayload || !jwtPayload.roles || !jwtPayload.roles.includes(ROLE_JWT_ADMIN)) {
+  async update(
+    jwtPayload: JwtPayload,
+    id: number,
+    updateStore: UpdateStoreDto,
+    lang: string = 'uk',
+  ): Promise<any> {
+    if (
+      !jwtPayload ||
+      !jwtPayload.roles ||
+      !jwtPayload.roles.includes(ROLE_JWT_ADMIN)
+    ) {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
 
@@ -54,7 +63,9 @@ export class StoreService {
       .select('stores');
 
     if (where?.isActive !== undefined) {
-      queryBuilder.andWhere('stores.isActive = :isActive', { isActive: where.isActive });
+      queryBuilder.andWhere('stores.isActive = :isActive', {
+        isActive: where.isActive,
+      });
     }
 
     if (orderBy) {
@@ -85,26 +96,49 @@ export class StoreService {
     };
   }
 
-  async getStoresByKatottgId(id: number, lang: string = 'uk'): Promise<Store[]> {
+  async getStoresByKatottgId(
+    id: number,
+    lang: string = 'uk',
+  ): Promise<Store[]> {
     const stores = await this.storeRepository.findBy({
       katottgId: id,
       isActive: true,
     });
 
     for (const store of stores) {
-      store.name = store.name[lang] ?? ''
+      store.name = store.name[lang] ?? '';
     }
 
-    if (!stores) {
+    if (!stores.length) {
       throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
     }
+    return stores;
+  }
+
+  async getStoresByIds(
+    ids: Store['id'][],
+    lang = 'uk',
+  ): Promise<Store[]> {
+    const stores = await this.storeRepository.findBy({
+      id: In(ids),
+      isActive: true,
+    });
+
+    for (const store of stores) {
+      store.name = store.name[lang] ?? '';
+    }
+
+    if (!stores.length) {
+      throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
+    }
+
     return stores;
   }
 
   async getStoreById(id: number, lang: string = 'uk'): Promise<Store> {
     const store = await this.storeRepository.findOne({
       where: { id },
-      relations: ['company']
+      relations: ['company'],
     });
 
     if (!store) {
@@ -140,7 +174,7 @@ export class StoreService {
       .select(['store.id', 'store.lat', 'store.lng', 'company.cdnData'])
       .getRawMany();
 
-    return stores.map(item => ({
+    return stores.map((item) => ({
       id: item.store_id,
       lat: item.store_lat,
       lng: item.store_lng,
