@@ -30,7 +30,13 @@ declare namespace General {
     }[keyof T];
 
     export type Pagination = {
+        total: number;
         take: number;
         skip: number;
+    }
+
+    export type Page<T> = {
+        items: T[];
+        pagination: Pagination;
     }
 }

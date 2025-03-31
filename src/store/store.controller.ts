@@ -35,13 +35,18 @@ export class StoreController {
   async getStoresByOptions(
     @JWTPayload() jwtPayload: JwtPayload,
     @Body() optionsStoreDto: OptionsStoreDto
-  ): Promise<Store[]> {
+  ): Promise<General.Page<Store>> {
     return this.storeService.getStoresByOptions(jwtPayload, optionsStoreDto);
   }
 
   @Get('coords')
   async getCoords(): Promise<Stores.Coorditates[]> {
     return this.storeService.getCoords();
+  }
+
+  @Get('ids')
+  async getStoreByIds(@Body() optionsStoreDto: OptionsStoreDto): Promise<Store[]> {
+    return this.storeService.getStoreByIds(optionsStoreDto.ids);
   }
 
   @Get('katottg/:id')

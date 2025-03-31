@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Store } from './entities/store.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { OptionsStoreDto } from './dto/options-store.dto';
@@ -45,7 +45,7 @@ export class StoreService {
     return stores;
   }
 
-  async getStoresByOptions(jwtPayload: JwtPayload, optionsStoreDto: OptionsStoreDto): Promise<any> {
+  async getStoresByOptions(jwtPayload: JwtPayload, optionsStoreDto: OptionsStoreDto): Promise<General.Page<Store>> {
     const { pagination = {}, lang = 'uk', where = {}, orderBy = {} } = optionsStoreDto;
     const { take = 16, skip = 0 } = pagination;
 
@@ -76,7 +76,7 @@ export class StoreService {
     }
 
     return {
-      stores,
+      items: stores,
       pagination: {
         total: await queryBuilder.getCount(),
         take,
@@ -114,6 +114,23 @@ export class StoreService {
     store.name = store.name[lang];
 
     return store;
+  }
+
+  async getStoreByIds(ids: number[] = [], lang: string = 'uk'): Promise<Store[]> {
+    const stores = await this.storeRepository.find({
+      where: { id: In(ids) },
+      relations: ['company']
+    });
+
+    if (!stores) {
+      throw new HttpException('Stores not found', HttpStatus.NOT_FOUND);
+    }
+
+    for (const store of stores) {
+      store.name = store.name[lang] ?? '';
+    }
+
+    return stores;
   }
 
   async getCoords(): Promise<Stores.Coorditates[]> {
