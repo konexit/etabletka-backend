@@ -152,8 +152,7 @@ export class StoreService {
 
   async getStoreByIds(ids: number[] = [], lang: string = 'uk'): Promise<Store[]> {
     const stores = await this.storeRepository.find({
-      where: { id: In(ids) },
-      relations: ['company']
+      where: { id: In(ids) }
     });
 
     if (!stores) {

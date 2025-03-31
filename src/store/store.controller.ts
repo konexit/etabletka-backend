@@ -39,19 +39,12 @@ export class StoreController {
     return this.storeService.getStoresByOptions(jwtPayload, optionsStoreDto);
   }
 
-  @Post('/ids')
-  async getStoresByIds(
-    @Body('ids') storeIds: Store['id'][]
-  ): Promise<Store[]> {
-    return this.storeService.getStoresByIds(storeIds);
-  }
-
   @Get('coords')
   async getCoords(): Promise<Stores.Coorditates[]> {
     return this.storeService.getCoords();
   }
 
-  @Get('ids')
+  @Post('ids')
   async getStoreByIds(@Body() optionsStoreDto: OptionsStoreDto): Promise<Store[]> {
     return this.storeService.getStoreByIds(optionsStoreDto.ids);
   }
