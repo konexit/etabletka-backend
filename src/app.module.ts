@@ -7,7 +7,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { dataSourceOptions } from '../db/data-source';
-import { UserModule } from 'src/users/user/user.module';
+import { UserModule } from 'src/user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { DiscountGroupModule } from './promo/discount-group/discount-group.module';
 import { DiscountModule } from './promo/discount/discount.module';
@@ -24,8 +24,6 @@ import { BadgeModule } from './products/badge/badge.module';
 import { StoreModule } from 'src/store/store.module';
 import { MenuModule } from './ui/menu/menu.module';
 import { SiteOptionModule } from './settings/site-options/site-option.module';
-import { RoleModule } from 'src/users/role/user-role.module';
-import { UserProfileModule } from 'src/users/profile/user-profile.module';
 import { BrandsModule } from './brands/brands.module';
 import { BlogCategoryModule } from './ui/pages/blogs/category/blog-category.module';
 import { BlogPostModule } from './ui/pages/blogs/post/blog-post.module';
@@ -72,9 +70,7 @@ import { SMSModule } from './providers/sms/sms.module';
     ProductCommentModule,
     KatottgModule,
     AnotherPointModule,
-    RoleModule,
     UserModule,
-    UserProfileModule,
     CategoriesModule,
     CompanyModule,
     StoreModule,

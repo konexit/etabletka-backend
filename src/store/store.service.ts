@@ -5,8 +5,8 @@ import { In, Repository } from 'typeorm';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { OptionsStoreDto } from './dto/options-store.dto';
-import { ROLE_JWT_ADMIN } from 'src/users/role/user-role.constants';
 import { Stores } from 'src/common/types/store/store';
+import { USER_ROLE_JWT_ADMIN } from 'src/user/user.constants';
 
 @Injectable()
 export class StoreService {
@@ -24,7 +24,7 @@ export class StoreService {
     if (
       !jwtPayload ||
       !jwtPayload.roles ||
-      !jwtPayload.roles.includes(ROLE_JWT_ADMIN)
+      !jwtPayload.roles.includes(USER_ROLE_JWT_ADMIN)
     ) {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }

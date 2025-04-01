@@ -1,17 +1,17 @@
 import * as dayjs from 'dayjs';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UserService } from 'src/users/user/user.service';
-import { CartService } from 'src/commerce/cart/cart.service';
-import { SALT } from './auth.constants';
-import { JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
-import { User } from 'src/users/user/entities/user.entity';
-import AuthDto from './dto/auth.dto';
-import { generateRandomNumber, getPasswordWithSHA512 } from 'src/common/utils';
-import { USER_ACTIVATION_CODE_DELAY, USER_PASSWORD_ACTIVATION_CODE_SIZE } from 'src/common/config/common.constants';
-import { ActivationCodeDto, ActivationDto } from './dto/activation.dto';
-import { SMSProvider } from 'src/providers/sms';
 import { JwtTokenService } from './jwt/jwt-token.service';
+import { UserService } from 'src/user/user.service';
+import { CartService } from 'src/commerce/cart/cart.service';
+import { USER_ACTIVATION_CODE_DELAY, USER_PASSWORD_ACTIVATION_CODE_SIZE } from 'src/common/config/common.constants';
+import { SALT } from './auth.constants';
+import { User } from 'src/user/entities/user.entity';
+import { JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
+import { ActivationCodeDto, ActivationDto } from './dto/activation.dto';
+import AuthDto from './dto/auth.dto';
+import { SMSProvider } from 'src/providers/sms';
+import { generateRandomNumber, getPasswordWithSHA512 } from 'src/common/utils';
 
 @Injectable()
 export class AuthService {

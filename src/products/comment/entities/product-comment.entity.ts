@@ -2,12 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn, ManyToOne,
-  OneToOne,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn
 } from "typeorm";
-import { User } from "src/users/user/entities/user.entity";
+import { User } from "src/user/entities/user.entity";
 import { Product } from "../../product/entities/product.entity";
 
 @Entity('product_comments')

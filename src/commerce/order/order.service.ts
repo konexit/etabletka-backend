@@ -42,7 +42,7 @@ import {
 } from 'src/common/config/common.constants';
 import { ORDER_STATE_RECEIVER_LIMIT, TRADE_SEARCH_STATUS_DESCRIPTION_QUERY, } from './order.constants';
 import type { PaginationDto } from 'src/common/dto/pagination.dto';
-import { User } from 'src/users/user/entities/user.entity';
+import { User } from 'src/user/entities/user.entity';
 import { Product } from 'src/products/product/entities/product.entity';
 import { Store } from 'src/store/entities/store.entity';
 import { CheckoutDto } from './dto/checkout.dto';

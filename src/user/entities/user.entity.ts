@@ -10,11 +10,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { UserRole } from 'src/users/role/entities/role.entity';
-import { UserProfile } from 'src/users//profile/entities/user-prolile.entity';
+import { UserRole } from './user-role.entity';
+import { UserProfile } from './user-prolile.entity';
 import { BlogComment } from 'src/ui/pages/blogs/comment/entities/blog-comment.entity';
 import { ProductComment } from "src/products/comment/entities/product-comment.entity";
-import { ROLE_USER } from 'src/users/role/user-role.constants';
+import { USER_ROLE_USER } from '../user.constants';
 
 @Entity({
   name: 'users',
@@ -26,21 +26,9 @@ export class User {
   @Column({ unique: true })
   login: string;
 
-  @Column({ length: 15 })
-  phone: string;
-
-  @Column({ nullable: true, length: 50 })
-  email: string;
-
   @Exclude()
   @Column({ length: 250 })
   password: string;
-
-  @Column({ name: 'first_name', nullable: true, length: 50 })
-  firstName: string;
-
-  @Column({ name: 'last_name', nullable: true, length: 50 })
-  lastName: string;
 
   @Column({ name: 'is_active', default: false })
   isActive: boolean;
@@ -49,8 +37,11 @@ export class User {
   @Column({ name: 'code', nullable: true, length: 10 })
   code: string;
 
-  @Column({ name: 'role_id', default: ROLE_USER })
+  @Column({ name: 'role_id', default: USER_ROLE_USER })
   roleId: number;
+
+  @Column({ name: 'profile_id', nullable: true })
+  profileId: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
@@ -62,16 +53,13 @@ export class User {
   @JoinColumn({ name: 'role_id', referencedColumnName: 'id' })
   role: UserRole;
 
-  @OneToOne(() => UserProfile)
-  userProfile: UserProfile;
+  @OneToOne(() => UserProfile, { cascade: true })
+  @JoinColumn({ name: 'profile_id', referencedColumnName: 'id' })
+  profile: UserProfile;
 
   @OneToMany(() => BlogComment, (blogComment) => blogComment.author)
   blogComments: BlogComment[];
 
   @OneToMany(() => ProductComment, (productComment) => productComment.author)
   productComments: ProductComment[];
-
-  constructor(partial: Partial<User>) {
-    Object.assign(this, partial);
-  }
 }

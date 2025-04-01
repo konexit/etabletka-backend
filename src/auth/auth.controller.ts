@@ -15,7 +15,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
 import { JwtAuthGuard } from './jwt/jwt-auth.guard';
 import { ActivationCodeDto, ActivationDto } from './dto/activation.dto';
-import { UniqueLoginDto } from 'src/users/user/dto/unique-login.dto';
+import { UniqueLoginDto } from 'src/user/dto/unique-login.dto';
 import { JWTPayload } from 'src/common/decorators/jwt-payload';
 import { OptionalJwtAuthGuard } from './jwt/optional-jwt-auth.guard';
 

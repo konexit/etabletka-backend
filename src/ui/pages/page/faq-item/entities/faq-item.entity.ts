@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from 'src/users/user/entities/user.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Entity('faq_items')
 export class FaqItem {

@@ -4,6 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
+import { UserProfile } from './entities//user-prolile.entity';
 import { Repository } from 'typeorm';
 import { SMSProvider } from 'src/providers/sms'
 import { PaginationDto } from 'src/common/dto/pagination.dto';
@@ -11,12 +12,16 @@ import { SALT } from 'src/auth/auth.constants';
 import { USER_PASSWORD_ACTIVATION_CODE_SIZE } from 'src/common/config/common.constants';
 import { generateRandomNumber } from 'src/common/utils';
 import { getPasswordWithSHA512 } from 'src/common/utils';
+import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
+import { USER_ROLE_JWT_ADMIN } from './user.constants';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(UserProfile)
+    private userProfileRepository: Repository<UserProfile>,
     private configService: ConfigService,
     private smsProvider: SMSProvider
   ) { }
@@ -41,8 +46,14 @@ export class UserService {
     user.password = getPasswordWithSHA512(createUserDto.password, this.configService.get<string>(SALT));
     user.code = generateRandomNumber(USER_PASSWORD_ACTIVATION_CODE_SIZE);
 
+    if (!createUserDto.profile) {
+      user.profile = await this.userProfileRepository.save(
+        this.userProfileRepository.create({})
+      );
+    }
+
     await this.smsProvider.sendSMS(
-      [user.phone],
+      [createUserDto.login],
       `Activation code: ${user.code}`,
     );
 
@@ -88,9 +99,7 @@ export class UserService {
         code: true,
         updatedAt: true
       },
-      where: {
-        login
-      }
+      where: { login }
     });
   }
 
@@ -130,30 +139,12 @@ export class UserService {
     return;
   }
 
-  async getByEmail(email: string): Promise<User> {
-    if (!email)
-      throw new HttpException(
-        'The email is not define',
-        HttpStatus.BAD_REQUEST,
-      );
-
-    const user = await this.userRepository.findOneBy({ email: email });
-    if (user) {
-      return user;
-    }
-
-    throw new HttpException(
-      'User with this email does not exist',
-      HttpStatus.NOT_FOUND,
-    );
-  }
-
   async findAll(
-    token: string | any[],
+    jwtPayload: JwtPayload,
     pagination: PaginationDto = {},
     where: any = {},
-  ) {
-    if (!token || typeof token !== 'string') {
+  ): Promise<General.Page<User>> {
+    if (!jwtPayload || !jwtPayload.roles || !jwtPayload.roles.includes(USER_ROLE_JWT_ADMIN)) {
       throw new HttpException('No access', HttpStatus.FORBIDDEN);
     }
 
@@ -177,7 +168,7 @@ export class UserService {
     }
 
     return {
-      users,
+      items: users,
       pagination: { total, take, skip },
     };
   }
@@ -198,7 +189,7 @@ export class UserService {
   async getUserById(id: number): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['role'],
+      relations: ['userRole', 'userProfile'],
     });
 
     if (!user) {
@@ -208,11 +199,27 @@ export class UserService {
     return user;
   }
 
-  async remove(id: number) {
-    return this.userRepository.delete(id);
+  async getProfileByUserId(userId: number): Promise<UserProfile> {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+        isActive: true
+      },
+      relations: ['profile']
+    });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    return user.profile;
   }
 
-  async save(user: User) {
+  async remove(id: number): Promise<void> {
+    await this.userRepository.delete(id);
+  }
+
+  async save(user: User): Promise<User> {
     return this.userRepository.save(user);
   }
 }

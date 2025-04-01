@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { BlogPost } from 'src/ui/pages/blogs/post/entities/blog-post.entity';
-import { User } from 'src/users/user/entities/user.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Entity('blog_comments')
 export class BlogComment {

@@ -8,8 +8,8 @@ import { In } from 'typeorm';
 import { UpdateKatottgDto } from './dto/update-katottg.dto';
 import { Katottg } from './entities/katottg.entity';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
-import { ROLE_JWT_ADMIN } from 'src/users/role/user-role.constants';
 import { KATOTTG_VINNYTSIA } from 'src/common/config/common.constants';
+import { USER_ROLE_JWT_ADMIN } from 'src/user/user.constants';
 
 @Injectable()
 export class KatottgService {
@@ -27,7 +27,7 @@ export class KatottgService {
   cacheCitiesTTL = 3600_000; // 1Hour
 
   async update(jwtPayload: JwtPayload, updateKatottg: UpdateKatottgDto, lang: string = 'uk'): Promise<Katottg> {
-    if (!jwtPayload || !jwtPayload.roles || !jwtPayload.roles.includes(ROLE_JWT_ADMIN)) {
+    if (!jwtPayload || !jwtPayload.roles || !jwtPayload.roles.includes(USER_ROLE_JWT_ADMIN)) {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
 
