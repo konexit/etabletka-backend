@@ -102,7 +102,6 @@ export class KatottgService {
   async getCityById(id: number, lang: string = 'uk'): Promise<Katottg | undefined> {
     const city = await this.katottgRepository.findOne({
       where: { id },
-      relations: ['stores'],
     });
 
     if (!city) {
