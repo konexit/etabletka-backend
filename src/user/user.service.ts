@@ -14,6 +14,7 @@ import { generateRandomNumber } from 'src/common/utils';
 import { getPasswordWithSHA512 } from 'src/common/utils';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { USER_ROLE_JWT_ADMIN } from './user.constants';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UserService {
@@ -213,6 +214,25 @@ export class UserService {
     }
 
     return user.profile;
+  }
+
+  async patchProfileByUserId(userId: number, updateProfileDto: UpdateProfileDto): Promise<UserProfile> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['profile'],
+    });
+
+    if (!user) {
+      throw new HttpException(`User id: ${userId} not found`, HttpStatus.NOT_FOUND);
+    }
+
+    if (!user.profile) {
+      throw new HttpException(`Profile not found for user id: ${userId}`, HttpStatus.NOT_FOUND);
+    }
+
+    this.userProfileRepository.merge(user.profile, updateProfileDto)
+
+    return this.userProfileRepository.save(user.profile);
   }
 
   async remove(id: number): Promise<void> {

@@ -10,7 +10,6 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   Query,
-  HttpException,
   ParseIntPipe
 } from '@nestjs/common';
 
@@ -24,9 +23,10 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { JWTPayload } from 'src/common/decorators/jwt-payload';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
-import { HttpStatusCode } from 'axios';
 import { OptionalJwtAuthGuard } from 'src/auth/jwt/optional-jwt-auth.guard';
 import { UserProfile } from './entities/user-profile.entity';
+import { UserIdGuard } from 'src/common/guards/user-id.guard';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @ApiTags('users')
 @Controller('api/v1')
@@ -79,22 +79,25 @@ export class UserController {
     return this.userService.getUserByRoleId(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, UserIdGuard)
   @Get('/user/profile/:userId')
   async getProfileByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<UserProfile> {
     return this.userService.getProfileByUserId(userId);
   }
 
+  @UseGuards(JwtAuthGuard, UserIdGuard)
+  @Patch('/user/profile/:userId')
+  async patchProfileByUserId(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() updateProfileDto: UpdateProfileDto
+  ): Promise<UserProfile> {
+    return this.userService.patchProfileByUserId(userId, updateProfileDto);
+  }
+
   @UseInterceptors(ClassSerializerInterceptor)
-  @UseGuards(JwtAuthGuard)
-  @Get('/user/:id')
-  async getUserById(
-    @Param('id', ParseIntPipe) id: number,
-    @JWTPayload() jwtPayload: JwtPayload
-  ): Promise<User> {
-    if (jwtPayload.userId != id) {
-      throw new HttpException('User access denied', HttpStatusCode.Forbidden);
-    }
-    return this.userService.getUserById(id);
+  @UseGuards(JwtAuthGuard, UserIdGuard)
+  @Get('/user/:userId')
+  async getUserById(@Param('userId', ParseIntPipe) userId: number): Promise<User> {
+    return this.userService.getUserById(userId);
   }
 }
