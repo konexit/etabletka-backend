@@ -26,7 +26,7 @@ import { JWTPayload } from 'src/common/decorators/jwt-payload';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { HttpStatusCode } from 'axios';
 import { OptionalJwtAuthGuard } from 'src/auth/jwt/optional-jwt-auth.guard';
-import { UserProfile } from './entities/user-prolile.entity';
+import { UserProfile } from './entities/user-profile.entity';
 
 @ApiTags('users')
 @Controller('api/v1')

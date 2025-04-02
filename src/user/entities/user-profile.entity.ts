@@ -13,6 +13,9 @@ export class UserProfile {
   @Column({ name: 'last_name', nullable: true, length: 50 })
   lastName: string;
 
+  @Column({ name: 'middle_name', nullable: true, length: 50 })
+  middleName: string;
+
   @Column({ length: 15, nullable: true, })
   phone: string;
 
@@ -40,8 +43,8 @@ export class UserProfile {
   @Column({ name: 'floor', nullable: true, length: 10 })
   floor: string;
 
-  @Column({ name: 'avatar', type: 'jsonb', nullable: true })
-  avatar: JSON;
+  @Column({ name: 'avatar', nullable: true })
+  avatar: string;
 
   @Column({ name: 'favorite_products', type: 'int', array: true, default: () => 'ARRAY[]::int[]' })
   favoriteProducts: number[];

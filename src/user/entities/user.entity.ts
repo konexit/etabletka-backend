@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { UserRole } from './user-role.entity';
-import { UserProfile } from './user-prolile.entity';
+import { UserProfile } from './user-profile.entity';
 import { BlogComment } from 'src/ui/pages/blogs/comment/entities/blog-comment.entity';
 import { ProductComment } from "src/products/comment/entities/product-comment.entity";
 import { USER_ROLE_USER } from '../user.constants';
