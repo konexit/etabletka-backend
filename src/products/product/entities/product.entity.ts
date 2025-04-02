@@ -103,7 +103,7 @@ export class Product {
   @Column({ type: 'jsonb', nullable: true })
   attributes: JSON;
 
-  @Column({ name: 'categories', type: 'int', array: true, default: () => 'ARRAY[]::int[]' })
+  @Column({ name: 'categories', type: 'int', array: true, default: () => `'{}'::integer[]` })
   categories: number[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })

@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity({
   name: 'user_profile',
@@ -22,8 +22,8 @@ export class UserProfile {
   @Column({ length: 50, nullable: true })
   email: string;
 
-  @Column({ name: 'date_of_birth', length: 30, nullable: true })
-  dateOfBirth: string;
+  @Column({ name: 'date_of_birth', type: 'timestamp', nullable: true })
+  dateOfBirth: Date;
 
   @Column({ name: 'katottg_id', nullable: true })
   katottgId: number;
@@ -46,6 +46,12 @@ export class UserProfile {
   @Column({ name: 'avatar', nullable: true })
   avatar: string;
 
-  @Column({ name: 'favorite_products', type: 'int', array: true, default: () => 'ARRAY[]::int[]' })
+  @Column({ name: 'favorite_products', type: 'int', array: true, default: () => `'{}'::integer[]` })
   favoriteProducts: number[];
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  updatedAt: Date;
 }
