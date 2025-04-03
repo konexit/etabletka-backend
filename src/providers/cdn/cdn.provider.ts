@@ -4,7 +4,11 @@ import { AUTH_PROVIDER_MANAGER, AuthProvider } from '../auth';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import { CDN_SERVICE_URL } from './cdn.constants';
-import { ICDNUploadOptions, CDNUploadResponse } from './cdn.interface';
+import {
+  ICDNUploadOptions,
+  CDNUploadResponse,
+  CDNResponse
+} from './cdn.interface';
 
 @Injectable()
 export class CDNProvider {
@@ -76,9 +80,9 @@ export class CDNProvider {
     );
   }
 
-  async upload(file: Express.Multer.File, options: ICDNUploadOptions): Promise<CDNUploadResponse> {
+  async uploadFile(file: Express.Multer.File, options: ICDNUploadOptions): Promise<CDNUploadResponse> {
     const formData = new FormData();
-    formData.append(options.input, file.buffer, { filename: file.originalname});
+    formData.append(options.input, file.buffer, { filename: file.originalname });
     const response = await this.axiosInstance.post<CDNUploadResponse>(
       `/upload/${options.getQueryParams()}`,
       formData,
@@ -87,6 +91,13 @@ export class CDNProvider {
           ...formData.getHeaders(),
         },
       }
+    );
+    return response.data;
+  }
+
+  async deleteFile(filename: string, path?: string): Promise<CDNResponse> {
+    const response = await this.axiosInstance.post<CDNResponse>(
+      `/delete/?filename=${filename}${path ? `&path=${path}` : ''}`,
     );
     return response.data;
   }

@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import { HttpException, HttpStatus, Injectable, Inject } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -21,6 +21,7 @@ import { CDNUploadOptions } from 'src/providers/cdn/cdn.options';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
   private cdnAvatarPath: string = 'user/avatars';
 
   constructor(
@@ -252,10 +253,23 @@ export class UserService {
       throw new HttpException('User profile not found', HttpStatus.NOT_FOUND);
     }
 
+    if (userProfile.avatar) {
+      try {
+        const filename = path.basename(new URL(userProfile.avatar).pathname);
+        const { status } = await this.cdnProvider.deleteFile(filename, this.cdnAvatarPath);
+
+        if (status !== HttpStatus.OK) {
+          this.logger.warn(`Failed to delete previous avatar: ${filename}, Status: ${status}`);
+        }
+      } catch (error) {
+        this.logger.error(`Error deleting previous avatar: ${error.message}`);
+      }
+    }
+
     const fileExtension = path.extname(file.originalname) || IMG_EXT_JPEG;
     const safeFilename = `${userId}${fileExtension}`;
 
-    const { status, files: [{ url }] } = await this.cdnProvider.upload(
+    const { status, files: [{ url }] } = await this.cdnProvider.uploadFile(
       { ...file, originalname: safeFilename },
       new CDNUploadOptions(this.cdnAvatarPath)
     );
