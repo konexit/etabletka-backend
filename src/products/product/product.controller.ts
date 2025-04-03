@@ -136,7 +136,7 @@ export class ProductController {
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
-  @Get('/product/ids')
+  @Post('/product/ids')
   async findProductByIds(@Body() getByProductIdsDto: GetByProductIdsDto): Promise<Product[]> {
     return this.productService.findProductByIds(getByProductIdsDto.ids, { lang: 'uk', typeViews: 'object' });
   }
