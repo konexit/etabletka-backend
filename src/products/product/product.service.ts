@@ -15,6 +15,9 @@ import { UpdateProduct } from './dto/update-product.dto';
 import { Category } from 'src/categories/entities/category.entity';
 import { ProductGroup } from 'src/products/groups/entities/product-group.entity';
 import { ProductRemnant } from 'src/products/remnants/entities/product-remnant.entity';
+import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
+import { USER_ROLE_JWT_ADMIN } from 'src/user/user.constants';
+import { GetByProductIdsDto } from './dto/get-by-product-ids.dto';
 
 @Injectable()
 export class ProductService {
@@ -391,13 +394,13 @@ export class ProductService {
 
   @TransformAttributes('uk', 2)
   async findProductById(
-    token: string,
+    jwtPayload: JwtPayload,
     id: number,
     options: TransformAttributesOptions
   ): Promise<Product> {
-    const payload = await this.jwtService.decode(token);
+    const isAdmin = jwtPayload && jwtPayload.roles && jwtPayload.roles.includes(USER_ROLE_JWT_ADMIN)
     const product = await this.productRepository.findOne({
-      where: payload?.roleId === 1 ? { id, isActive: true } : { id },
+      where: isAdmin ? { id } : { id, isActive: true },
       relations: [
         'productGroups',
         'productRemnants',
@@ -435,6 +438,50 @@ export class ProductService {
     if (product.brand) product.brand.name = product.brand?.name[options.lang];
 
     return product;
+  }
+
+  @TransformAttributes('uk', 1)
+  async findProductByIds(productIds: number[], options: TransformAttributesOptions): Promise<Product[]> {
+    const products = await this.productRepository.find({
+      where: { id: In(productIds), isActive: true },
+      relations: [
+        'productGroups',
+        'productRemnants',
+        'productRemnants.store',
+        'productType',
+        'discounts',
+        'badges',
+        'brand',
+      ],
+    });
+
+    if (!products) {
+      throw new HttpException('Products not found', HttpStatus.NOT_FOUND);
+    }
+
+    for (const product of products) {
+      if (product.discounts) {
+        for (const discount of product.discounts) {
+          discount.discountPrice = this.calculateDiscountPrice(
+            product.price,
+            discount.type,
+            discount.value,
+            discount.isActive,
+          );
+
+          discount.name = discount.name[options.lang];
+        }
+      }
+
+      product.name = product?.name[options.lang];
+      product.shortName = product?.shortName[options.lang];
+      if (product.seoTitle) product.seoTitle = product.seoTitle[options.lang];
+      if (product.seoDescription)
+        product.seoDescription = product.seoDescription[options.lang];
+      if (product.brand) product.brand.name = product.brand?.name[options.lang];
+    }
+
+    return products;
   }
 
   @TransformAttributes('uk')

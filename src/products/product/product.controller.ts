@@ -13,6 +13,7 @@ import {
   Query,
   HttpException,
   HttpStatus,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { Product } from './entities/product.entity';
 import { ProductService } from './product.service';
@@ -21,21 +22,25 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { UpdateProduct } from './dto/update-product.dto';
 import { Request } from 'express';
 import { ApiTags } from '@nestjs/swagger';
+import { OptionalJwtAuthGuard } from 'src/auth/jwt/optional-jwt-auth.guard';
+import { JWTPayload } from 'src/common/decorators/jwt-payload';
+import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
+import { GetByProductIdsDto } from './dto/get-by-product-ids.dto';
 
 @ApiTags('products')
 @Controller('api/v1')
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+  constructor(private readonly productService: ProductService) { }
 
-  @UseGuards(AuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
+  @UseGuards(AuthGuard)
   @Post('product/create')
   async create(@Body() createProductDto: CreateProduct): Promise<Product> {
-    return await this.productService.create(createProductDto);
+    return this.productService.create(createProductDto);
   }
 
-  @UseGuards(AuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
+  @UseGuards(AuthGuard)
   @Patch('/product/:id')
   update(
     @Req() request: Request,
@@ -112,14 +117,14 @@ export class ProductController {
     }
   }
 
-  @UseGuards(AuthGuard)
   @Delete('/product/:id')
+  @UseGuards(AuthGuard)
   remove(@Param('id') id: number) {
     return this.productService.remove(id);
   }
 
-  @UseGuards(AuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
+  @UseGuards(AuthGuard)
   @Post('/product/:id/add/badge/:badgeId')
   async addBadgeToProduct(
     @Req() request: Request,
@@ -127,30 +132,34 @@ export class ProductController {
     @Param('badgeId') badgeId: number,
   ): Promise<any> {
     const token = request.headers.authorization?.split(' ')[1] ?? '';
-
-    return await this.productService.addBadgeToProduct(token, id, badgeId);
+    return this.productService.addBadgeToProduct(token, id, badgeId);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/product/ids')
+  async findProductByIds(@Body() getByProductIdsDto: GetByProductIdsDto): Promise<Product[]> {
+    return this.productService.findProductByIds(getByProductIdsDto.ids, { lang: 'uk', typeViews: 'object' });
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @UseGuards(OptionalJwtAuthGuard)
   @Get('/product/:id')
-  async findProductById(@Req() request: Request, @Param('id') id: number) {
-    const token = request.headers.authorization?.split(' ')[1] ?? '';
-    return await this.productService.findProductById(token, +id, {
-      lang: 'uk',
-      typeViews: 'object',
-    });
+  async findProductById(
+    @JWTPayload() jwtPayload: JwtPayload,
+    @Param('id', ParseIntPipe) id: number): Promise<Product> {
+    return this.productService.findProductById(jwtPayload, id, { lang: 'uk', typeViews: 'object' });
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('/category/:id/products')
   async getProductsByCategoryId(@Param('id') id: number): Promise<any> {
-    return await this.productService.getProductsByCategoryId(+id);
+    return this.productService.getProductsByCategoryId(+id);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('/product/slug/:slug')
   async getProductBySlug(@Param('slug') slug: string) {
-    return await this.productService.findProductBySlug(slug);
+    return this.productService.findProductBySlug(slug);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
