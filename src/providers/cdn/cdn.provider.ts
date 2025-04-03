@@ -7,7 +7,9 @@ import { CDN_SERVICE_URL } from './cdn.constants';
 import {
   ICDNUploadOptions,
   CDNUploadResponse,
-  CDNResponse
+  CDNResponse,
+  CDNSearchResponse,
+  CDNListResponse
 } from './cdn.interface';
 
 @Injectable()
@@ -98,6 +100,20 @@ export class CDNProvider {
   async deleteFile(filename: string, path?: string): Promise<CDNResponse> {
     const response = await this.axiosInstance.post<CDNResponse>(
       `/delete/?filename=${filename}${path ? `&path=${path}` : ''}`,
+    );
+    return response.data;
+  }
+
+  async searchFile(search: string, path?: string): Promise<CDNSearchResponse> {
+    const response = await this.axiosInstance.post<CDNSearchResponse>(
+      `/search/?search=${search}${path ? `&path=${path}` : ''}`,
+    );
+    return response.data;
+  }
+
+  async showFiles(path?: string): Promise<CDNListResponse> {
+    const response = await this.axiosInstance.post<CDNListResponse>(
+      `/list/${path ? `?path=${path}` : ''}`,
     );
     return response.data;
   }
