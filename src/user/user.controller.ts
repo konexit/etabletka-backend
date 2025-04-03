@@ -10,7 +10,8 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   Query,
-  ParseIntPipe
+  ParseIntPipe,
+  UploadedFile
 } from '@nestjs/common';
 
 import { UserService } from './user.service';
@@ -27,6 +28,7 @@ import { OptionalJwtAuthGuard } from 'src/auth/jwt/optional-jwt-auth.guard';
 import { UserProfile } from './entities/user-profile.entity';
 import { UserIdGuard } from 'src/common/guards/user-id.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('users')
 @Controller('api/v1')
@@ -83,6 +85,16 @@ export class UserController {
   @Get('/user/profile/:userId')
   async getProfileByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<UserProfile> {
     return this.userService.getProfileByUserId(userId);
+  }
+
+  @UseGuards(JwtAuthGuard, UserIdGuard)
+  @Post('/user/profile/avatar/:userId')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadAvatarProfileByUserId(
+    @Param('userId', ParseIntPipe) userId: number,
+    @UploadedFile() file: Express.Multer.File
+  ): Promise<General.URL> {
+    return this.userService.uploadAvatar(userId, file);
   }
 
   @UseGuards(JwtAuthGuard, UserIdGuard)

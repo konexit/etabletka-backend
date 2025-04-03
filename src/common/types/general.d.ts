@@ -35,6 +35,10 @@ declare namespace General {
         skip: number;
     }
 
+    export type URL = {
+        url: string;
+    }
+
     export type Page<T> = {
         items: T[];
         pagination: Pagination;

@@ -8,16 +8,17 @@ export const COMPANY_BOOKING_DATE = 2;
 export const COMPANY_MARKETPLACE = 'eTabletka';
 export const COMPANY_ORDER_DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 export const COMPANY_ORDER_COMPANY_INFO = {
-  "name": "eTabletka",
-  "edrpou": 0,
-  "address": "м. Вінниця Київська 136г",
-  "company_id": 0,
-  "revaluation": true,
-  "mobile_phone": "0800355050",
-  "allow_change_order": true
+  name: "eTabletka",
+  edrpou: 0,
+  address: "м. Вінниця Київська 136г",
+  company_id: 0,
+  revaluation: true,
+  mobile_phone: "0800355050",
+  allow_change_order: true
 }
 
 export const JWT_DEFAULT_EXPIRES_IN = '3600s';
+export const IMG_EXT_JPEG = '.jpeg';
 
 export enum PaymentStatus {
   Pending = 1,

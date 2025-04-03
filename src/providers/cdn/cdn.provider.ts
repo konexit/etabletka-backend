@@ -1,31 +1,94 @@
-import { Injectable, OnModuleInit, Inject } from '@nestjs/common';
+import * as FormData from 'form-data';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { AUTH_PROVIDER_MANAGER, AuthProvider } from '../auth';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
-import { CDNService } from './services';
-import { CDN_SERVICES_URL } from './cdn.constants';
+import { CDN_SERVICE_URL } from './cdn.constants';
+import { ICDNUploadOptions, CDNUploadResponse } from './cdn.interface';
 
 @Injectable()
-export class CDNProvider implements OnModuleInit {
+export class CDNProvider {
+  private readonly logger = new Logger(CDNProvider.name);
   private axiosInstance: AxiosInstance;
+  private isRefreshing = false;
+  private refreshSubscribers: ((token: string) => void)[] = [];
 
   constructor(
-    private readonly configService: ConfigService,
-    private readonly cndService: CDNService,
-    @Inject(AUTH_PROVIDER_MANAGER) private readonly authProvider: AuthProvider
+    private configService: ConfigService,
+    @Inject(AUTH_PROVIDER_MANAGER)
+    private authProvider: AuthProvider
   ) {
     this.axiosInstance = axios.create({
-      baseURL: this.configService.get<string>(CDN_SERVICES_URL),
+      baseURL: this.configService.get<string>(CDN_SERVICE_URL),
       headers: {
         'Content-Type': 'application/json',
       },
-      timeout: 5000,
+      timeout: 60_000,
     });
+    this.setupInterceptors();
+  }
+  private setupInterceptors(): void {
+    this.axiosInstance.interceptors.request.use(
+      async (config) => {
+        config.headers.Authorization = await this.authProvider.getAuthToken();
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    this.axiosInstance.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          if (this.isRefreshing) {
+            return new Promise((resolve) => {
+              this.refreshSubscribers.push((newToken) => {
+                originalRequest.headers.Authorization = newToken;
+                resolve(this.axiosInstance(originalRequest));
+              });
+            });
+          }
+
+          originalRequest._retry = true;
+          this.isRefreshing = true;
+
+          try {
+            const token = await this.authProvider.refreshAuthToken();
+            this.logger.log('token refreshed:', token);
+
+            this.refreshSubscribers.forEach((callback) => callback(token));
+            this.refreshSubscribers = [];
+
+            originalRequest.headers.Authorization = token;
+            return this.axiosInstance(originalRequest);
+          } catch (refreshError) {
+            this.logger.error('token refresh failed:', refreshError);
+            return Promise.reject(refreshError);
+          } finally {
+            this.isRefreshing = false;
+          }
+        }
+
+        return Promise.reject(error);
+      }
+    );
   }
 
-  async onModuleInit(): Promise<void> {
-    const token = await this.authProvider.getAuthToken();
-    console.log("Token CDN:", token);
+  async upload(file: Express.Multer.File, options: ICDNUploadOptions): Promise<CDNUploadResponse> {
+    const formData = new FormData();
+    formData.append(options.input, file.buffer, { filename: file.originalname});
+    const response = await this.axiosInstance.post<CDNUploadResponse>(
+      `/upload/${options.getQueryParams()}`,
+      formData,
+      {
+        headers: {
+          ...formData.getHeaders(),
+        },
+      }
+    );
+    return response.data;
   }
 }
 

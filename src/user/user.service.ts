@@ -1,4 +1,5 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import * as path from 'node:path';
+import { HttpException, HttpStatus, Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -9,22 +10,28 @@ import { Repository } from 'typeorm';
 import { SMSProvider } from 'src/providers/sms'
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { SALT } from 'src/auth/auth.constants';
-import { USER_PASSWORD_ACTIVATION_CODE_SIZE } from 'src/common/config/common.constants';
+import { IMG_EXT_JPEG, USER_PASSWORD_ACTIVATION_CODE_SIZE } from 'src/common/config/common.constants';
 import { generateRandomNumber } from 'src/common/utils';
 import { getPasswordWithSHA512 } from 'src/common/utils';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { USER_ROLE_JWT_ADMIN } from './user.constants';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { CDNProvider, CDN_PROVIDER_MANAGER } from 'src/providers/cdn';
+import { CDNUploadOptions } from 'src/providers/cdn/cdn.options';
 
 @Injectable()
 export class UserService {
+  private cdnAvatarPath: string = 'user/avatars';
+
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @InjectRepository(UserProfile)
     private userProfileRepository: Repository<UserProfile>,
     private configService: ConfigService,
-    private smsProvider: SMSProvider
+    private smsProvider: SMSProvider,
+    @Inject(CDN_PROVIDER_MANAGER)
+    private cdnProvider: CDNProvider,
   ) { }
 
   async create(createUserDto: CreateUserDto): Promise<void> {
@@ -233,6 +240,34 @@ export class UserService {
     this.userProfileRepository.merge(user.profile, updateProfileDto)
 
     return this.userProfileRepository.save(user.profile);
+  }
+
+  async uploadAvatar(userId: number, file: Express.Multer.File): Promise<General.URL> {
+    if (!file) {
+      throw new HttpException('File not provided', HttpStatus.BAD_REQUEST);
+    }
+
+    const userProfile = await this.getProfileByUserId(userId);
+    if (!userProfile) {
+      throw new HttpException('User profile not found', HttpStatus.NOT_FOUND);
+    }
+
+    const fileExtension = path.extname(file.originalname) || IMG_EXT_JPEG;
+    const safeFilename = `${userId}${fileExtension}`;
+
+    const { status, files: [{ url }] } = await this.cdnProvider.upload(
+      { ...file, originalname: safeFilename },
+      new CDNUploadOptions(this.cdnAvatarPath)
+    );
+
+    if (status !== HttpStatus.OK) {
+      throw new HttpException('Failed to upload avatar', HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    userProfile.avatar = url;
+    await this.userProfileRepository.save(userProfile);
+
+    return { url };
   }
 
   async remove(id: number): Promise<void> {

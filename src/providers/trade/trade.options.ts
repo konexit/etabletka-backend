@@ -1,5 +1,5 @@
-import { ITradeStateOrdersOptions } from "./interfaces";
-import { TradeStateOrderPickOption } from "./trade.constants";
+import { ITradeStateOrdersOptions } from './interfaces';
+import { TradeStateOrderPickOption } from './trade.constants';
 
 export class StateOrdersOptions implements ITradeStateOrdersOptions {
   constructor(
@@ -21,13 +21,13 @@ export class StateOrdersOptions implements ITradeStateOrdersOptions {
     }
 
     if (this.orderTypes.length > 0) {
-      query.push(`orderTypes=${this.orderTypes.join(",")}`);
+      query.push(`orderTypes=${this.orderTypes.join(',')}`);
     }
 
     if (this.tradePoints.length > 0) {
-      query.push(`tradePoints=${this.tradePoints.join(",")}`);
+      query.push(`tradePoints=${this.tradePoints.join(',')}`);
     }
 
-    return query.length > 0 ? `?${query.join("&")}` : "";
+    return query.length > 0 ? `?${query.join('&')}` : '';
   }
 }
