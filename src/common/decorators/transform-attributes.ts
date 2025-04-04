@@ -77,7 +77,7 @@ export function TransformAttributes(
                 const attr = attributes[key];
 
                 if (attr) {
-                  attr.sectionViews.forEach((view) => {
+                  (attr.sectionViews as string[]).forEach((view) => {
                     acc[view].push({
                       name: attributes[key]?.name?.[lang],
                       order: attributes[key]?.order,
@@ -94,12 +94,12 @@ export function TransformAttributes(
                 item.attributes[partKey]
               ) {
                 prepareResult.price.denominator = +(
-                  item.attributes[denominatorKey]?.name?.[lang] ?? 1
+                  item.attributes[denominatorKey]?.name ?? 1
                 );
                 prepareResult.price.wholeName =
-                  item.attributes[wholeKey]?.name?.[lang] ?? '';
+                  item.attributes[wholeKey]?.name ?? '';
                 prepareResult.price.partName =
-                  item.attributes[partKey]?.name?.[lang] ?? '';
+                  item.attributes[partKey]?.name ?? '';
               }
 
               item.attributes = prepareResult;
