@@ -269,7 +269,7 @@ export class UserService {
     const fileExtension = path.extname(file.originalname) || IMG_EXT_JPEG;
     const safeFilename = `${userId}${fileExtension}`;
 
-    const { status, files: [{ url }] } = await this.cdnProvider.uploadFile(
+    const { status, timestamp, files: [{ url }] } = await this.cdnProvider.uploadFile(
       { ...file, originalname: safeFilename },
       new CDNUploadOptions(this.cdnAvatarPath)
     );
@@ -281,7 +281,7 @@ export class UserService {
     userProfile.avatar = url;
     await this.userProfileRepository.save(userProfile);
 
-    return { url };
+    return { url: `${url}?v=${timestamp}` };
   }
 
   async deleteAvatar(userId: number): Promise<void> {

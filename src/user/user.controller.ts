@@ -101,9 +101,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard, UserIdGuard)
   @Delete('/user/profile/avatar/:userId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteAvatarProfileByUserId(
-    @Param('userId', ParseIntPipe) userId: number
-  ): Promise<void> {
+  async deleteAvatarProfileByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<void> {
     return this.userService.deleteAvatar(userId);
   }
 
