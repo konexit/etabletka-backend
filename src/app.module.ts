@@ -14,11 +14,10 @@ import { DiscountModule } from './promo/discount/discount.module';
 import { ProductModule } from './products/product/product.module';
 import { ProductRemnantModule } from './products/remnants/product-remnant.module';
 import { ProductTypeModule } from './products/types/product-type.module';
-import { AnotherPointModule } from './settings/another-point/another-point.module';
 import { KatottgModule } from './katottg/katottg.module';
 import { CategoriesModule } from './categories/categories.module';
 import { PageModule } from './ui/pages/page/page.module';
-import { FaqItemModule } from './ui/pages/page/faq-item/faq-item.module';
+import { FaqItemModule } from './ui/pages/faq-item/faq-item.module';
 import { BannerModule } from 'src/ui/banner/banner.module';
 import { BadgeModule } from './products/badge/badge.module';
 import { StoreModule } from 'src/store/store.module';
@@ -69,7 +68,6 @@ import { SMSModule } from './providers/sms/sms.module';
     ProductGroupModule,
     ProductCommentModule,
     KatottgModule,
-    AnotherPointModule,
     UserModule,
     CategoriesModule,
     CompanyModule,

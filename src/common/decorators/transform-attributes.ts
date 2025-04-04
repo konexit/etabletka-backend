@@ -56,55 +56,70 @@ export function TransformAttributes(
       const lang = args[options.paramLangIndex] ? args[options.paramLangIndex] : options.lang ?? defaultLang;
       const result = await originalMethod.apply(this, args);
 
-      if (result && result.attributes) {
-        const cacheManager: Cache = this.cacheManager;
-        const priceConfig: PriceConfig = this.priceConfig;
-        const attributes = await cacheManager.get(CacheKeys.ProductAttributes);
-        switch (options.typeViews) {
-          case TypeViews.Object:
-            if (attributes) {
-              const prepareResult = Object
-                .keys(result.attributes)
-                .reduce((acc, key) => {
-                  const value = getValueByLang(result.attributes[key], lang);
-                  const attr = attributes[key];
-                  if (attr) {
-                    attr.sectionViews.forEach((view) => {
-                      acc[view].push({
-                        name: attributes[key]?.name?.[lang],
-                        order: attributes[key]?.order,
-                        value
-                      })
+      if (!result) return result;
+
+      const cacheManager: Cache = this.cacheManager;
+      const priceConfig: PriceConfig = this.priceConfig;
+      const attributes = await cacheManager.get(CacheKeys.ProductAttributes);
+
+      const transformAttributes = (item: any) => {
+        if (item.attributes && attributes) {
+          switch (options.typeViews) {
+            case TypeViews.Object:
+              const prepareResult = Object.keys(item.attributes).reduce((acc, key) => {
+                const value = getValueByLang(item.attributes[key], lang);
+                const attr = attributes[key];
+
+                if (attr) {
+                  attr.sectionViews.forEach((view) => {
+                    acc[view].push({
+                      name: attributes[key]?.name?.[lang],
+                      order: attributes[key]?.order,
+                      value,
                     });
-                  }
-                  return acc;
-                }, initialValueTypeViewsObject());
-              if (result.attributes[priceConfig.denominatorKey] && result.attributes[priceConfig.wholeKey] && result.attributes[priceConfig.partKey]) {
-                prepareResult.price.denominator = +(result.attributes[priceConfig.denominatorKey]?.name?.[lang] ?? 1);
-                prepareResult.price.wholeName = result.attributes[priceConfig.wholeKey]?.name?.[lang] ?? '';
-                prepareResult.price.partName = result.attributes[priceConfig.partKey]?.name?.[lang] ?? '';
+                  });
+                }
+                return acc;
+              }, initialValueTypeViewsObject());
+
+              if (
+                item.attributes[priceConfig.denominatorKey] &&
+                item.attributes[priceConfig.wholeKey] &&
+                item.attributes[priceConfig.partKey]
+              ) {
+                prepareResult.price.denominator = +(
+                  item.attributes[priceConfig.denominatorKey]?.name?.[lang] ?? 1
+                );
+                prepareResult.price.wholeName =
+                  item.attributes[priceConfig.wholeKey]?.name?.[lang] ?? "";
+                prepareResult.price.partName =
+                  item.attributes[priceConfig.partKey]?.name?.[lang] ?? "";
               }
-              result.attributes = prepareResult;
-            }
-            break;
-          case TypeViews.Arr:
-            if (attributes) {
-              result.attributes = Object.keys(result.attributes)
-                .map((key) => {
-                  return {
-                    name: attributes[key]?.name?.[lang],
-                    type: attributes[key]?.type,
-                    sectionViews: attributes[key].sectionViews,
-                    order: attributes[key]?.order,
-                    value: getValueByLang(result.attributes[key], lang),
-                  };
-                })
+
+              item.attributes = prepareResult;
+              break;
+
+            case TypeViews.Arr:
+              item.attributes = Object.keys(item.attributes)
+                .map((key) => ({
+                  name: attributes[key]?.name?.[lang],
+                  type: attributes[key]?.type,
+                  sectionViews: attributes[key].sectionViews,
+                  order: attributes[key]?.order,
+                  value: getValueByLang(item.attributes[key], lang),
+                }))
                 .sort((a, b) => a.order - b.order);
-            }
-            break;
+              break;
+          }
         }
+        return item;
+      };
+
+      if (Array.isArray(result)) {
+        return result.map(transformAttributes);
+      } else {
+        return transformAttributes(result);
       }
-      return result;
     };
 
     return descriptor;

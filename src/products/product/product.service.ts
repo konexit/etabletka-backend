@@ -440,7 +440,7 @@ export class ProductService {
     return product;
   }
 
-  @TransformAttributes('uk', 1)
+  @TransformAttributes('uk')
   async findProductByIds(productIds: number[], options: TransformAttributesOptions): Promise<Product[]> {
     const products = await this.productRepository.find({
       where: { id: In(productIds), isActive: true },
