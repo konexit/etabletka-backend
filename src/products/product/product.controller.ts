@@ -31,7 +31,7 @@ import { TransformAttributesViews } from 'src/common/decorators/transform-attrib
 @ApiTags('products')
 @Controller('api/v1')
 export class ProductController {
-  constructor(private readonly productService: ProductService) { }
+  constructor(private readonly productService: ProductService) {}
 
   @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(AuthGuard)
@@ -111,11 +111,7 @@ export class ProductController {
       }
     }
 
-    try {
-      return this.productService.update(token, id, updateProduct);
-    } catch (error) {
-      throw error;
-    }
+    return this.productService.update(token, id, updateProduct);
   }
 
   @Delete('/product/:id')
@@ -131,15 +127,32 @@ export class ProductController {
     @Req() request: Request,
     @Param('id') id: number,
     @Param('badgeId') badgeId: number,
-  ): Promise<any> {
+  ) {
     const token = request.headers.authorization?.split(' ')[1] ?? '';
     return this.productService.addBadgeToProduct(token, id, badgeId);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('/product/ids')
-  async findProductByIds(@Body() getByProductIdsDto: GetByProductIdsDto): Promise<Product[]> {
-    return this.productService.findProductByIds(getByProductIdsDto.ids, { lang: 'uk', typeViews: TransformAttributesViews.Object });
+  async findProductByIds(
+    @Body() getByProductIdsDto: GetByProductIdsDto,
+  ): Promise<Product[]> {
+    return this.productService.findProductByIds(getByProductIdsDto.ids, {
+      lang: 'uk',
+      typeViews: TransformAttributesViews.Object,
+    });
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/product/discount')
+  async findDiscountProducts() {
+    return this.productService.findDiscountProducts();
+  }
+
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/product/popular')
+  async findPopularProducts() {
+    return this.productService.findPopularProducts();
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
@@ -147,13 +160,17 @@ export class ProductController {
   @Get('/product/:id')
   async findProductById(
     @JWTPayload() jwtPayload: JwtPayload,
-    @Param('id', ParseIntPipe) id: number): Promise<Product> {
-    return this.productService.findProductById(jwtPayload, id, { lang: 'uk', typeViews: TransformAttributesViews.Object });
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<Product> {
+    return this.productService.findProductById(jwtPayload, id, {
+      lang: 'uk',
+      typeViews: TransformAttributesViews.Object,
+    });
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('/category/:id/products')
-  async getProductsByCategoryId(@Param('id') id: number): Promise<any> {
+  async getProductsByCategoryId(@Param('id') id: number) {
     return this.productService.getProductsByCategoryId(+id);
   }
 
@@ -167,23 +184,11 @@ export class ProductController {
   @Get('/products')
   async findAll(
     @Req() request: Request,
-    @Query('pagination') pagination?: any,
-    @Query('orderBy') orderBy?: any,
-    @Query('where') where?: any,
+    @Query('pagination') pagination,
+    @Query('orderBy') orderBy,
+    @Query('where') where,
   ) {
     const token = request.headers.authorization?.split(' ')[1] ?? '';
     return this.productService.findAll(token, pagination, orderBy, where);
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Get('/sale-products')
-  async findAllSales() {
-    return this.productService.findAllSales();
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Get('/popular-products')
-  async findPopular() {
-    return this.productService.findPopular();
   }
 }
