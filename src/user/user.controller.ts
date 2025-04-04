@@ -11,9 +11,10 @@ import {
   ClassSerializerInterceptor,
   Query,
   ParseIntPipe,
-  UploadedFile
+  UploadedFile,
+  HttpCode,
+  HttpStatus
 } from '@nestjs/common';
-
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -95,6 +96,15 @@ export class UserController {
     @UploadedFile() file: Express.Multer.File
   ): Promise<General.URL> {
     return this.userService.uploadAvatar(userId, file);
+  }
+
+  @UseGuards(JwtAuthGuard, UserIdGuard)
+  @Delete('/user/profile/avatar/:userId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteAvatarProfileByUserId(
+    @Param('userId', ParseIntPipe) userId: number
+  ): Promise<void> {
+    return this.userService.deleteAvatar(userId);
   }
 
   @UseGuards(JwtAuthGuard, UserIdGuard)

@@ -284,6 +284,29 @@ export class UserService {
     return { url };
   }
 
+  async deleteAvatar(userId: number): Promise<void> {
+    const userProfile = await this.getProfileByUserId(userId);
+    if (!userProfile) {
+      throw new HttpException('User profile not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (userProfile.avatar) {
+      try {
+        const filename = path.basename(new URL(userProfile.avatar).pathname);
+        const { status } = await this.cdnProvider.deleteFile(filename, this.cdnAvatarPath);
+
+        if (status !== HttpStatus.OK) {
+          this.logger.warn(`Failed to delete previous avatar: ${filename}, Status: ${status}`);
+        }
+      } catch (error) {
+        this.logger.error(`Error deleting previous avatar: ${error.message}`);
+      }
+    }
+
+    userProfile.avatar = null;
+    await this.userProfileRepository.save(userProfile);
+  }
+
   async remove(id: number): Promise<void> {
     await this.userRepository.delete(id);
   }
