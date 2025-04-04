@@ -278,10 +278,10 @@ export class UserService {
       throw new HttpException('Failed to upload avatar', HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
-    userProfile.avatar = url;
+    userProfile.avatar = `${url}?v=${timestamp}`;
     await this.userProfileRepository.save(userProfile);
 
-    return { url: `${url}?v=${timestamp}` };
+    return { url: userProfile.avatar };
   }
 
   async deleteAvatar(userId: number): Promise<void> {
