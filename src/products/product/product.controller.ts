@@ -26,6 +26,7 @@ import { OptionalJwtAuthGuard } from 'src/auth/jwt/optional-jwt-auth.guard';
 import { JWTPayload } from 'src/common/decorators/jwt-payload';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { GetByProductIdsDto } from './dto/get-by-product-ids.dto';
+import { TransformAttributesViews } from 'src/common/decorators/transform-attributes';
 
 @ApiTags('products')
 @Controller('api/v1')
@@ -138,7 +139,7 @@ export class ProductController {
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('/product/ids')
   async findProductByIds(@Body() getByProductIdsDto: GetByProductIdsDto): Promise<Product[]> {
-    return this.productService.findProductByIds(getByProductIdsDto.ids, { lang: 'uk', typeViews: 'object' });
+    return this.productService.findProductByIds(getByProductIdsDto.ids, { lang: 'uk', typeViews: TransformAttributesViews.Object });
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
@@ -147,7 +148,7 @@ export class ProductController {
   async findProductById(
     @JWTPayload() jwtPayload: JwtPayload,
     @Param('id', ParseIntPipe) id: number): Promise<Product> {
-    return this.productService.findProductById(jwtPayload, id, { lang: 'uk', typeViews: 'object' });
+    return this.productService.findProductById(jwtPayload, id, { lang: 'uk', typeViews: TransformAttributesViews.Object });
   }
 
   @UseInterceptors(ClassSerializerInterceptor)

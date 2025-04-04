@@ -17,12 +17,9 @@ import { ProductGroup } from 'src/products/groups/entities/product-group.entity'
 import { ProductRemnant } from 'src/products/remnants/entities/product-remnant.entity';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { USER_ROLE_JWT_ADMIN } from 'src/user/user.constants';
-import { GetByProductIdsDto } from './dto/get-by-product-ids.dto';
 
 @Injectable()
 export class ProductService {
-  private priceConfig: PriceConfig;
-
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
@@ -40,9 +37,7 @@ export class ProductService {
     private cacheManager: Cache,
     private jwtService: JwtService,
     private configService: ConfigService,
-  ) {
-    this.priceConfig = JSON.parse(this.configService.get('PRICE_CONFIG'));
-  }
+  ) {}
 
   cacheSalesProductsKey = 'salesProducts';
   cacheProductsTTL = 7200000; // 2Hour
@@ -50,7 +45,6 @@ export class ProductService {
   async create(createProduct: CreateProduct): Promise<Product> {
     const product = this.productRepository.create(createProduct);
     await this.productRepository.save(product);
-    console.log('PRODUCT', product);
     return product;
   }
 

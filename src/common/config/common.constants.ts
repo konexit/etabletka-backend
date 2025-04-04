@@ -20,6 +20,12 @@ export const COMPANY_ORDER_COMPANY_INFO = {
 export const JWT_DEFAULT_EXPIRES_IN = '3600s';
 export const IMG_EXT_JPEG = '.jpeg';
 
+export enum AppEnv {
+  ProductPriceDenominatorKey = 'PRODUCT_PRICE_DENOMINATOR_KEY',
+  ProductPriceWholeKey = 'PRODUCT_PRICE_WHOLE_KEY',
+  ProductPricePartKey = 'PRODUCT_PRICE_PART_KEY'
+}
+
 export enum PaymentStatus {
   Pending = 1,
   Paid = 2,

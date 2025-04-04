@@ -1,18 +1,26 @@
+import { ConfigService } from '@nestjs/config';
 import { Cache } from 'cache-manager';
 import { CacheKeys } from 'src/settings/refresh/refresh-keys';
+import { AppEnv } from '../config/common.constants';
 
-enum TypeViews {
+export enum TransformAttributesViews {
   Arr = 'arr',
   Object = 'object',
   Raw = 'raw',
 }
 
+export interface TransformAttributesOptions {
+  lang?: string,
+  paramLangIndex?: number;
+  typeViews: TransformAttributesViews;
+}
+
 const defaultOptions: TransformAttributesOptions = {
   paramLangIndex: 1,
-  typeViews: 'object',
+  typeViews: TransformAttributesViews.Object,
 };
 
-const initialValueTypeViewsObject = () => ({
+const typeObjectView = (): Products.Attributes => ({
   price: {
     denominator: 1,
     wholeName: '',
@@ -22,12 +30,6 @@ const initialValueTypeViewsObject = () => ({
   main: [],
   attributes: [],
 });
-
-export interface TransformAttributesOptions {
-  lang?: string,
-  paramLangIndex?: number;
-  typeViews: TypeViews | string;
-}
 
 const getValueByLang = (value: any, lang: string) => {
   if (Array.isArray(value)) {
@@ -59,13 +61,17 @@ export function TransformAttributes(
       if (!result) return result;
 
       const cacheManager: Cache = this.cacheManager;
-      const priceConfig: PriceConfig = this.priceConfig;
       const attributes = await cacheManager.get(CacheKeys.ProductAttributes);
+
+      const configService: ConfigService = this.configService;
+      const denominatorKey = configService.get<string>(AppEnv.ProductPriceDenominatorKey);
+      const wholeKey = configService.get<string>(AppEnv.ProductPriceWholeKey);
+      const partKey = configService.get<string>(AppEnv.ProductPricePartKey);
 
       const transformAttributes = (item: any) => {
         if (item.attributes && attributes) {
           switch (options.typeViews) {
-            case TypeViews.Object:
+            case TransformAttributesViews.Object:
               const prepareResult = Object.keys(item.attributes).reduce((acc, key) => {
                 const value = getValueByLang(item.attributes[key], lang);
                 const attr = attributes[key];
@@ -80,26 +86,26 @@ export function TransformAttributes(
                   });
                 }
                 return acc;
-              }, initialValueTypeViewsObject());
+              }, typeObjectView());
 
               if (
-                item.attributes[priceConfig.denominatorKey] &&
-                item.attributes[priceConfig.wholeKey] &&
-                item.attributes[priceConfig.partKey]
+                item.attributes[denominatorKey] &&
+                item.attributes[wholeKey] &&
+                item.attributes[partKey]
               ) {
                 prepareResult.price.denominator = +(
-                  item.attributes[priceConfig.denominatorKey]?.name?.[lang] ?? 1
+                  item.attributes[denominatorKey]?.name?.[lang] ?? 1
                 );
                 prepareResult.price.wholeName =
-                  item.attributes[priceConfig.wholeKey]?.name?.[lang] ?? "";
+                  item.attributes[wholeKey]?.name?.[lang] ?? '';
                 prepareResult.price.partName =
-                  item.attributes[priceConfig.partKey]?.name?.[lang] ?? "";
+                  item.attributes[partKey]?.name?.[lang] ?? '';
               }
 
               item.attributes = prepareResult;
               break;
 
-            case TypeViews.Arr:
+            case TransformAttributesViews.Arr:
               item.attributes = Object.keys(item.attributes)
                 .map((key) => ({
                   name: attributes[key]?.name?.[lang],
