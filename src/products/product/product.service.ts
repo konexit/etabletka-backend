@@ -4,7 +4,10 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
-import { TransformAttributes, TransformAttributesOptions } from 'src/common/decorators/transform-attributes';
+import {
+  TransformAttributes,
+  TransformAttributesOptions,
+} from 'src/common/decorators/transform-attributes';
 import { In, Repository } from 'typeorm';
 import { Badge } from '../badge/entities/badge.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
@@ -52,7 +55,7 @@ export class ProductService {
     token: string,
     id: number,
     updateProduct: UpdateProduct,
-    lang: string = 'uk',
+    lang = 'uk',
   ): Promise<Product> {
     if (!token || typeof token !== 'string') {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
@@ -173,7 +176,7 @@ export class ProductService {
 
   async getProductBySyncId(
     syncId: number,
-    lang: string = 'uk',
+    lang = 'uk',
   ): Promise<Product> {
     if (!syncId)
       throw new HttpException(
@@ -196,7 +199,7 @@ export class ProductService {
 
   async getProductsByCategoryId(
     categoryId: number,
-    lang: string = 'uk',
+    lang = 'uk',
   ): Promise<Product[]> {
     const products = await this.productRepository
       .createQueryBuilder('product')
@@ -222,9 +225,11 @@ export class ProductService {
   async findAll(
     token: string,
     pagination: PaginationDto = {},
-    orderBy: any = {},
-    where: any = {},
-    lang: string = 'uk',
+    orderBy: {
+        [key: string]: 'ASC' | 'DESC'
+    } = {},
+    where = {},
+    lang = 'uk',
   ) {
     if (!token || typeof token !== 'string') {
       const products = await this.productRepository.find({
@@ -283,7 +288,7 @@ export class ProductService {
     /** Order by statements **/
     if (orderBy) {
       if (orderBy?.orderName) {
-        queryBuilder.orderBy(`langname`, orderBy?.orderName);
+        queryBuilder.orderBy('langname', orderBy?.orderName);
       }
     }
 
@@ -301,98 +306,45 @@ export class ProductService {
     };
   }
 
-  async findAllSales(lang: string = 'uk'): Promise<any> {
-    const cacheSalesProducts = await this.cacheManager.get(
-      this.cacheSalesProductsKey,
-    );
-    if (cacheSalesProducts) {
-      return cacheSalesProducts;
-    }
-    const queryBuilder = this.productRepository.createQueryBuilder('product');
+  async findDiscountProducts(lang = 'uk') {
+    // TODO: implement product discount system logic after ToR
+    const limit = Math.floor(Math.random() * (10 - 5 + 1)) + 5;
 
-    queryBuilder.leftJoinAndSelect('product.discounts', 'discount');
-    queryBuilder.leftJoinAndSelect(
-      'product.productRemnants',
-      'productRemnants',
-    );
-    queryBuilder.andWhere('productRemnants.isActive = :isActive', {
-      isActive: true,
-    });
-    queryBuilder.where('discount.id IS NOT NULL');
-    queryBuilder.andWhere('discount.isActive = :isActive', { isActive: true });
+    const products = await this.productRepository
+      .createQueryBuilder('product')
+      .select('product.id')
+      .where('product.isActive = :isActive', { isActive: true })
+      .innerJoin('product.discounts', 'discount')
+      .groupBy('product.id')
+      .orderBy('RANDOM()')
+      .limit(limit)
+      .getMany();
 
-    const products = await queryBuilder.getMany();
-    for (const product of products) {
-      product.name = product?.name[lang];
-      product.shortName = product?.shortName[lang];
-
-      /*** Calculate discountPrice ***/
-      if (product.discounts) {
-        for (const discount of product.discounts) {
-          discount.discountPrice = this.calculateDiscountPrice(
-            product.price,
-            discount.type,
-            discount.value,
-            discount.isActive,
-          );
-        }
-      }
-    }
-
-    await this.cacheManager.set(
-      this.cacheSalesProductsKey,
-      products,
-      this.cacheProductsTTL,
-    );
-
-    return products;
+    return products.map((product) => product.id);
   }
 
-  async findPopular(lang: string = 'uk') {
-    //TODO: Make it from orders
-    const queryBuilder = this.productRepository.createQueryBuilder('product');
+  async findPopularProducts() {
+    // TODO: implement popular products logic after ToR
+    const limit = Math.floor(Math.random() * (10 - 5 + 1)) + 5;
 
-    queryBuilder.leftJoinAndSelect('product.discounts', 'discount');
-    queryBuilder.leftJoinAndSelect(
-      'product.productRemnants',
-      'productRemnants',
-    );
-    queryBuilder.andWhere('productRemnants.isActive = :isActive', {
-      isActive: true,
-    });
-    queryBuilder.andWhere('product.syncId IN(:...ids)', {
-      ids: [52462, 40670, 518, 57758, 2724, 40556, 50006],
-    });
+    const products = await this.productRepository
+      .createQueryBuilder('product')
+      .select('product.id')
+      .where('product.isActive = :isActive', { isActive: true })
+      .orderBy('RANDOM()')
+      .limit(limit)
+      .getMany();
 
-    const products = await queryBuilder.getMany();
-
-    for (const product of products) {
-      product.name = product?.name[lang];
-      product.shortName = product?.shortName[lang];
-
-      /*** Calculate discountPrice ***/
-      if (product.discounts) {
-        for (const discount of product.discounts) {
-          discount.discountPrice = this.calculateDiscountPrice(
-            product.price,
-            discount.type,
-            discount.value,
-            discount.isActive,
-          );
-        }
-      }
-    }
-
-    return products;
+    return products.map((product) => product.id);
   }
 
   @TransformAttributes('uk', 2)
   async findProductById(
     jwtPayload: JwtPayload,
     id: number,
-    options: TransformAttributesOptions
+    options: TransformAttributesOptions,
   ): Promise<Product> {
-    const isAdmin = jwtPayload && jwtPayload.roles && jwtPayload.roles.includes(USER_ROLE_JWT_ADMIN)
+    const isAdmin = jwtPayload?.roles?.includes(USER_ROLE_JWT_ADMIN);
     const product = await this.productRepository.findOne({
       where: isAdmin ? { id } : { id, isActive: true },
       relations: [
@@ -435,7 +387,10 @@ export class ProductService {
   }
 
   @TransformAttributes('uk')
-  async findProductByIds(productIds: number[], options: TransformAttributesOptions): Promise<Product[]> {
+  async findProductByIds(
+    productIds: number[],
+    options: TransformAttributesOptions,
+  ): Promise<Product[]> {
     const products = await this.productRepository.find({
       where: { id: In(productIds), isActive: true },
       relations: [
@@ -479,7 +434,7 @@ export class ProductService {
   }
 
   @TransformAttributes('uk')
-  async findProductBySlug(slug: string, lang: string = 'uk'): Promise<Product> {
+  async findProductBySlug(slug: string, lang = 'uk'): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: {
         slug,
@@ -522,7 +477,7 @@ export class ProductService {
     token: string,
     id: number,
     badgeId: number,
-  ): Promise<any> {
+  ) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('Has no access', HttpStatus.FORBIDDEN);
     }
