@@ -24,9 +24,7 @@ import { StoreModule } from 'src/store/store.module';
 import { MenuModule } from './ui/menu/menu.module';
 import { SiteOptionModule } from './settings/site-options/site-option.module';
 import { BrandsModule } from './brands/brands.module';
-import { BlogCategoryModule } from './ui/pages/blogs/category/blog-category.module';
-import { BlogPostModule } from './ui/pages/blogs/post/blog-post.module';
-import { BlogCommentModule } from './ui/pages/blogs/comment/blog-comment.module';
+import { BlogModule } from './ui/pages/blog/blog.module';
 import { CompanyModule } from 'src/company/company.module';
 import { SearchModule } from './search/search.module';
 import { ProductGroupModule } from './products/groups/product-group.module';
@@ -75,9 +73,7 @@ import { SMSModule } from './providers/sms/sms.module';
     MenuModule,
     SiteOptionModule,
     BrandsModule,
-    BlogCategoryModule,
-    BlogPostModule,
-    BlogCommentModule,
+    BlogModule,
     SearchModule,
     RefreshModule,
     WsModule,

@@ -10,9 +10,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { BlogCategory } from 'src/ui/pages/blogs/category/entities/blog-category.entity';
-import { BlogComment } from 'src/ui/pages/blogs/comment/entities/blog-comment.entity';
 import { User } from 'src/user/entities/user.entity';
+import { BlogComment } from './blog-comment.entity';
+import { BlogCategory } from './blog-category.entity';
 
 @Entity({
   name: 'blog_posts',
@@ -30,31 +30,31 @@ export class BlogPost {
   @Column({ name: 'published_at', type: 'date' })
   publishedAt: Date;
 
-  @Column({ name: 'title', type: 'json' })
+  @Column({ name: 'title', type: 'jsonb' })
   title: JSON;
 
   @Column({ unique: true })
   slug: string;
 
-  @Column({ name: 'excerpt', type: 'json', nullable: true })
+  @Column({ name: 'excerpt', type: 'jsonb', nullable: true })
   excerpt: JSON;
 
-  @Column({ name: 'content', type: 'json', nullable: true })
+  @Column({ name: 'content', type: 'jsonb', nullable: true })
   content: JSON;
 
-  @Column({ name: 'alt', type: 'json', nullable: true })
+  @Column({ name: 'alt', type: 'jsonb', nullable: true })
   alt: JSON;
 
-  @Column({ name: 'cdn_data', type: 'json', nullable: true })
+  @Column({ name: 'cdn_data', type: 'jsonb', nullable: true })
   cdnData: JSON;
 
-  @Column({ name: 'seo_h1', type: 'json', nullable: true })
+  @Column({ name: 'seo_h1', type: 'jsonb', nullable: true })
   seoH1: JSON;
 
-  @Column({ name: 'seo_title', type: 'json', nullable: true })
+  @Column({ name: 'seo_title', type: 'jsonb', nullable: true })
   seoTitle: JSON;
 
-  @Column({ name: 'seo_description', type: 'json', nullable: true })
+  @Column({ name: 'seo_description', type: 'jsonb', nullable: true })
   seoDescription: JSON;
 
   @Column({ name: 'published', default: false })
@@ -79,7 +79,7 @@ export class BlogPost {
 
   @ManyToMany(() => BlogCategory)
   @JoinTable({
-    name: 'cross_blog_categories_posts',
+    name: 'blog_posts_blog_categories',
   })
   categories: BlogCategory[];
 }

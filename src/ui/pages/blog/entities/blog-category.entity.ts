@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { BlogPost } from 'src/ui/pages/blogs/post/entities/blog-post.entity';
+import { BlogPost } from './blog-post.entity';
 
 @Entity({
   name: 'blog_categories',
@@ -16,19 +16,19 @@ export class BlogCategory {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'title', type: 'json' })
+  @Column({ name: 'title', type: 'jsonb' })
   title: JSON;
 
   @Column({ unique: true })
   slug: string;
 
-  @Column({ name: 'seo_h1', type: 'json', nullable: true })
+  @Column({ name: 'seo_h1', type: 'jsonb', nullable: true })
   seoH1: JSON;
 
-  @Column({ name: 'seo_title', type: 'json', nullable: true })
+  @Column({ name: 'seo_title', type: 'jsonb', nullable: true })
   seoTitle: JSON;
 
-  @Column({ name: 'seo_description', type: 'json', nullable: true })
+  @Column({ name: 'seo_description', type: 'jsonb', nullable: true })
   seoDescription: JSON;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
@@ -39,7 +39,7 @@ export class BlogCategory {
 
   @ManyToMany(() => BlogPost)
   @JoinTable({
-    name: 'cross_blog_categories_posts',
+    name: 'blog_posts_blog_categories',
   })
   posts: BlogPost[];
 }

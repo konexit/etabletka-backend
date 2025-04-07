@@ -1,57 +1,69 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository, SelectQueryBuilder } from 'typeorm';
-import { BlogCategory } from 'src/ui/pages/blogs/category/entities/blog-category.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { BlogPost } from './entities/blog-post.entity';
+import { BlogCategory } from './entities/blog-category.entity';
+import { BlogComment } from './entities/blog-comment.entity';
 import { CreatePost } from './dto/create-post.dto';
 import { UpdatePost } from './dto/update-post.dto';
-import { BlogPost } from './entities/blog-post.entity';
 
 @Injectable()
-export class BlogPostService {
+export class BlogService {
+  private cacheBlogCategoriesKey: string = 'blogCategories';
+  private cacheBlogCategoriesTTL: number = 3600_000; // 1 Hour
+
   constructor(
     @InjectRepository(BlogPost)
-    private readonly blogPostRepository: Repository<BlogPost>,
+    private blogPostRepository: Repository<BlogPost>,
     @InjectRepository(BlogCategory)
-    private readonly blogCategoryRepository: Repository<BlogCategory>,
-    private jwtService: JwtService,
+    private blogCategoryRepository: Repository<BlogCategory>,
+    @InjectRepository(BlogCategory)
+    private blogCommentRepository: Repository<BlogComment>,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache
   ) { }
 
-  private convertPost(post: BlogPost, lang: string = 'uk') {
-    post.title = post.title[lang];
-    if (post.excerpt) post.excerpt = post.excerpt[lang];
-    if (post.content) post.content = post.content[lang];
-    if (post.alt) post.alt = post.alt[lang];
-
-    if (post.seoH1) post.seoH1 = post.seoH1[lang];
-    if (post.seoTitle) post.seoTitle = post.seoTitle[lang];
-    if (post.seoDescription) post.seoDescription = post.seoDescription[lang];
-
-    if (post.categories) {
-      for (const category of post.categories) {
-        category.title = category.title[lang];
-      }
-    }
-    return post;
-  }
-
   async addBlogCategories(ids: Array<number>) {
-    return await this.blogCategoryRepository.find({
+    return this.blogCategoryRepository.find({
       where: { id: In(ids) },
     });
   }
 
-  async create(token: string, createPost: CreatePost) {
-    if (!token || typeof token !== 'string') {
-      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+  async getBlogCategories(lang: string = 'uk'): Promise<any> {
+    const cacheCategories = await this.cacheManager.get(
+      this.cacheBlogCategoriesKey,
+    );
+    if (cacheCategories) {
+      return cacheCategories;
     }
 
-    const payload = await this.jwtService.decode(token);
-    if (payload?.roleId !== 1) {
-      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
+    const blogCategories = await this.blogCategoryRepository.find({
+      order: { id: 'ASC' },
+    });
+    if (!blogCategories) {
+      throw new HttpException(
+        'Blog categories not found',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
+    for (let blogCategory of blogCategories) {
+      blogCategory = this.convertRecord(blogCategory, lang);
+    }
+
+    await this.cacheManager.set(
+      this.cacheBlogCategoriesKey,
+      blogCategories,
+      this.cacheBlogCategoriesTTL,
+    );
+
+    return blogCategories;
+  }
+
+  async create(createPost: CreatePost) {
     const post = this.blogPostRepository.create(createPost);
     if (!post) {
       throw new HttpException(
@@ -74,16 +86,7 @@ export class BlogPostService {
     return this.convertPost(await queryBuilder.getOne());
   }
 
-  async update(token: string, id: number, updatePost: UpdatePost) {
-    if (!token || typeof token !== 'string') {
-      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
-    }
-
-    const payload = await this.jwtService.decode(token);
-    if (payload?.roleId !== 1) {
-      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
-    }
-
+  async update(id: number, updatePost: UpdatePost) {
     const blogCategoryIds = updatePost.categories;
     delete updatePost.categories;
 
@@ -120,16 +123,7 @@ export class BlogPostService {
     return this.convertPost(await queryBuilder.getOne());
   }
 
-  async delete(token: string, id: number) {
-    if (!token || typeof token !== 'string') {
-      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
-    }
-
-    const payload = await this.jwtService.decode(token);
-    if (payload?.roleId !== 1) {
-      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
-    }
-
+  async delete(id: number) {
     const post = await this.blogPostRepository.findOneBy({
       id: id,
     });
@@ -137,7 +131,7 @@ export class BlogPostService {
       throw new HttpException('Can`t delete post', HttpStatus.NOT_FOUND);
     }
 
-    return await this.blogPostRepository.delete(id);
+    return this.blogPostRepository.delete(id);
   }
 
   public async fetchData(
@@ -392,5 +386,31 @@ export class BlogPostService {
       .where('post.id = :id', { id });
 
     return queryBuilder;
+  }
+
+  private convertPost(post: BlogPost, lang: string = 'uk') {
+    post.title = post.title[lang];
+    if (post.excerpt) post.excerpt = post.excerpt[lang];
+    if (post.content) post.content = post.content[lang];
+    if (post.alt) post.alt = post.alt[lang];
+
+    if (post.seoH1) post.seoH1 = post.seoH1[lang];
+    if (post.seoTitle) post.seoTitle = post.seoTitle[lang];
+    if (post.seoDescription) post.seoDescription = post.seoDescription[lang];
+
+    if (post.categories) {
+      for (const category of post.categories) {
+        category.title = category.title[lang];
+      }
+    }
+    return post;
+  }
+
+  private convertRecord(item: BlogCategory, lang: string = 'uk') {
+    item.title = item.title[lang];
+    if (item.seoH1) item.seoH1 = item.seoH1[lang];
+    if (item.seoTitle) item.seoTitle = item.seoTitle[lang];
+    if (item.seoDescription) item.seoDescription = item.seoDescription[lang];
+    return item;
   }
 }
