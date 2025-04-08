@@ -40,7 +40,10 @@ import {
   PaymentStatus,
   PaymentType,
 } from 'src/common/config/common.constants';
-import { ORDER_STATE_RECEIVER_LIMIT, TRADE_SEARCH_STATUS_DESCRIPTION_QUERY, } from './order.constants';
+import {
+  ORDER_STATE_RECEIVER_LIMIT,
+  TRADE_SEARCH_STATUS_DESCRIPTION_QUERY,
+} from './order.constants';
 import type { PaginationDto } from 'src/common/dto/pagination.dto';
 import { User } from 'src/user/entities/user.entity';
 import { Product } from 'src/products/product/entities/product.entity';
@@ -77,8 +80,7 @@ export class OrderService {
     private orderCartRepository: Repository<OrderCart>,
     @Inject(TRADE_PROVIDER_MANAGER)
     private tradeProvider: TradeProvider,
-  ) { }
-
+  ) {}
 
   async processOrders(): Promise<void> {
     try {
@@ -202,23 +204,29 @@ export class OrderService {
 
       for (const status of stateOrders.statuses) {
         try {
-          if (status.code == `${TradeOrderStatusCodes.Collected}${TradeOrderStatusOwners.Pharmacist}`) {
+          if (
+            status.code ==
+            `${TradeOrderStatusCodes.Collected}${TradeOrderStatusOwners.Pharmacist}`
+          ) {
             const orderChanges = this.tradeProvider
               .createOrderChangesAggregatorBuilder()
               .addOrderChange(
                 status.order_id,
                 TradeOrderChangeAutoApliedMode.Aggregator,
-                { allow_additional_change: true }
+                { allow_additional_change: true },
               )
               .addChange(
                 TradeOrderChangeType.StatusCode,
                 TradeOrderChangeActionType.Update,
-                { status_code: `${TradeOrderStatusCodes.WaitClient}${TradeOrderStatusOwners.Aggregator}` },
+                {
+                  status_code: `${TradeOrderStatusCodes.WaitClient}${TradeOrderStatusOwners.Aggregator}`,
+                },
               )
               .end()
               .build();
 
-            const response = await this.tradeProvider.changeOrders(orderChanges);
+            const response =
+              await this.tradeProvider.changeOrders(orderChanges);
             if (!response.handled_orders.includes(status.order_id)) {
               const errorMsg = `Orders${response.error_orders.map((order) => `: ID ${order.order_id} - ${order.message}`)}`;
               this.logger.error(errorMsg);
@@ -369,6 +377,15 @@ export class OrderService {
       .skip(+skip)
       .take(+take)
       .getManyAndCount();
+
+    if (!orders.length) {
+      return {
+        orders,
+        statuses: [],
+        products: [],
+        pagination: { total, take: +take, skip: +skip },
+      };
+    }
 
     const statuses = await this.orderStatusRepository
       .createQueryBuilder('status')
