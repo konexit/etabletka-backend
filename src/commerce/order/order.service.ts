@@ -380,9 +380,9 @@ export class OrderService {
 
     if (!orders.length) {
       return {
-        orders,
-        statuses: [],
-        products: [],
+        items: orders,
+        statuses: {},
+        products: {},
         pagination: { total, take: +take, skip: +skip },
       };
     }
@@ -453,7 +453,7 @@ export class OrderService {
     }
 
     return {
-      orders,
+      items: orders,
       statuses: statusesResult,
       products: productsResult,
       pagination: { total, take: +take, skip: +skip },
