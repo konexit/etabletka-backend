@@ -78,8 +78,6 @@ export class BlogPost {
   blogComments: BlogComment[];
 
   @ManyToMany(() => BlogCategory)
-  @JoinTable({
-    name: 'blog_posts_blog_categories',
-  })
-  categories: BlogCategory[];
+  @JoinTable({ name: 'blog_posts_blog_categories' })
+  blogCategories: BlogCategory[];
 }

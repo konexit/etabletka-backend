@@ -77,13 +77,10 @@ export class BlogService {
         .split(',')
         .map(Number);
 
-      post.categories = await this.addBlogCategories(ids);
+      post.blogCategories = await this.addBlogCategories(ids);
     }
 
-    const postUpd: BlogPost = await this.blogPostRepository.save(post);
-    const queryBuilder = this.makeQueryBulder(postUpd.id);
-
-    return this.convertPost(await queryBuilder.getOne());
+    return this.convertPost(await this.blogPostRepository.save(post));
   }
 
   async update(id: number, updatePost: UpdatePost) {
@@ -109,21 +106,18 @@ export class BlogService {
           .map(Number);
 
         console.log('GroupIds', ids);
-        post.categories = await this.addBlogCategories(ids);
+        post.blogCategories = await this.addBlogCategories(ids);
       } else {
-        post.categories = await this.addBlogCategories(blogCategoryIds);
+        post.blogCategories = await this.addBlogCategories(blogCategoryIds);
       }
     } else {
-      post.categories = [];
+      post.blogCategories = [];
     }
 
-    const postUpd: BlogPost = await this.blogPostRepository.save(post);
-    const queryBuilder = this.makeQueryBulder(postUpd.id);
-
-    return this.convertPost(await queryBuilder.getOne());
+    return this.convertPost(await this.blogPostRepository.save(post));
   }
 
-  async delete(id: number) {
+  async delete(id: number): Promise<void> {
     const post = await this.blogPostRepository.findOneBy({
       id: id,
     });
@@ -131,7 +125,7 @@ export class BlogService {
       throw new HttpException('Can`t delete post', HttpStatus.NOT_FOUND);
     }
 
-    return this.blogPostRepository.delete(id);
+    await this.blogPostRepository.delete(id);
   }
 
   public async fetchData(
@@ -166,24 +160,19 @@ export class BlogService {
   async addCategoryToPost(id: number, blogCategoryId: number): Promise<void> {
     const post = await this.blogPostRepository.findOne({
       where: { id },
-      relations: ['categories'],
+      relations: ['blogCategories'],
     });
 
     const category = await this.blogCategoryRepository.findOneBy({
       id: blogCategoryId,
     });
-    post.categories.push(category);
+    post.blogCategories.push(category);
     await this.blogPostRepository.save(post);
   }
 
-  async getPosts(
-    pagination: PaginationDto = {},
-  ): Promise<{ posts: BlogPost[]; total: number }> {
+  async getPosts(pagination: PaginationDto = {}): Promise<General.Page<BlogPost>> {
     const { take = 15, skip = 0 } = pagination;
-
     const queryBuilder = this.blogPostRepository.createQueryBuilder('post');
-    const total = await queryBuilder.getCount();
-
     const posts = await this.fetchData(queryBuilder, take, skip);
     if (posts) {
       for (let post of posts) {
@@ -192,15 +181,16 @@ export class BlogService {
     }
 
     return {
-      posts,
-      total,
+      items: posts,
+      pagination: {
+        take,
+        skip,
+        total: await queryBuilder.getCount()
+      },
     };
   }
 
-  async getCategoryPosts(
-    slug: string,
-    pagination: PaginationDto = {},
-  ): Promise<{ posts: BlogPost[]; total: number }> {
+  async getCategoryPosts(slug: string, pagination: PaginationDto = {}): Promise<General.Page<BlogPost>> {
     const { take = 15, skip = 0 } = pagination;
 
     const category = await this.blogCategoryRepository.findOne({
@@ -217,12 +207,18 @@ export class BlogService {
 
     const postIds = category?.posts.map((p: BlogPost) => p.id) || [];
 
-    if (postIds.length === 0) {
-      return { posts: [], total: 0 };
+    if (!postIds.length) {
+      return {
+        items: [],
+        pagination: {
+          total: 0,
+          skip,
+          take
+        }
+      };
     }
 
-    const queryBuilder: SelectQueryBuilder<BlogPost> =
-      this.blogPostRepository.createQueryBuilder('post');
+    const queryBuilder: SelectQueryBuilder<BlogPost> = this.blogPostRepository.createQueryBuilder('post');
     const total = await queryBuilder
       .where('post.id IN (:...ids)', { ids: postIds })
       .getCount();
@@ -235,24 +231,26 @@ export class BlogService {
       }
     }
 
-    return { posts, total };
+    return {
+      items: posts,
+      pagination: {
+        total,
+        skip,
+        take
+      }
+    };
   }
 
   async getLatestPosts(): Promise<BlogPost[]> {
     const articles = await this.blogPostRepository.query(`
-      WITH CommentCounts AS (
+        WITH CommentCounts AS (
           SELECT
               "post"."id" AS "post_id",
               COUNT("blogComments"."id") AS "commentCount"
-          FROM
-              "blog_posts" "post"
-          LEFT JOIN 
-              "blog_comments" "blogComments" 
-              ON "blogComments"."post_id" = "post"."id"
-          WHERE
-              "post"."published" = true
-          GROUP BY
-              "post"."id"
+          FROM "blog_posts" "post"
+          LEFT JOIN "blog_comments" "blogComments" ON "blogComments"."post_id" = "post"."id"
+          WHERE "post"."published" = true
+          GROUP BY "post"."id"
       ),
       CategoryData AS (
           SELECT 
@@ -264,13 +262,9 @@ export class BlogService {
                       'slug', "categories"."slug"
                   )
               ) AS "categories"
-          FROM 
-              "cross_blog_categories_posts" "post_categories"
-          JOIN 
-              "blog_categories" "categories" 
-              ON "categories"."id" = "post_categories"."blogCategoriesId"
-          GROUP BY 
-              "post_categories"."blogPostsId"
+          FROM blog_posts_blog_categories "post_categories"
+          JOIN "blog_categories" "categories" ON "categories"."id" = "post_categories"."blogCategoriesId"
+          GROUP BY "post_categories"."blogPostsId"
       ),
       CommentData AS (
           SELECT
@@ -317,37 +311,28 @@ export class BlogService {
           "post"."seo_h1" AS "seoH1",
           "post"."seo_title" AS "seoTitle",
           "post"."seo_description" AS "seoDescription"
-      FROM 
-          "blog_posts" "post"
-      LEFT JOIN 
-          CategoryData 
-          ON CategoryData."post_id" = "post"."id"
-      LEFT JOIN 
-          "users" "author" 
-          ON "author"."id" = "post"."author_id"  
-      LEFT JOIN 
-          "users" "censor" 
-          ON "censor"."id" = "post"."censor_id"
-      LEFT JOIN
-          CommentData 
-          ON CommentData."post_id" = "post"."id"
-      LEFT JOIN
-          CommentCounts 
-          ON CommentCounts."post_id" = "post"."id"
-      WHERE 
-          "post"."published" = true
-      ORDER BY 
-          "publishedAt" DESC 
-      LIMIT 3;
-    `);
+      FROM "blog_posts" "post"
+      LEFT JOIN CategoryData ON CategoryData."post_id" = "post"."id"
+      LEFT JOIN "user_profile" "author" ON "author"."user_id" = "post"."author_id"  
+      LEFT JOIN "user_profile" "censor" ON "censor"."user_id" = "post"."censor_id"
+      LEFT JOIN CommentData ON CommentData."post_id" = "post"."id"
+      LEFT JOIN CommentCounts ON CommentCounts."post_id" = "post"."id"
+      WHERE "post"."published" = true
+      ORDER BY "publishedAt" DESC 
+      LIMIT 3`);
 
     return articles.map((article: BlogPost) => this.convertPost(article));
   }
 
-  async getPost(category, slug): Promise<BlogPost> {
+  async getPost(category: string, slug: string): Promise<BlogPost> {
     const post = await this.blogPostRepository.findOne({
       where: { slug },
-      relations: ['categories', 'author', 'censor', 'blogComments'],
+      relations: [
+        'blogCategories',
+        'author',
+        'censor',
+        'blogComments'
+      ],
     });
     if (!post) {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
@@ -356,9 +341,16 @@ export class BlogService {
     return this.convertPost(post);
   }
 
-  async getPostById(id) {
-    const queryBuilder = this.makeQueryBulder(id);
-    const post = await queryBuilder.getOne();
+  async getPostById(id: number) {
+    const post = await this.blogPostRepository.findOne({
+      where: { id },
+      relations: [
+        'blogCategories',
+        'blogComments',
+        'author.profile',
+        'censor.profile'
+      ]
+    });
     if (!post) {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     }
@@ -366,51 +358,57 @@ export class BlogService {
     return this.convertPost(post);
   }
 
-  private makeQueryBulder(id: number) {
-    const queryBuilder = this.blogPostRepository.createQueryBuilder('post');
-    queryBuilder
-      .select('post')
-      .addSelect('author.id')
-      .addSelect('author.firstName')
-      .addSelect('author.lastName')
-      .addSelect('censor.id')
-      .addSelect('censor.firstName')
-      .addSelect('censor.lastName')
-      .addSelect('categories.id')
-      .addSelect('categories.slug')
-      .addSelect('categories.title')
-      .leftJoin('post.categories', 'categories')
-      .leftJoin('post.blogComments', 'blogComments')
-      .leftJoin('post.author', 'author')
-      .leftJoin('post.censor', 'censor')
-      .where('post.id = :id', { id });
-
-    return queryBuilder;
-  }
-
-  private convertPost(post: BlogPost, lang: string = 'uk') {
+  private convertPost(post: BlogPost, lang: string = 'uk'): BlogPost {
     post.title = post.title[lang];
-    if (post.excerpt) post.excerpt = post.excerpt[lang];
-    if (post.content) post.content = post.content[lang];
-    if (post.alt) post.alt = post.alt[lang];
 
-    if (post.seoH1) post.seoH1 = post.seoH1[lang];
-    if (post.seoTitle) post.seoTitle = post.seoTitle[lang];
-    if (post.seoDescription) post.seoDescription = post.seoDescription[lang];
+    if (post.excerpt) {
+      post.excerpt = post.excerpt[lang];
+    }
 
-    if (post.categories) {
-      for (const category of post.categories) {
+    if (post.content) {
+      post.content = post.content[lang];
+    }
+
+    if (post.alt) {
+      post.alt = post.alt[lang];
+    }
+
+    if (post.seoH1) {
+      post.seoH1 = post.seoH1[lang];
+    }
+
+    if (post.seoTitle) {
+      post.seoTitle = post.seoTitle[lang];
+    }
+
+    if (post.seoDescription) {
+      post.seoDescription = post.seoDescription[lang];
+    }
+
+    if (post.blogCategories) {
+      for (const category of post.blogCategories) {
         category.title = category.title[lang];
       }
     }
+
     return post;
   }
 
-  private convertRecord(item: BlogCategory, lang: string = 'uk') {
+  private convertRecord(item: BlogCategory, lang: string = 'uk'): BlogCategory {
     item.title = item.title[lang];
-    if (item.seoH1) item.seoH1 = item.seoH1[lang];
-    if (item.seoTitle) item.seoTitle = item.seoTitle[lang];
-    if (item.seoDescription) item.seoDescription = item.seoDescription[lang];
+
+    if (item.seoH1) {
+      item.seoH1 = item.seoH1[lang];
+    }
+
+    if (item.seoTitle) {
+      item.seoTitle = item.seoTitle[lang];
+    }
+
+    if (item.seoDescription) {
+      item.seoDescription = item.seoDescription[lang];
+    }
+
     return item;
   }
 }

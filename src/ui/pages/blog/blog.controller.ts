@@ -35,7 +35,7 @@ export class BlogPostController {
   @Roles(USER_ROLE_JWT_ADMIN)
   @UseInterceptors(ClassSerializerInterceptor)
   @UseInterceptors(FileInterceptor('image', {}))
-  @Post('/post')
+  @Post('blog-post/create')
   async create(
     @UploadedFile() image: Express.Multer.File,
     @Body() createPost: CreatePost,
@@ -45,7 +45,7 @@ export class BlogPostController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(USER_ROLE_JWT_ADMIN)
-  @Patch('/post/:id')
+  @Patch('blog-post/:id')
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePost: UpdatePost
@@ -55,48 +55,46 @@ export class BlogPostController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(USER_ROLE_JWT_ADMIN)
-  @Delete('/post/:id')
-  async delete(@Param('id', ParseIntPipe) id: number) {
+  @Delete('blog-post/:id')
+  async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.blogService.delete(id);
   }
 
-  @Get('/blog-main')
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('blog-post/:id')
+  async getPostById(@Param('id', ParseIntPipe) id: number): Promise<BlogPost> {
+    return this.blogService.getPostById(id);
+  }
+
+  @Get('blog-main')
   async getLatestPosts(): Promise<BlogPost[]> {
     return this.blogService.getLatestPosts();
   }
 
-  @Get('/blogs')
-  async getPosts(
-    @Query() pagination?: PaginationDto,
-  ): Promise<{ posts: BlogPost[]; total: number }> {
+  @Get('blogs')
+  async getPosts(@Query() pagination?: PaginationDto): Promise<General.Page<BlogPost>> {
     return this.blogService.getPosts(pagination);
   }
-  
-  @Get('/blog-categories')
+
+  @Get('blog-categories')
   async getBlogCategories(): Promise<BlogCategory[]> {
     return this.blogService.getBlogCategories();
   }
 
-  @Get('/blog/:category')
+  @Get('blog/:category')
   async getCategoryPosts(
     @Param('category') category: string,
     @Query() pagination?: PaginationDto,
-  ): Promise<{ posts: BlogPost[]; total: number }> {
+  ): Promise<General.Page<BlogPost>> {
     return this.blogService.getCategoryPosts(category, pagination);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
-  @Get('/blog/:category/:slug')
+  @Get('blog/:category/:slug')
   async getPost(
     @Param('category') category: string,
     @Param('slug') slug: string,
   ): Promise<BlogPost> {
     return this.blogService.getPost(category, slug);
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Get('/post/:id')
-  async getPostById(@Param('id', ParseIntPipe) id: number): Promise<BlogPost> {
-    return this.blogService.getPostById(id);
   }
 }

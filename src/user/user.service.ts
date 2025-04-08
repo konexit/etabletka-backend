@@ -55,11 +55,9 @@ export class UserService {
     user.password = getPasswordWithSHA512(createUserDto.password, this.configService.get<string>(SALT));
     user.code = generateRandomNumber(USER_PASSWORD_ACTIVATION_CODE_SIZE);
 
-    if (!createUserDto.profile) {
-      user.profile = await this.userProfileRepository.save(
-        this.userProfileRepository.create({})
-      );
-    }
+    const { id: userId } = await this.userRepository.save(user);
+
+    user.profile = this.userProfileRepository.merge(user.profile, createUserDto.profile, { userId });
 
     await this.smsProvider.sendSMS(
       [createUserDto.login],
