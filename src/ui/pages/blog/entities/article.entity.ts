@@ -6,18 +6,16 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
-import { BlogComment } from './blog-comment.entity';
-import { BlogCategory } from './blog-category.entity';
+import { Tag } from './tag.entity';
 
 @Entity({
-  name: 'blog_posts',
+  name: 'articles',
 })
-export class BlogPost {
+export class Article {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -74,10 +72,7 @@ export class BlogPost {
   @JoinColumn({ name: 'censor_id', referencedColumnName: 'id' })
   censor: User;
 
-  @OneToMany(() => BlogComment, (blogComment) => blogComment.blogPost)
-  blogComments: BlogComment[];
-
-  @ManyToMany(() => BlogCategory)
-  @JoinTable({ name: 'blog_posts_blog_categories' })
-  blogCategories: BlogCategory[];
+  @ManyToMany(() => Tag)
+  @JoinTable({ name: 'articles_tags' })
+  tags: Tag[];
 }

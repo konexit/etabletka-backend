@@ -1,16 +1,25 @@
 import * as path from 'node:path';
-import { HttpException, HttpStatus, Injectable, Inject, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Inject,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { UserProfile } from './entities/user-profile.entity';
-import { Repository } from 'typeorm';
-import { SMSProvider } from 'src/providers/sms'
+import { Repository, DataSource } from 'typeorm';
+import { SMSProvider } from 'src/providers/sms';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { SALT } from 'src/auth/auth.constants';
-import { IMG_EXT_JPEG, USER_PASSWORD_ACTIVATION_CODE_SIZE } from 'src/common/config/common.constants';
+import {
+  IMG_EXT_JPEG,
+  USER_PASSWORD_ACTIVATION_CODE_SIZE,
+} from 'src/common/config/common.constants';
 import { generateRandomNumber } from 'src/common/utils';
 import { getPasswordWithSHA512 } from 'src/common/utils';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
@@ -22,25 +31,28 @@ import { CDNUploadOptions } from 'src/providers/cdn/cdn.options';
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
-  private cdnAvatarPath: string = 'user/avatars';
+  private cdnAvatarPath = 'user/avatars';
 
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @InjectRepository(UserProfile)
     private userProfileRepository: Repository<UserProfile>,
+    private dataSource: DataSource,
     private configService: ConfigService,
     private smsProvider: SMSProvider,
     @Inject(CDN_PROVIDER_MANAGER)
     private cdnProvider: CDNProvider,
-  ) { }
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<void> {
-    const userExist = await this.userRepository.findOneBy({ login: createUserDto.login });
+    const userExist = await this.userRepository.findOneBy({
+      login: createUserDto.login,
+    });
     if (userExist) {
       throw new HttpException(
         `User login: ${createUserDto.login}`,
-        HttpStatus.CONFLICT
+        HttpStatus.CONFLICT,
       );
     }
 
@@ -52,12 +64,19 @@ export class UserService {
       );
     }
 
-    user.password = getPasswordWithSHA512(createUserDto.password, this.configService.get<string>(SALT));
+    user.password = getPasswordWithSHA512(
+      createUserDto.password,
+      this.configService.get<string>(SALT),
+    );
     user.code = generateRandomNumber(USER_PASSWORD_ACTIVATION_CODE_SIZE);
 
     const { id: userId } = await this.userRepository.save(user);
 
-    user.profile = this.userProfileRepository.merge(user.profile, createUserDto.profile, { userId });
+    user.profile = this.userProfileRepository.merge(
+      user.profile,
+      createUserDto.profile,
+      { userId },
+    );
 
     await this.smsProvider.sendSMS(
       [createUserDto.login],
@@ -83,15 +102,15 @@ export class UserService {
     return user;
   }
 
-  async getUserForJwtByLogin(login: string, isActive: boolean = true): Promise<User> {
+  async getUserForJwtByLogin(login: string, isActive = true): Promise<User> {
     return this.userRepository.findOne({
       select: {
         id: true,
         password: true,
         code: true,
         role: {
-          role: true
-        }
+          role: true,
+        },
       },
       where: isActive ? { login, isActive } : { login },
       relations: ['role'],
@@ -104,30 +123,27 @@ export class UserService {
         id: true,
         login: true,
         code: true,
-        updatedAt: true
+        updatedAt: true,
       },
-      where: { login }
+      where: { login },
     });
   }
 
   async changePassword(userId: number, newPassword: string): Promise<void> {
     const user = await this.userRepository.findOneBy({ id: userId });
     if (!user) {
-      throw new HttpException(
-        'User not exist',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException('User not exist', HttpStatus.NOT_FOUND);
     }
 
     if (!user.isActive) {
-      throw new HttpException(
-        'User is not activated',
-        HttpStatus.CONFLICT,
-      );
+      throw new HttpException('User is not activated', HttpStatus.CONFLICT);
     }
 
     user.code = null;
-    user.password = getPasswordWithSHA512(newPassword, this.configService.get<string>(SALT));
+    user.password = getPasswordWithSHA512(
+      newPassword,
+      this.configService.get<string>(SALT),
+    );
 
     await this.userRepository.save(user);
 
@@ -149,9 +165,12 @@ export class UserService {
   async findAll(
     jwtPayload: JwtPayload,
     pagination: PaginationDto = {},
-    where: any = {},
   ): Promise<General.Page<User>> {
-    if (!jwtPayload || !jwtPayload.roles || !jwtPayload.roles.includes(USER_ROLE_JWT_ADMIN)) {
+    if (
+      !jwtPayload ||
+      !jwtPayload.roles ||
+      !jwtPayload.roles.includes(USER_ROLE_JWT_ADMIN)
+    ) {
       throw new HttpException('No access', HttpStatus.FORBIDDEN);
     }
 
@@ -210,9 +229,9 @@ export class UserService {
     const user = await this.userRepository.findOne({
       where: {
         id: userId,
-        isActive: true
+        isActive: true,
       },
-      relations: ['profile']
+      relations: ['profile'],
     });
 
     if (!user) {
@@ -222,26 +241,38 @@ export class UserService {
     return user.profile;
   }
 
-  async patchProfileByUserId(userId: number, updateProfileDto: UpdateProfileDto): Promise<UserProfile> {
+  async patchProfileByUserId(
+    userId: number,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<UserProfile> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ['profile'],
     });
 
     if (!user) {
-      throw new HttpException(`User id: ${userId} not found`, HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        `User id: ${userId} not found`,
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     if (!user.profile) {
-      throw new HttpException(`Profile not found for user id: ${userId}`, HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        `Profile not found for user id: ${userId}`,
+        HttpStatus.NOT_FOUND,
+      );
     }
 
-    this.userProfileRepository.merge(user.profile, updateProfileDto)
+    this.userProfileRepository.merge(user.profile, updateProfileDto);
 
     return this.userProfileRepository.save(user.profile);
   }
 
-  async uploadAvatar(userId: number, file: Express.Multer.File): Promise<General.URL> {
+  async uploadAvatar(
+    userId: number,
+    file: Express.Multer.File,
+  ): Promise<General.URL> {
     if (!file) {
       throw new HttpException('File not provided', HttpStatus.BAD_REQUEST);
     }
@@ -254,10 +285,15 @@ export class UserService {
     if (userProfile.avatar) {
       try {
         const filename = path.basename(new URL(userProfile.avatar).pathname);
-        const { status } = await this.cdnProvider.deleteFile(filename, this.cdnAvatarPath);
+        const { status } = await this.cdnProvider.deleteFile(
+          filename,
+          this.cdnAvatarPath,
+        );
 
         if (status !== HttpStatus.OK) {
-          this.logger.warn(`Failed to delete previous avatar: ${filename}, Status: ${status}`);
+          this.logger.warn(
+            `Failed to delete previous avatar: ${filename}, Status: ${status}`,
+          );
         }
       } catch (error) {
         this.logger.error(`Error deleting previous avatar: ${error.message}`);
@@ -267,13 +303,20 @@ export class UserService {
     const fileExtension = path.extname(file.originalname) || IMG_EXT_JPEG;
     const safeFilename = `${userId}${fileExtension}`;
 
-    const { status, timestamp, files: [{ url }] } = await this.cdnProvider.uploadFile(
+    const {
+      status,
+      timestamp,
+      files: [{ url }],
+    } = await this.cdnProvider.uploadFile(
       { ...file, originalname: safeFilename },
-      new CDNUploadOptions(this.cdnAvatarPath)
+      new CDNUploadOptions(this.cdnAvatarPath),
     );
 
     if (status !== HttpStatus.OK) {
-      throw new HttpException('Failed to upload avatar', HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new HttpException(
+        'Failed to upload avatar',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     }
 
     userProfile.avatar = `${url}?v=${timestamp}`;
@@ -291,10 +334,15 @@ export class UserService {
     if (userProfile.avatar) {
       try {
         const filename = path.basename(new URL(userProfile.avatar).pathname);
-        const { status } = await this.cdnProvider.deleteFile(filename, this.cdnAvatarPath);
+        const { status } = await this.cdnProvider.deleteFile(
+          filename,
+          this.cdnAvatarPath,
+        );
 
         if (status !== HttpStatus.OK) {
-          this.logger.warn(`Failed to delete previous avatar: ${filename}, Status: ${status}`);
+          this.logger.warn(
+            `Failed to delete previous avatar: ${filename}, Status: ${status}`,
+          );
         }
       } catch (error) {
         this.logger.error(`Error deleting previous avatar: ${error.message}`);

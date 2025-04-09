@@ -16,7 +16,6 @@ import { Badge } from 'src/products/badge/entities/badge.entity';
 import { Discount } from 'src/promo/discount/entities/discount.entity';
 import { Brand } from 'src/brands/entities/brand.entity';
 import { ProductGroup } from 'src/products/groups/entities/product-group.entity';
-import { ProductComment } from 'src/products/comment/entities/product-comment.entity';
 
 @Entity({
   name: 'products',
@@ -114,10 +113,6 @@ export class Product {
 
   @OneToMany(() => ProductRemnant, (productRemnant: ProductRemnant) => productRemnant.product)
   productRemnants: ProductRemnant[];
-
-  @OneToMany(() => ProductComment, (productComment: ProductComment) => productComment.product)
-  @JoinColumn({ name: 'id', referencedColumnName: 'product_id' })
-  productComments: ProductComment[];
 
   @ManyToOne(() => ProductType, (productType: ProductType) => productType.products)
   @JoinColumn({ name: 'product_type_id' })

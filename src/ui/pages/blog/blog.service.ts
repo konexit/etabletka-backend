@@ -4,184 +4,180 @@ import { Cache } from 'cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository, SelectQueryBuilder } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { BlogPost } from './entities/blog-post.entity';
-import { BlogCategory } from './entities/blog-category.entity';
-import { BlogComment } from './entities/blog-comment.entity';
-import { CreatePost } from './dto/create-post.dto';
-import { UpdatePost } from './dto/update-post.dto';
+import { Article } from './entities/article.entity';
+import { Tag } from './entities/tag.entity';
+import { CreateArticle } from './dto/create-article.dto';
+import { UpdateArticle } from './dto/update-article.dto';
 
 @Injectable()
 export class BlogService {
-  private cacheBlogCategoriesKey: string = 'blogCategories';
-  private cacheBlogCategoriesTTL: number = 3600_000; // 1 Hour
+  private cacheTagsKey = 'tags';
+  private cacheTagsTTL = 3600_000; // 1 Hour
 
   constructor(
-    @InjectRepository(BlogPost)
-    private blogPostRepository: Repository<BlogPost>,
-    @InjectRepository(BlogCategory)
-    private blogCategoryRepository: Repository<BlogCategory>,
-    @InjectRepository(BlogCategory)
-    private blogCommentRepository: Repository<BlogComment>,
+    @InjectRepository(Article)
+    private articleRepository: Repository<Article>,
+    @InjectRepository(Tag)
+    private tagRepository: Repository<Tag>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache
   ) { }
 
-  async addBlogCategories(ids: Array<number>) {
-    return this.blogCategoryRepository.find({
+  async addTags(ids: Array<number>) {
+    return this.tagRepository.find({
       where: { id: In(ids) },
     });
   }
 
-  async getBlogCategories(lang: string = 'uk'): Promise<any> {
-    const cacheCategories = await this.cacheManager.get(
-      this.cacheBlogCategoriesKey,
+  async getTags(lang = 'uk') {
+    const cachetags = await this.cacheManager.get(
+      this.cacheTagsKey,
     );
-    if (cacheCategories) {
-      return cacheCategories;
+    if (cachetags) {
+      return cachetags;
     }
 
-    const blogCategories = await this.blogCategoryRepository.find({
+    const tags = await this.tagRepository.find({
       order: { id: 'ASC' },
     });
-    if (!blogCategories) {
+    if (!tags) {
       throw new HttpException(
-        'Blog categories not found',
+        'Blog tags not found',
         HttpStatus.NOT_FOUND,
       );
     }
 
-    for (let blogCategory of blogCategories) {
-      blogCategory = this.convertRecord(blogCategory, lang);
+    for (let tag of tags) {
+      tag = this.convertRecord(tag, lang);
     }
 
     await this.cacheManager.set(
-      this.cacheBlogCategoriesKey,
-      blogCategories,
-      this.cacheBlogCategoriesTTL,
+      this.cacheTagsKey,
+      tags,
+      this.cacheTagsTTL,
     );
 
-    return blogCategories;
+    return tags;
   }
 
-  async create(createPost: CreatePost) {
-    const post = this.blogPostRepository.create(createPost);
-    if (!post) {
+  async create(createPost: CreateArticle) {
+    const article = this.articleRepository.create(createPost);
+    if (!article) {
       throw new HttpException(
-        `Can't create post with data: ${createPost}`,
+        `Can't create article with data: ${createPost}`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    if (createPost.categories) {
-      const ids: Array<number> = String(createPost.categories)
+    if (createPost.tags) {
+      const ids: Array<number> = String(createPost.tags)
         .split(',')
         .map(Number);
 
-      post.blogCategories = await this.addBlogCategories(ids);
+      article.tags = await this.addTags(ids);
     }
 
-    return this.convertPost(await this.blogPostRepository.save(post));
+    return this.convertPost(await this.articleRepository.save(article));
   }
 
-  async update(id: number, updatePost: UpdatePost) {
-    const blogCategoryIds = updatePost.categories;
-    delete updatePost.categories;
+  async update(id: number, updateArticle: UpdateArticle) {
+    const tagIds = updateArticle.tags;
+    delete updateArticle.tags;
 
-    await this.blogPostRepository.update(id, updatePost);
-    const post: BlogPost = await this.blogPostRepository.findOne({
+    await this.articleRepository.update(id, updateArticle);
+    const article: Article = await this.articleRepository.findOne({
       where: { id },
-      relations: ['categories'],
+      relations: ['tags'],
     });
-    if (!post) {
+    if (!article) {
       throw new HttpException(
-        `Can't update post with data: ${updatePost}`,
+        `Can't update article with data: ${updateArticle}`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    if (blogCategoryIds) {
-      if (!Array.isArray(blogCategoryIds)) {
-        const ids: Array<number> = String(blogCategoryIds)
+    if (tagIds) {
+      if (!Array.isArray(tagIds)) {
+        const ids: Array<number> = String(tagIds)
           .split(',')
           .map(Number);
 
         console.log('GroupIds', ids);
-        post.blogCategories = await this.addBlogCategories(ids);
+        article.tags = await this.addTags(ids);
       } else {
-        post.blogCategories = await this.addBlogCategories(blogCategoryIds);
+        article.tags = await this.addTags(tagIds);
       }
     } else {
-      post.blogCategories = [];
+      article.tags = [];
     }
 
-    return this.convertPost(await this.blogPostRepository.save(post));
+    return this.convertPost(await this.articleRepository.save(article));
   }
 
   async delete(id: number): Promise<void> {
-    const post = await this.blogPostRepository.findOneBy({
+    const article = await this.articleRepository.findOneBy({
       id: id,
     });
-    if (!post) {
-      throw new HttpException('Can`t delete post', HttpStatus.NOT_FOUND);
+    if (!article) {
+      throw new HttpException('Can`t delete article', HttpStatus.NOT_FOUND);
     }
 
-    await this.blogPostRepository.delete(id);
+    await this.articleRepository.delete(id);
   }
 
   public async fetchData(
-    queryBuilder: SelectQueryBuilder<BlogPost>,
+    queryBuilder: SelectQueryBuilder<Article>,
     take: number,
     skip: number,
     ids?: Array<number>,
   ) {
     const query = queryBuilder
-      .select('post')
+      .select('article')
       .addSelect('author.id')
       .addSelect('author.firstName')
       .addSelect('author.lastName')
       .addSelect('censor.firstName')
       .addSelect('censor.id')
       .addSelect('censor.lastName')
-      .addSelect('categories.id')
-      .addSelect('categories.slug')
-      .addSelect('categories.title')
-      .leftJoin('post.categories', 'categories')
-      .leftJoin('post.blogComments', 'blogComments')
-      .leftJoin('post.author', 'author')
-      .leftJoin('post.censor', 'censor');
+      .addSelect('tags.id')
+      .addSelect('tags.slug')
+      .addSelect('tags.title')
+      .leftJoin('article.tags', 'tags')
+      .leftJoin('article.author', 'author')
+      .leftJoin('article.censor', 'censor');
 
-    if (ids) query.where('post.id IN (:...ids)', { ids: ids });
+    if (ids) query.where('article.id IN (:...ids)', { ids: ids });
 
-    query.orderBy('post.publishedAt', 'DESC').take(take).skip(skip);
+    query.orderBy('article.publishedAt', 'DESC').take(take).skip(skip);
 
     return query.getMany();
   }
 
-  async addCategoryToPost(id: number, blogCategoryId: number): Promise<void> {
-    const post = await this.blogPostRepository.findOne({
+  async addCategoryToPost(id: number, tagId: number): Promise<void> {
+    const article = await this.articleRepository.findOne({
       where: { id },
-      relations: ['blogCategories'],
+      relations: ['tags'],
     });
 
-    const category = await this.blogCategoryRepository.findOneBy({
-      id: blogCategoryId,
+    const tag = await this.tagRepository.findOneBy({
+      id: tagId,
     });
-    post.blogCategories.push(category);
-    await this.blogPostRepository.save(post);
+    article.tags.push(tag);
+    await this.articleRepository.save(article);
   }
 
-  async getPosts(pagination: PaginationDto = {}): Promise<General.Page<BlogPost>> {
+  async getArticles(pagination: PaginationDto = {}): Promise<General.Page<Article>> {
     const { take = 15, skip = 0 } = pagination;
-    const queryBuilder = this.blogPostRepository.createQueryBuilder('post');
-    const posts = await this.fetchData(queryBuilder, take, skip);
-    if (posts) {
-      for (let post of posts) {
-        post = this.convertPost(post);
+    const queryBuilder = this.articleRepository.createQueryBuilder('article');
+    const articles = await this.fetchData(queryBuilder, take, skip);
+    if (articles) {
+      for (let article of articles) {
+        article = this.convertPost(article);
       }
     }
 
     return {
-      items: posts,
+      items: articles,
       pagination: {
         take,
         skip,
@@ -190,24 +186,24 @@ export class BlogService {
     };
   }
 
-  async getCategoryPosts(slug: string, pagination: PaginationDto = {}): Promise<General.Page<BlogPost>> {
+  async getArticlesByTag(slug: string, pagination: PaginationDto = {}): Promise<General.Page<Article>> {
     const { take = 15, skip = 0 } = pagination;
 
-    const category = await this.blogCategoryRepository.findOne({
+    const tag = await this.tagRepository.findOne({
       where: { slug },
-      relations: ['posts'],
+      relations: ['articles'],
     });
 
-    if (!category) {
+    if (!tag) {
       throw new HttpException(
-        'Posts categories not found',
+        'Posts tags not found',
         HttpStatus.NOT_FOUND,
       );
     }
 
-    const postIds = category?.posts.map((p: BlogPost) => p.id) || [];
+    const articleIds = tag?.articles.map((p: Article) => p.id) || [];
 
-    if (!postIds.length) {
+    if (!articleIds.length) {
       return {
         items: [],
         pagination: {
@@ -218,21 +214,21 @@ export class BlogService {
       };
     }
 
-    const queryBuilder: SelectQueryBuilder<BlogPost> = this.blogPostRepository.createQueryBuilder('post');
+    const queryBuilder: SelectQueryBuilder<Article> = this.articleRepository.createQueryBuilder('article');
     const total = await queryBuilder
-      .where('post.id IN (:...ids)', { ids: postIds })
+      .where('article.id IN (:...ids)', { ids: articleIds })
       .getCount();
 
-    const posts = await this.fetchData(queryBuilder, take, skip, postIds);
+    const articles = await this.fetchData(queryBuilder, take, skip, articleIds);
 
-    if (posts) {
-      for (const post of posts) {
-        Object.assign(post, this.convertPost(post));
+    if (articles) {
+      for (const article of articles) {
+        Object.assign(article, this.convertPost(article));
       }
     }
 
     return {
-      items: posts,
+      items: articles,
       pagination: {
         total,
         skip,
@@ -241,160 +237,75 @@ export class BlogService {
     };
   }
 
-  async getLatestPosts(): Promise<BlogPost[]> {
-    const articles = await this.blogPostRepository.query(`
-        WITH CommentCounts AS (
-          SELECT
-              "post"."id" AS "post_id",
-              COUNT("blogComments"."id") AS "commentCount"
-          FROM "blog_posts" "post"
-          LEFT JOIN "blog_comments" "blogComments" ON "blogComments"."post_id" = "post"."id"
-          WHERE "post"."published" = true
-          GROUP BY "post"."id"
-      ),
-      CategoryData AS (
-          SELECT 
-              "post_categories"."blogPostsId" AS "post_id",
-              JSON_AGG(
-                  JSON_BUILD_OBJECT(
-                      'id', "categories"."id",
-                      'title', "categories"."title",
-                      'slug', "categories"."slug"
-                  )
-              ) AS "categories"
-          FROM blog_posts_blog_categories "post_categories"
-          JOIN "blog_categories" "categories" ON "categories"."id" = "post_categories"."blogCategoriesId"
-          GROUP BY "post_categories"."blogPostsId"
-      ),
-      CommentData AS (
-          SELECT
-              "blogComments"."post_id" AS "post_id",
-              JSON_AGG(
-                  JSON_BUILD_OBJECT(
-                      'id', "blogComments"."id",
-                      'authorId', "blogComments"."user_id",
-                      'content', "blogComments"."comment",
-                      'createdAt', "blogComments"."created_at",
-                      'updatedAt', "blogComments"."updated_at"
-                  )
-              ) AS "comments"
-          FROM
-              "blog_comments" "blogComments"
-          GROUP BY
-              "blogComments"."post_id"
-      )
-      SELECT 
-          "post"."id" AS "id", 
-          "post"."author_id" AS "authorId",
-          "post"."censor_id" AS "censorId",
-          "post"."published_at" AS "publishedAt", 
-          "post"."title" AS "title", 
-          "post"."slug" AS "slug", 
-          "post"."excerpt" AS "excerpt",
-          "post"."content" AS "content",
-          "post"."alt" AS "alt", 
-          "post"."cdn_data" AS "cdnData",
-          COALESCE(CategoryData."categories", '[]') AS "categories",
-          "author"."id" AS "authorId", 
-          JSON_BUILD_OBJECT(
-              'id', "author"."id",
-              'firstName', "author"."first_name",
-              'lastName', "author"."last_name"
-          ) AS "author",
-          "censor"."id" AS "censorId", 
-          JSON_BUILD_OBJECT(
-              'id', "censor"."id",
-              'firstName', "censor"."first_name",
-              'lastName', "censor"."last_name"
-          ) AS "censor",
-          COALESCE(CommentData."comments", '[]') AS "blogComments",
-          "post"."seo_h1" AS "seoH1",
-          "post"."seo_title" AS "seoTitle",
-          "post"."seo_description" AS "seoDescription"
-      FROM "blog_posts" "post"
-      LEFT JOIN CategoryData ON CategoryData."post_id" = "post"."id"
-      LEFT JOIN "user_profile" "author" ON "author"."user_id" = "post"."author_id"  
-      LEFT JOIN "user_profile" "censor" ON "censor"."user_id" = "post"."censor_id"
-      LEFT JOIN CommentData ON CommentData."post_id" = "post"."id"
-      LEFT JOIN CommentCounts ON CommentCounts."post_id" = "post"."id"
-      WHERE "post"."published" = true
-      ORDER BY "publishedAt" DESC 
-      LIMIT 3`);
-
-    return articles.map((article: BlogPost) => this.convertPost(article));
-  }
-
-  async getPost(category: string, slug: string): Promise<BlogPost> {
-    const post = await this.blogPostRepository.findOne({
+  async getArticle(tag: string, slug: string): Promise<Article> {
+    const article = await this.articleRepository.findOne({
       where: { slug },
       relations: [
-        'blogCategories',
+        'tags',
         'author',
         'censor',
-        'blogComments'
       ],
     });
-    if (!post) {
+    if (!article) {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     }
 
-    return this.convertPost(post);
+    return this.convertPost(article);
   }
 
-  async getPostById(id: number) {
-    const post = await this.blogPostRepository.findOne({
+  async getArticleById(id: number) {
+    const article = await this.articleRepository.findOne({
       where: { id },
       relations: [
-        'blogCategories',
-        'blogComments',
+        'tags',
         'author.profile',
         'censor.profile'
       ]
     });
-    if (!post) {
+    if (!article) {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     }
 
-    return this.convertPost(post);
+    return this.convertPost(article);
   }
 
-  private convertPost(post: BlogPost, lang: string = 'uk'): BlogPost {
-    post.title = post.title[lang];
+  private convertPost(article: Article, lang = 'uk'): Article {
+    article.title = article.title[lang];
 
-    if (post.excerpt) {
-      post.excerpt = post.excerpt[lang];
+    if (article.excerpt) {
+      article.excerpt = article.excerpt[lang];
     }
 
-    if (post.content) {
-      post.content = post.content[lang];
+    if (article.content) {
+      article.content = article.content[lang];
     }
 
-    if (post.alt) {
-      post.alt = post.alt[lang];
+    if (article.alt) {
+      article.alt = article.alt[lang];
     }
 
-    if (post.seoH1) {
-      post.seoH1 = post.seoH1[lang];
+    if (article.seoH1) {
+      article.seoH1 = article.seoH1[lang];
     }
 
-    if (post.seoTitle) {
-      post.seoTitle = post.seoTitle[lang];
+    if (article.seoTitle) {
+      article.seoTitle = article.seoTitle[lang];
     }
 
-    if (post.seoDescription) {
-      post.seoDescription = post.seoDescription[lang];
+    if (article.seoDescription) {
+      article.seoDescription = article.seoDescription[lang];
     }
 
-    if (post.blogCategories) {
-      for (const category of post.blogCategories) {
-        category.title = category.title[lang];
+    if (article.tags) {
+      for (const tag of article.tags) {
+        tag.title = tag.title[lang];
       }
     }
 
-    return post;
+    return article;
   }
 
-  private convertRecord(item: BlogCategory, lang: string = 'uk'): BlogCategory {
+  private convertRecord(item: Tag, lang = 'uk'): Tag {
     item.title = item.title[lang];
 
     if (item.seoH1) {

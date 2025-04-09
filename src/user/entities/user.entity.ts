@@ -4,7 +4,6 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -12,8 +11,6 @@ import {
 import { Exclude } from 'class-transformer';
 import { UserRole } from './user-role.entity';
 import { UserProfile } from './user-profile.entity';
-import { BlogComment } from 'src/ui/pages/blog/entities/blog-comment.entity';
-import { ProductComment } from "src/products/comment/entities/product-comment.entity";
 import { USER_ROLE_USER } from '../user.constants';
 
 @Entity({
@@ -56,10 +53,4 @@ export class User {
   @OneToOne(() => UserProfile, { cascade: true })
   @JoinColumn({ name: 'profile_id', referencedColumnName: 'id' })
   profile: UserProfile;
-
-  @OneToMany(() => BlogComment, (blogComment) => blogComment.author)
-  blogComments: BlogComment[];
-
-  @OneToMany(() => ProductComment, (productComment) => productComment.author)
-  productComments: ProductComment[];
 }

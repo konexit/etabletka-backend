@@ -28,7 +28,6 @@ import { BlogModule } from './ui/pages/blog/blog.module';
 import { CompanyModule } from 'src/company/company.module';
 import { SearchModule } from './search/search.module';
 import { ProductGroupModule } from './products/groups/product-group.module';
-import { ProductCommentModule } from './products/comment/product-comment.module';
 import { RefreshModule } from './settings/refresh/refresh.module';
 import { WsModule } from './infrastructure/ws/ws.module';
 import { ProductAttributesModule } from './products/attributes/product-attributes.module';
@@ -64,7 +63,6 @@ import { SMSModule } from './providers/sms/sms.module';
     ProductTypeModule,
     ProductRemnantModule,
     ProductGroupModule,
-    ProductCommentModule,
     KatottgModule,
     UserModule,
     CategoriesModule,

@@ -13,7 +13,7 @@ import {
   ParseIntPipe,
   UploadedFile,
   HttpCode,
-  HttpStatus
+  HttpStatus,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -34,7 +34,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 @ApiTags('users')
 @Controller('api/v1')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('/user/create')
@@ -44,7 +44,10 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('/user/update/:id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDTO: UpdateUserDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDTO: UpdateUserDto,
+  ) {
     return this.userService.update(id, updateUserDTO);
   }
 
@@ -59,9 +62,12 @@ export class UserController {
   @Post('/user/password/change')
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
-    @JWTPayload() jwtPayload: JwtPayload
+    @JWTPayload() jwtPayload: JwtPayload,
   ): Promise<void> {
-    return this.userService.changePassword(jwtPayload.userId, changePasswordDto.password);
+    return this.userService.changePassword(
+      jwtPayload.userId,
+      changePasswordDto.password,
+    );
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
@@ -70,21 +76,24 @@ export class UserController {
   async findAll(
     @JWTPayload() jwtPayload: JwtPayload,
     @Query() pagination?: PaginationDto,
-    @Query('where') where?: any,
   ): Promise<General.Page<User>> {
-    return this.userService.findAll(jwtPayload, pagination, where);
+    return this.userService.findAll(jwtPayload, pagination);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(JwtAuthGuard)
   @Get('/users/role/:id')
-  async getUserByRoleId(@Param('id', ParseIntPipe) id: number): Promise<User[]> {
+  async getUserByRoleId(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<User[]> {
     return this.userService.getUserByRoleId(id);
   }
 
   @UseGuards(JwtAuthGuard, UserIdGuard)
   @Get('/user/profile/:userId')
-  async getProfileByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<UserProfile> {
+  async getProfileByUserId(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<UserProfile> {
     return this.userService.getProfileByUserId(userId);
   }
 
@@ -93,7 +102,7 @@ export class UserController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadAvatarProfileByUserId(
     @Param('userId', ParseIntPipe) userId: number,
-    @UploadedFile() file: Express.Multer.File
+    @UploadedFile() file: Express.Multer.File,
   ): Promise<General.URL> {
     return this.userService.uploadAvatar(userId, file);
   }
@@ -101,7 +110,9 @@ export class UserController {
   @UseGuards(JwtAuthGuard, UserIdGuard)
   @Delete('/user/profile/avatar/:userId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteAvatarProfileByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<void> {
+  async deleteAvatarProfileByUserId(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<void> {
     return this.userService.deleteAvatar(userId);
   }
 
@@ -109,7 +120,7 @@ export class UserController {
   @Patch('/user/profile/:userId')
   async patchProfileByUserId(
     @Param('userId', ParseIntPipe) userId: number,
-    @Body() updateProfileDto: UpdateProfileDto
+    @Body() updateProfileDto: UpdateProfileDto,
   ): Promise<UserProfile> {
     return this.userService.patchProfileByUserId(userId, updateProfileDto);
   }
@@ -117,7 +128,9 @@ export class UserController {
   @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(JwtAuthGuard, UserIdGuard)
   @Get('/user/:userId')
-  async getUserById(@Param('userId', ParseIntPipe) userId: number): Promise<User> {
+  async getUserById(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<User> {
     return this.userService.getUserById(userId);
   }
 }

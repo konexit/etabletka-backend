@@ -16,85 +16,80 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { CreatePost } from './dto/create-post.dto';
-import { UpdatePost } from './dto/update-post.dto';
+import { CreateArticle } from './dto/create-article.dto';
+import { UpdateArticle } from './dto/update-article.dto';
 import { BlogService } from './blog.service';
-import { BlogPost } from './entities/blog-post.entity';
+import { Article } from './entities/article.entity';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { USER_ROLE_JWT_ADMIN } from 'src/user/user.constants';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { BlogCategory } from './entities/blog-category.entity';
+import { Tag } from './entities/tag.entity';
 
 @ApiTags('post')
 @Controller('api/v1')
-export class BlogPostController {
+export class BlogController {
   constructor(private blogService: BlogService) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(USER_ROLE_JWT_ADMIN)
   @UseInterceptors(ClassSerializerInterceptor)
   @UseInterceptors(FileInterceptor('image', {}))
-  @Post('blog-post/create')
+  @Post('article/create')
   async create(
     @UploadedFile() image: Express.Multer.File,
-    @Body() createPost: CreatePost,
+    @Body() createPost: CreateArticle,
   ) {
     return this.blogService.create(createPost);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(USER_ROLE_JWT_ADMIN)
-  @Patch('blog-post/:id')
+  @Patch('article/:id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updatePost: UpdatePost
+    @Body() updateArticle: UpdateArticle
   ) {
-    return this.blogService.update(id, updatePost);
+    return this.blogService.update(id, updateArticle);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(USER_ROLE_JWT_ADMIN)
-  @Delete('blog-post/:id')
+  @Delete('article/:id')
   async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.blogService.delete(id);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
-  @Get('blog-post/:id')
-  async getPostById(@Param('id', ParseIntPipe) id: number): Promise<BlogPost> {
-    return this.blogService.getPostById(id);
-  }
-
-  @Get('blog-main')
-  async getLatestPosts(): Promise<BlogPost[]> {
-    return this.blogService.getLatestPosts();
+  @Get('article/:id')
+  async getArticleById(@Param('id', ParseIntPipe) id: number): Promise<Article> {
+    return this.blogService.getArticleById(id);
   }
 
   @Get('blogs')
-  async getPosts(@Query() pagination?: PaginationDto): Promise<General.Page<BlogPost>> {
-    return this.blogService.getPosts(pagination);
+  async getArticles(@Query() pagination?: PaginationDto): Promise<General.Page<Article>> {
+    return this.blogService.getArticles(pagination);
   }
 
-  @Get('blog-categories')
-  async getBlogCategories(): Promise<BlogCategory[]> {
-    return this.blogService.getBlogCategories();
+  @Get('tags')
+  async getTags() {
+    return this.blogService.getTags();
   }
 
   @Get('blog/:category')
-  async getCategoryPosts(
+  async getArticlesByTag(
     @Param('category') category: string,
     @Query() pagination?: PaginationDto,
-  ): Promise<General.Page<BlogPost>> {
-    return this.blogService.getCategoryPosts(category, pagination);
+  ): Promise<General.Page<Article>> {
+    return this.blogService.getArticlesByTag(category, pagination);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('blog/:category/:slug')
-  async getPost(
+  async getArticle(
     @Param('category') category: string,
     @Param('slug') slug: string,
-  ): Promise<BlogPost> {
-    return this.blogService.getPost(category, slug);
+  ): Promise<Article> {
+    return this.blogService.getArticle(category, slug);
   }
 }

@@ -7,12 +7,12 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { BlogPost } from './blog-post.entity';
+import { Article } from './article.entity';
 
 @Entity({
-  name: 'blog_categories',
+  name: 'tag',
 })
-export class BlogCategory {
+export class Tag {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -37,9 +37,9 @@ export class BlogCategory {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
 
-  @ManyToMany(() => BlogPost)
+  @ManyToMany(() => Article)
   @JoinTable({
-    name: 'blog_posts_blog_categories',
+    name: 'articles_tags',
   })
-  posts: BlogPost[];
+  articles: Article[];
 }

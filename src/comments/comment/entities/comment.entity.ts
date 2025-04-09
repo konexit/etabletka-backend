@@ -1,24 +1,31 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
   PrimaryGeneratedColumn,
+  CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from 'src/user/entities/user.entity';
-import { BlogPost } from './blog-post.entity';
 
-@Entity('blog_comments')
-export class BlogComment {
+export enum ModelType {
+  ARTICLE = 'article',
+  PRODUCT = 'product',
+}
+
+@Entity('comments')
+export class Comment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'post_id' })
-  postId: number;
+  @Column()
+  modelId: number;
 
-  @Column({ name: 'user_id' })
+  @Column({
+    type: 'enum',
+    enum: ModelType,
+  })
+  type: ModelType;
+
+  @Column()
   userId: number;
 
   @Column({ name: 'parent_id', nullable: true })
@@ -35,12 +42,4 @@ export class BlogComment {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
-
-  @ManyToOne(() => User, (user) => user.blogComments)
-  @JoinColumn({ name: 'user_id' })
-  author: User;
-
-  @ManyToOne(() => BlogPost, (blogPost) => blogPost.blogComments)
-  @JoinColumn({ name: 'post_id' })
-  blogPost: BlogPost;
 }
