@@ -86,4 +86,14 @@ export class UpdateProfileDto extends PartialType(CreateUserDto) {
   @IsOptional()
   @IsNumber({}, { each: true })
   favoriteProducts: number[];
+
+  @IsArray()
+  @IsOptional()
+  @IsNumber({}, { each: true })
+  comments: number[];
+
+  @IsArray()
+  @IsOptional()
+  @IsNumber({}, { each: true })
+  answers: number[];
 }

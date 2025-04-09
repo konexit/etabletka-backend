@@ -31,6 +31,9 @@ export class Comment {
   @Column({ name: 'parent_id', nullable: true })
   parentId: number;
 
+  @Column({ name: 'rating', nullable: true })
+  rating: number;
+
   @Column({ type: 'text' })
   comment: string;
 

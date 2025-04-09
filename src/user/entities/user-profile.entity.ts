@@ -52,6 +52,12 @@ export class UserProfile {
   @Column({ name: 'favorite_products', type: 'int', array: true, default: () => `'{}'::integer[]` })
   favoriteProducts: number[];
 
+  @Column({ name: 'comments', type: 'int', array: true, default: () => `'{}'::integer[]` })
+  comments: number[];
+
+  @Column({ name: 'answers', type: 'int', array: true, default: () => `'{}'::integer[]` })
+  answers: number[];
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
