@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 export enum ModelType {
@@ -16,7 +17,7 @@ export class Comment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ name: 'model_id' })
   modelId: number;
 
   @Column({
@@ -25,7 +26,7 @@ export class Comment {
   })
   type: ModelType;
 
-  @Column()
+  @Column({ name: 'user_id' })
   userId: number;
 
   @Column({ name: 'parent_id', nullable: true })
@@ -37,12 +38,15 @@ export class Comment {
   @Column({ type: 'text' })
   comment: string;
 
-  @Column({ name: 'is_approved', default: false })
-  isApproved: boolean;
+  @Column({ name: 'approved', default: false })
+  approved: boolean;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp' })
+  deletedAt: Date;
 }
