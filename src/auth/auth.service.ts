@@ -10,7 +10,7 @@ import { JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
 import { ActivationCodeDto, ActivationDto } from './dto/activation.dto';
 import AuthDto from './dto/auth.dto';
 import { SMSProvider } from 'src/providers/sms';
-import { generateRandomNumber, hashPassword } from 'src/common/utils';
+import { generateRandomNumber, verifyPassword } from 'src/common/utils';
 
 @Injectable()
 export class AuthService {
@@ -31,9 +31,9 @@ export class AuthService {
       );
     }
 
-    const password = await hashPassword(authDto.password);
+    const isMatch = await verifyPassword(authDto.password, user.password);
 
-    if (user.password !== password) {
+    if (!isMatch) {
       throw new HttpException(
         `The password: ${authDto.login} miss match`,
         HttpStatus.UNAUTHORIZED,
