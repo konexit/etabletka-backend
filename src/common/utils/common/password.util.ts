@@ -1,5 +1,5 @@
-import * as crypto from 'crypto';
+import bcrypt from 'bcrypt';
 
-export const getPasswordWithSHA512 = (purePassword: string, salt: string): string => {
-    return crypto.pbkdf2Sync(purePassword, salt, 1000, 64, `sha512`).toString(`hex`);
+export const hashPassword = (plainPassword: string, saltRounds: number = 10): Promise<string> => {
+    return bcrypt.hash(plainPassword, saltRounds);
 }

@@ -5,13 +5,12 @@ import { JwtTokenService } from './jwt/jwt-token.service';
 import { UserService } from 'src/user/user.service';
 import { CartService } from 'src/commerce/cart/cart.service';
 import { USER_ACTIVATION_CODE_DELAY, USER_PASSWORD_ACTIVATION_CODE_SIZE } from 'src/common/config/common.constants';
-import { SALT } from './auth.constants';
 import { User } from 'src/user/entities/user.entity';
 import { JwtPayload, JwtResponse } from 'src/common/types/jwt/jwt.interfaces';
 import { ActivationCodeDto, ActivationDto } from './dto/activation.dto';
 import AuthDto from './dto/auth.dto';
 import { SMSProvider } from 'src/providers/sms';
-import { generateRandomNumber, getPasswordWithSHA512 } from 'src/common/utils';
+import { generateRandomNumber, hashPassword } from 'src/common/utils';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +31,7 @@ export class AuthService {
       );
     }
 
-    const password = getPasswordWithSHA512(authDto.password, this.configService.get<string>(SALT));
+    const password = await hashPassword(authDto.password);
 
     if (user.password !== password) {
       throw new HttpException(

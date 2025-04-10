@@ -6,22 +6,20 @@ import {
   Inject,
   Logger,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { UserProfile } from './entities/user-profile.entity';
-import { Repository, DataSource } from 'typeorm';
+import { Repository } from 'typeorm';
 import { SMSProvider } from 'src/providers/sms';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { SALT } from 'src/auth/auth.constants';
 import {
   IMG_EXT_JPEG,
   USER_PASSWORD_ACTIVATION_CODE_SIZE,
 } from 'src/common/config/common.constants';
 import { generateRandomNumber } from 'src/common/utils';
-import { getPasswordWithSHA512 } from 'src/common/utils';
+import { hashPassword } from 'src/common/utils';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { USER_ROLE_JWT_ADMIN } from './user.constants';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -38,12 +36,10 @@ export class UserService {
     private userRepository: Repository<User>,
     @InjectRepository(UserProfile)
     private userProfileRepository: Repository<UserProfile>,
-    private dataSource: DataSource,
-    private configService: ConfigService,
     private smsProvider: SMSProvider,
     @Inject(CDN_PROVIDER_MANAGER)
     private cdnProvider: CDNProvider,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateUserDto): Promise<void> {
     const userExist = await this.userRepository.findOneBy({
@@ -64,10 +60,7 @@ export class UserService {
       );
     }
 
-    user.password = getPasswordWithSHA512(
-      createUserDto.password,
-      this.configService.get<string>(SALT),
-    );
+    user.password = await hashPassword(createUserDto.password);
     user.code = generateRandomNumber(USER_PASSWORD_ACTIVATION_CODE_SIZE);
 
     const { id: userId } = await this.userRepository.save(user);
@@ -140,10 +133,7 @@ export class UserService {
     }
 
     user.code = null;
-    user.password = getPasswordWithSHA512(
-      newPassword,
-      this.configService.get<string>(SALT),
-    );
+    user.password = await hashPassword(newPassword);
 
     await this.userRepository.save(user);
 
