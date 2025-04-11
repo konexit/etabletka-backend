@@ -11,7 +11,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { UserProfile } from './entities/user-profile.entity';
-import { Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
 import { SMSProvider } from 'src/providers/sms';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import {
@@ -39,7 +39,7 @@ export class UserService {
     private smsProvider: SMSProvider,
     @Inject(CDN_PROVIDER_MANAGER)
     private cdnProvider: CDNProvider,
-  ) { }
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<void> {
     const userExist = await this.userRepository.findOneBy({
@@ -229,6 +229,34 @@ export class UserService {
     }
 
     return user.profile;
+  }
+
+  async getProfilesByUserIds(
+    payload: JwtPayload,
+    userIds: User['id'][],
+  ): Promise<
+    (
+      | Pick<UserProfile, 'id' | 'userId' | 'firstName' | 'avatar'>
+      | UserProfile
+    )[]
+  > {
+    const queryOptions: FindManyOptions<UserProfile> = {
+      where: {
+        id: In(userIds),
+      },
+    };
+
+    if (!payload.roles.includes(USER_ROLE_JWT_ADMIN)) {
+      queryOptions.select = ['id', 'userId', 'firstName', 'avatar'];
+    }
+
+    const profiles = await this.userProfileRepository.find(queryOptions);
+
+    if (!profiles.length) {
+      throw new HttpException('Profiles not found', HttpStatus.NOT_FOUND);
+    }
+
+    return profiles;
   }
 
   async patchProfileByUserId(

@@ -30,6 +30,7 @@ import { UserProfile } from './entities/user-profile.entity';
 import { UserIdGuard } from 'src/common/guards/user-id.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { GetByUserIdsDto } from './dto/get-by-user-ids.dto';
 
 @ApiTags('users')
 @Controller('api/v1')
@@ -87,6 +88,15 @@ export class UserController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<User[]> {
     return this.userService.getUserByRoleId(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/user/profile/ids')
+  async getProfilesByUserIds(
+    @Body() getByUserIdsDto: GetByUserIdsDto,
+    @JWTPayload() jwtPayload: JwtPayload,
+  ) {
+    return this.userService.getProfilesByUserIds(jwtPayload, getByUserIdsDto.ids);
   }
 
   @UseGuards(JwtAuthGuard, UserIdGuard)
