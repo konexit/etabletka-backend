@@ -41,6 +41,9 @@ export class Comment {
   @Column({ name: 'approved', default: false })
   approved: boolean;
 
+  @Column({ name: 'anonymous', default: false })
+  anonymous: boolean;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
