@@ -24,12 +24,12 @@ import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { USER_ROLE_JWT_ADMIN } from 'src/user/user.constants';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { Tag } from './entities/tag.entity';
+import { GetByArticleIdsDto } from './dto/get-by-article-ids.dto';
 
 @ApiTags('post')
 @Controller('api/v1')
 export class BlogController {
-  constructor(private blogService: BlogService) { }
+  constructor(private blogService: BlogService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(USER_ROLE_JWT_ADMIN)
@@ -43,12 +43,19 @@ export class BlogController {
     return this.blogService.create(createPost);
   }
 
+  @Post('article/ids')
+  async getArticlesByIds(
+    @Body() getByArticleIdsDto: GetByArticleIdsDto,
+  ): Promise<Article[]> {
+    return this.blogService.getArticlesByIds(getByArticleIdsDto.ids);
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(USER_ROLE_JWT_ADMIN)
   @Patch('article/:id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateArticle: UpdateArticle
+    @Body() updateArticle: UpdateArticle,
   ) {
     return this.blogService.update(id, updateArticle);
   }
@@ -62,12 +69,16 @@ export class BlogController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('article/:id')
-  async getArticleById(@Param('id', ParseIntPipe) id: number): Promise<Article> {
+  async getArticleById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<Article> {
     return this.blogService.getArticleById(id);
   }
 
   @Get('blogs')
-  async getArticles(@Query() pagination?: PaginationDto): Promise<General.Page<Article>> {
+  async getArticles(
+    @Query() pagination?: PaginationDto,
+  ): Promise<General.Page<Article>> {
     return this.blogService.getArticles(pagination);
   }
 

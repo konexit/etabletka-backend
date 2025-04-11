@@ -20,8 +20,8 @@ export class BlogService {
     @InjectRepository(Tag)
     private tagRepository: Repository<Tag>,
     @Inject(CACHE_MANAGER)
-    private cacheManager: Cache
-  ) { }
+    private cacheManager: Cache,
+  ) {}
 
   async addTags(ids: Array<number>) {
     return this.tagRepository.find({
@@ -30,9 +30,7 @@ export class BlogService {
   }
 
   async getTags(lang = 'uk') {
-    const cachetags = await this.cacheManager.get(
-      this.cacheTagsKey,
-    );
+    const cachetags = await this.cacheManager.get(this.cacheTagsKey);
     if (cachetags) {
       return cachetags;
     }
@@ -41,21 +39,14 @@ export class BlogService {
       order: { id: 'ASC' },
     });
     if (!tags) {
-      throw new HttpException(
-        'Blog tags not found',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException('Blog tags not found', HttpStatus.NOT_FOUND);
     }
 
     for (let tag of tags) {
       tag = this.convertRecord(tag, lang);
     }
 
-    await this.cacheManager.set(
-      this.cacheTagsKey,
-      tags,
-      this.cacheTagsTTL,
-    );
+    await this.cacheManager.set(this.cacheTagsKey, tags, this.cacheTagsTTL);
 
     return tags;
   }
@@ -70,9 +61,7 @@ export class BlogService {
     }
 
     if (createPost.tags) {
-      const ids: Array<number> = String(createPost.tags)
-        .split(',')
-        .map(Number);
+      const ids: Array<number> = String(createPost.tags).split(',').map(Number);
 
       article.tags = await this.addTags(ids);
     }
@@ -98,9 +87,7 @@ export class BlogService {
 
     if (tagIds) {
       if (!Array.isArray(tagIds)) {
-        const ids: Array<number> = String(tagIds)
-          .split(',')
-          .map(Number);
+        const ids: Array<number> = String(tagIds).split(',').map(Number);
 
         console.log('GroupIds', ids);
         article.tags = await this.addTags(ids);
@@ -166,7 +153,9 @@ export class BlogService {
     await this.articleRepository.save(article);
   }
 
-  async getArticles(pagination: PaginationDto = {}): Promise<General.Page<Article>> {
+  async getArticles(
+    pagination: PaginationDto = {},
+  ): Promise<General.Page<Article>> {
     const { take = 15, skip = 0 } = pagination;
     const queryBuilder = this.articleRepository.createQueryBuilder('article');
     const articles = await this.fetchData(queryBuilder, take, skip);
@@ -181,12 +170,31 @@ export class BlogService {
       pagination: {
         take,
         skip,
-        total: await queryBuilder.getCount()
+        total: await queryBuilder.getCount(),
       },
     };
   }
 
-  async getArticlesByTag(slug: string, pagination: PaginationDto = {}): Promise<General.Page<Article>> {
+  async getArticlesByIds(articleIds: Article['id'][]): Promise<Article[]> {
+    const articles = await this.articleRepository.find({
+      where: { id: In(articleIds) },
+      relations: ['tags'],
+    });
+
+    if (!articles.length)
+      throw new HttpException('Articles not found', HttpStatus.NOT_FOUND);
+
+    for (const article of articles) {
+      Object.assign(article, this.convertPost(article));
+    }
+
+    return articles;
+  }
+
+  async getArticlesByTag(
+    slug: string,
+    pagination: PaginationDto = {},
+  ): Promise<General.Page<Article>> {
     const { take = 15, skip = 0 } = pagination;
 
     const tag = await this.tagRepository.findOne({
@@ -195,10 +203,7 @@ export class BlogService {
     });
 
     if (!tag) {
-      throw new HttpException(
-        'Posts tags not found',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException('Posts tags not found', HttpStatus.NOT_FOUND);
     }
 
     const articleIds = tag?.articles.map((p: Article) => p.id) || [];
@@ -209,12 +214,13 @@ export class BlogService {
         pagination: {
           total: 0,
           skip,
-          take
-        }
+          take,
+        },
       };
     }
 
-    const queryBuilder: SelectQueryBuilder<Article> = this.articleRepository.createQueryBuilder('article');
+    const queryBuilder: SelectQueryBuilder<Article> =
+      this.articleRepository.createQueryBuilder('article');
     const total = await queryBuilder
       .where('article.id IN (:...ids)', { ids: articleIds })
       .getCount();
@@ -232,19 +238,15 @@ export class BlogService {
       pagination: {
         total,
         skip,
-        take
-      }
+        take,
+      },
     };
   }
 
   async getArticle(tag: string, slug: string): Promise<Article> {
     const article = await this.articleRepository.findOne({
       where: { slug },
-      relations: [
-        'tags',
-        'author',
-        'censor',
-      ],
+      relations: ['tags', 'author', 'censor'],
     });
     if (!article) {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
@@ -256,11 +258,7 @@ export class BlogService {
   async getArticleById(id: number) {
     const article = await this.articleRepository.findOne({
       where: { id },
-      relations: [
-        'tags',
-        'author.profile',
-        'censor.profile'
-      ]
+      relations: ['tags', 'author.profile', 'censor.profile'],
     });
     if (!article) {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
