@@ -36,6 +36,7 @@ import { OrderModule } from './commerce/order/order.module';
 import { TradeModule } from './providers/trade/trade.module';
 import { CDNModule } from './providers/cdn/cdn.module';
 import { SMSModule } from './providers/sms/sms.module';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -80,7 +81,8 @@ import { SMSModule } from './providers/sms/sms.module';
     OrderModule,
     TradeModule,
     CDNModule,
-    SMSModule
+    SMSModule,
+    CommentModule
   ],
   controllers: [AppController],
   providers: [AppService],
