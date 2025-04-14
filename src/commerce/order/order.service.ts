@@ -80,7 +80,7 @@ export class OrderService {
     private orderCartRepository: Repository<OrderCart>,
     @Inject(TRADE_PROVIDER_MANAGER)
     private tradeProvider: TradeProvider,
-  ) {}
+  ) { }
 
   async processOrders(): Promise<void> {
     try {
@@ -405,12 +405,12 @@ export class OrderService {
       }
     }
 
-    const products: Pick<Product, 'id' | 'syncId' | 'cdnData' | 'name'>[] =
+    const products: Pick<Product, 'id' | 'syncId' | 'images' | 'name'>[] =
       await this.productRepository.find({
         where: {
           syncId: In(Array.from(productIds)),
         },
-        select: ['id', 'syncId', 'name', 'cdnData'],
+        select: ['id', 'syncId', 'name', 'images'],
       });
 
     const statusesResult: { [key in Order['id']]: OrderStatus } = {};
@@ -419,7 +419,7 @@ export class OrderService {
       statusesResult[statuses[i].orderId] = statuses[i];
     }
 
-    type TruncatedProduct = Pick<Product, 'id' | 'syncId' | 'cdnData'> & {
+    type TruncatedProduct = Pick<Product, 'id' | 'syncId' | 'images'> & {
       name: string;
       price: (typeof orders)[number]['order']['body_list'][number]['price_amount'];
       count: (typeof orders)[number]['order']['body_list'][number]['count'];
@@ -521,18 +521,18 @@ export class OrderService {
       }
     }
 
-    type TruncatedProduct = Pick<Product, 'id' | 'syncId' | 'cdnData'> & {
+    type TruncatedProduct = Pick<Product, 'id' | 'syncId' | 'images'> & {
       name: string;
       price: (typeof orders)[number]['order']['body_list'][number]['price_amount'];
       count: (typeof orders)[number]['order']['body_list'][number]['count'];
     };
 
-    const products: Pick<Product, 'id' | 'syncId' | 'cdnData' | 'name'>[] =
+    const products: Pick<Product, 'id' | 'syncId' | 'images' | 'name'>[] =
       await this.productRepository.find({
         where: {
           syncId: In(Array.from(productIds)),
         },
-        select: ['id', 'syncId', 'name', 'cdnData'],
+        select: ['id', 'syncId', 'name', 'images'],
       });
 
     const result: {

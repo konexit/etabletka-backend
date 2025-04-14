@@ -27,10 +27,10 @@ export class Category {
   @Column({ name: 'product_count', default: 0 })
   productCount: number;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'jsonb', nullable: true })
   name: JSON;
 
-  @Column({ name: 'name_short', type: 'json', nullable: true })
+  @Column({ name: 'name_short', type: 'jsonb', nullable: true })
   @Exclude()
   nameShort: JSON;
 
@@ -40,33 +40,23 @@ export class Category {
   @Column({ nullable: true })
   slug: string;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'jsonb', nullable: true })
   description: JSON;
 
-  @Column({ name: 'seo_h1', type: 'json', nullable: true })
+  @Column({ name: 'seo_h1', type: 'jsonb', nullable: true })
   seoH1: JSON;
 
-  @Column({ name: 'seo_title', type: 'json', nullable: true })
+  @Column({ name: 'seo_title', type: 'jsonb', nullable: true })
   seoTitle: JSON;
 
-  @Column({ name: 'seo_description', type: 'json', nullable: true })
+  @Column({ name: 'seo_description', type: 'jsonb', nullable: true })
   seoDescription: JSON;
 
   @Column({ nullable: true })
   image: string;
 
-  @Column({ name: 'cdn_icon', nullable: true })
-  cdnIcon: string;
-
-  @Column({ name: 'cdn_data', type: 'json', nullable: true })
-  @Exclude()
-  cdnData: JSON;
-
   @Column({ nullable: true })
   icon: string;
-
-  @Column({ type: 'json', nullable: true })
-  alt: JSON;
 
   @Column({ default: 0 })
   @Exclude()

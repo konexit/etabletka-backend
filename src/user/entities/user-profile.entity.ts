@@ -49,13 +49,13 @@ export class UserProfile {
   @Column({ name: 'avatar', nullable: true })
   avatar: string;
 
-  @Column({ name: 'favorite_products', type: 'int', array: true, default: () => `'{}'::integer[]` })
+  @Column({ name: 'favorite_products', type: 'int', array: true, default: {} })
   favoriteProducts: number[];
 
-  @Column({ name: 'comments', type: 'int', array: true, default: () => `'{}'::integer[]` })
+  @Column({ name: 'comments', type: 'int', array: true, default: {} })
   comments: number[];
 
-  @Column({ name: 'answers', type: 'int', array: true, default: () => `'{}'::integer[]` })
+  @Column({ name: 'answers', type: 'int', array: true, default: {} })
   answers: number[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })

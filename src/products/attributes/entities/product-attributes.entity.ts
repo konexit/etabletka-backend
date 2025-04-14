@@ -55,7 +55,7 @@ export class ProductAttributes {
     name: 'merge_keys',
     type: 'varchar',
     array: true,
-    default: () => `'{}'::integer[]`
+    default: {}
   })
   mergeKeys: string[];
 

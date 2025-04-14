@@ -45,11 +45,8 @@ export class Product {
   @Column({ unique: true })
   slug: string;
 
-  @Column({ name: 'cdn_data', type: 'jsonb', nullable: true })
-  cdnData: JSON;
-
-  @Column({ name: 'cdn_instruction', type: 'jsonb', nullable: true })
-  cdnInstruction: JSON;
+  @Column({ name: 'images', type: 'varchar', array: true, default: {} })
+  images: string;
 
   @Column({ name: 'instruction_uk', nullable: true })
   instructionUk: string;
@@ -60,7 +57,7 @@ export class Product {
   @Column({ name: 'instruction_en', nullable: true })
   instructionEn: string;
 
-  @Column({ name: 'seo_h1', type: 'json', nullable: true })
+  @Column({ name: 'seo_h1', type: 'jsonb', nullable: true })
   seoH1: JSON;
 
   @Column({ name: 'seo_title', type: 'jsonb', nullable: true })
@@ -102,7 +99,7 @@ export class Product {
   @Column({ type: 'jsonb', nullable: true })
   attributes: JSON;
 
-  @Column({ name: 'categories', type: 'int', array: true, default: () => `'{}'::integer[]` })
+  @Column({ name: 'categories', type: 'integer', array: true, default: {} })
   categories: number[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
