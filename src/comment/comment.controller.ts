@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CommentService } from './comment.service';
 import { GetByCommentIdsDto } from './dto/get-by-comment-ids.dto';
@@ -19,7 +26,7 @@ export class CommentController {
   @Get('/:commentId/answers')
   async getCommentAnswers(
     @Param('commentId', ParseIntPipe) commentId: Comment['id'],
-  ): Promise<(Comment & { answersCount: number })[]> {
-    return this.commentService.getCommentsByParentId(commentId);
+  ): Promise<Comment['id'][]> {
+    return this.commentService.getCommentIdsByParentId(commentId);
   }
 }

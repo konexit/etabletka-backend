@@ -49,36 +49,18 @@ export class CommentService {
     return results;
   }
 
-  async getCommentsByParentId(commentId: Comment['id']) {
-    const query = `
-        SELECT
-            c.id AS "id",
-            c.model_id AS "modelId",
-            c.type AS "type",
-            CASE WHEN c.anonymous THEN NULL ELSE c.user_id END AS "userId",
-            c.parent_id AS "parentId",
-            c.rating AS "rating",
-            c.comment AS "comment",
-            c.approved AS "approved",
-            c.created_at AS "createdAt",
-            c.updated_at AS "updatedAt",
-            c.deleted_at AS "deletedAt",
-            (
-                SELECT CAST(COUNT(*) as integer)
-                FROM comments as child
-                WHERE child.parent_id = c.id AND child.approved = true
-            ) AS "answersCount"
-        FROM comments c
-        WHERE c.parent_id = $1 AND c.approved = true
-    `;
-
-    const answers: (Comment & { answersCount: number })[] =
-      await this.commentRepository.query(query, [commentId]);
+  async getCommentIdsByParentId(
+    commentId: Comment['id'],
+  ) {
+    const answers: Pick<Comment, 'id'>[] = await this.commentRepository.find({
+      select: ['id'],
+      where: { parentId: commentId },
+    });
 
     if (!answers.length) {
       throw new HttpException('Comments not found', HttpStatus.NOT_FOUND);
     }
 
-    return answers;
+    return answers.map((answer) => answer.id);
   }
 }
