@@ -5,23 +5,23 @@ import { Category } from '../entities/category.entity';
 @Exclude()
 export class ResponseCategoryDto {
   constructor(
-    partial: (CategoryNode | Category) & Record<string, any>,
-    langKey: string = 'uk',
+    partial: CategoryNode | Category,
+    langKey = 'uk',
   ) {
     const categoryObject = JSON.parse(JSON.stringify(partial));
 
     this.assignLocalizedName(categoryObject, langKey);
 
-    return Object.assign(this, categoryObject);
+    Object.assign(this, categoryObject);
   }
 
   private assignLocalizedName(
-    node: (CategoryNode | Category) & Record<string, any>,
+    node: CategoryNode | Category,
     langKey: string,
   ) {
     node.name = node.name?.[langKey] || null;
 
-    if (Array.isArray(node.children)) {
+    if ('children' in node && Array.isArray(node.children)) {
       for (const child of node.children) {
         this.assignLocalizedName(child, langKey);
       }
@@ -41,13 +41,10 @@ export class ResponseCategoryDto {
   path: string;
 
   @Expose()
-  cdnIcon: string;
+  icon: string;
 
   @Expose()
-  cdnData: JSON;
-
-  @Expose()
-  alt: JSON;
+  image: string;
 
   @Expose()
   root: boolean;
