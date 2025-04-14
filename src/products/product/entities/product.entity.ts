@@ -66,6 +66,9 @@ export class Product {
   @Column({ name: 'seo_description', type: 'jsonb', nullable: true })
   seoDescription: JSON;
 
+  @Column({ name: 'seo_keywords', type: 'jsonb', nullable: true })
+  seoKeywords: JSON;
+
   @Column({ default: 0, type: 'float' })
   price: number;
 
