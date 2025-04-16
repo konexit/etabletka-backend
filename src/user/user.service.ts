@@ -232,8 +232,8 @@ export class UserService {
   }
 
   async getProfilesByUserIds(
-    payload: JwtPayload,
     userIds: User['id'][],
+    payload?: JwtPayload,
   ): Promise<
     (
       | Pick<UserProfile, 'id' | 'userId' | 'firstName' | 'avatar'>
@@ -246,7 +246,7 @@ export class UserService {
       },
     };
 
-    if (!payload.roles.includes(USER_ROLE_JWT_ADMIN)) {
+    if (!payload?.roles.includes(USER_ROLE_JWT_ADMIN)) {
       queryOptions.select = ['id', 'userId', 'firstName', 'avatar'];
     }
 

@@ -90,13 +90,13 @@ export class UserController {
     return this.userService.getUserByRoleId(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @Post('/user/profile/ids')
   async getProfilesByUserIds(
     @Body() getByUserIdsDto: GetByUserIdsDto,
     @JWTPayload() jwtPayload: JwtPayload,
   ) {
-    return this.userService.getProfilesByUserIds(jwtPayload, getByUserIdsDto.ids);
+    return this.userService.getProfilesByUserIds(getByUserIdsDto.ids, jwtPayload);
   }
 
   @UseGuards(JwtAuthGuard, UserIdGuard)
