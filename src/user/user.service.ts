@@ -242,7 +242,7 @@ export class UserService {
   > {
     const queryOptions: FindManyOptions<UserProfile> = {
       where: {
-        id: In(userIds),
+        userId: In(userIds),
       },
     };
 
