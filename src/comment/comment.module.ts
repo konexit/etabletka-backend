@@ -3,9 +3,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Comment } from './entities/comment.entity';
 import { CommentController } from './comment.controller';
 import { CommentService } from './comment.service';
+import { UserProfile } from 'src/user/entities/user-profile.entity';
+import { Answer } from './entities/answer.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Comment])],
+  imports: [TypeOrmModule.forFeature([Comment, Answer, UserProfile])],
   controllers: [CommentController],
   providers: [CommentService],
   exports: [CommentService, CommentModule],
