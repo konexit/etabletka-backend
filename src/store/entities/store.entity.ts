@@ -40,8 +40,8 @@ export class Store {
   @Column({ unique: true })
   slug: string;
 
-  @Column({ name: 'cdn_data', type: 'jsonb', nullable: true })
-  cdnData: JSON;
+  @Column({ name: 'image', nullable: true })
+  image: string;
 
   @Column({ name: 'work_time', nullable: true, length: 125 })
   workTime: string;
