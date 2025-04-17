@@ -25,5 +25,7 @@ export class AnswerResponseDto {
 
   constructor(answer: Answer) {
     Object.assign(this, answer);
+
+    this.userId = answer.anonymous ? null : answer.userId;
   }
 }
