@@ -8,6 +8,7 @@ import { Category } from 'src/categories/entities/category.entity';
 import { Discount } from 'src/promo/discount/entities/discount.entity';
 import { ProductGroup } from 'src/products/groups/entities/product-group.entity';
 import { ProductRemnant } from 'src/products/remnants/entities/product-remnant.entity';
+import { Comment } from 'src/comment/entities/comment.entity';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ProductRemnant } from 'src/products/remnants/entities/product-remnant.e
       Discount,
       ProductGroup,
       ProductRemnant,
+      Comment,
     ]),
   ],
   controllers: [ProductController],

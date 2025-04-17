@@ -155,6 +155,13 @@ export class ProductController {
     return this.productService.findPopularProducts();
   }
 
+  @Get('/product/:productId/stats')
+  async getProductStats(
+    @Param('productId', ParseIntPipe) productId: number,
+  ): Promise<[number, number, number, number, number]> {
+    return this.productService.getProductStats(productId);
+  }
+
   @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(OptionalJwtAuthGuard)
   @Get('/product/:id')

@@ -20,6 +20,7 @@ import { ProductGroup } from 'src/products/groups/entities/product-group.entity'
 import { ProductRemnant } from 'src/products/remnants/entities/product-remnant.entity';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { USER_ROLE_JWT_ADMIN } from 'src/user/user.constants';
+import { Comment, CommentType } from 'src/comment/entities/comment.entity';
 
 @Injectable()
 export class ProductService {
@@ -36,6 +37,8 @@ export class ProductService {
     private readonly productGroupRepository: Repository<ProductGroup>,
     @InjectRepository(ProductRemnant)
     private readonly productRemnantRepository: Repository<ProductRemnant>,
+    @InjectRepository(Comment)
+    private readonly commentRepository: Repository<Comment>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private jwtService: JwtService,
@@ -174,10 +177,29 @@ export class ProductService {
     });
   }
 
-  async getProductBySyncId(
-    syncId: number,
-    lang = 'uk',
-  ): Promise<Product> {
+  async getProductStats(
+    productId: Product['id'],
+  ): Promise<[number, number, number, number, number]> {
+    const query = `
+        SELECT array_agg(COALESCE(c.cnt, 0)::int ORDER BY r.rating) AS "productStats"
+        FROM generate_series(1, 5) AS r(rating)
+        LEFT JOIN (
+        SELECT rating, COUNT(*) AS cnt
+        FROM comments
+        WHERE type = 'product'
+            AND approved = true
+            AND model_id = $1
+        GROUP BY rating
+        ) AS c
+        ON r.rating = c.rating;
+    `;
+
+    const result = await this.commentRepository.query(query, [productId]);
+
+    return result[0].productStats;
+  }
+
+  async getProductBySyncId(syncId: number, lang = 'uk'): Promise<Product> {
     if (!syncId)
       throw new HttpException(
         'The syncId is not define',
@@ -226,7 +248,7 @@ export class ProductService {
     token: string,
     pagination: PaginationDto = {},
     orderBy: {
-        [key: string]: 'ASC' | 'DESC'
+      [key: string]: 'ASC' | 'DESC';
     } = {},
     where = {},
     lang = 'uk',
@@ -473,11 +495,7 @@ export class ProductService {
     return product;
   }
 
-  async addBadgeToProduct(
-    token: string,
-    id: number,
-    badgeId: number,
-  ) {
+  async addBadgeToProduct(token: string, id: number, badgeId: number) {
     if (!token || typeof token !== 'string') {
       throw new HttpException('Has no access', HttpStatus.FORBIDDEN);
     }
