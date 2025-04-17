@@ -86,7 +86,7 @@ export class CommentService {
         await entityManager.save(Answer, answer);
 
         const userProfile = await entityManager.findOne(UserProfile, {
-          where: { id: userId },
+          where: { userId },
         });
 
         if (!userProfile) {
