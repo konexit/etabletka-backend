@@ -2,12 +2,9 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Article } from './article.entity';
 
 @Entity({
   name: 'tag',
@@ -31,15 +28,12 @@ export class Tag {
   @Column({ name: 'seo_description', type: 'jsonb', nullable: true })
   seoDescription: JSON;
 
+  @Column({ name: 'articles', type: 'int', array: true, default: {} })
+  articles: number[];
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
-
-  @ManyToMany(() => Article)
-  @JoinTable({
-    name: 'articles_tags',
-  })
-  articles: Article[];
 }

@@ -105,7 +105,6 @@ export class ArticleService {
       .addSelect('tags.id')
       .addSelect('tags.slug')
       .addSelect('tags.title')
-      .leftJoin('article.tags', 'tags')
       .leftJoin('article.author', 'author')
       .leftJoin('article.censor', 'censor');
 
@@ -147,10 +146,7 @@ export class ArticleService {
   }
 
   async getArticlesByIds(articleIds: Article['id'][]): Promise<Article[]> {
-    const articles = await this.articleRepository.find({
-      where: { id: In(articleIds) },
-      relations: ['tags'],
-    });
+    const articles = await this.articleRepository.find({ where: { id: In(articleIds) } });
 
     if (!articles.length)
       throw new HttpException('Articles not found', HttpStatus.NOT_FOUND);
@@ -168,18 +164,13 @@ export class ArticleService {
   ): Promise<General.Page<Article>> {
     const { take = 15, skip = 0 } = pagination;
 
-    const tag = await this.tagRepository.findOne({
-      where: { slug },
-      relations: ['articles'],
-    });
+    const tag = await this.tagRepository.findOne({ where: { slug } });
 
     if (!tag) {
       throw new HttpException('Posts tags not found', HttpStatus.NOT_FOUND);
     }
 
-    const articleIds = tag?.articles.map((p: Article) => p.id) || [];
-
-    if (!articleIds.length) {
+    if (!tag.articles.length) {
       return {
         items: [],
         pagination: {
@@ -193,10 +184,10 @@ export class ArticleService {
     const queryBuilder: SelectQueryBuilder<Article> =
       this.articleRepository.createQueryBuilder('article');
     const total = await queryBuilder
-      .where('article.id IN (:...ids)', { ids: articleIds })
+      .where('article.id IN (:...ids)', { ids: tag.articles })
       .getCount();
 
-    const articles = await this.fetchData(queryBuilder, take, skip, articleIds);
+    const articles = await this.fetchData(queryBuilder, take, skip, tag.articles);
 
     if (articles) {
       for (const article of articles) {
@@ -217,7 +208,7 @@ export class ArticleService {
   async getArticle(tag: string, slug: string): Promise<Article> {
     const article = await this.articleRepository.findOne({
       where: { slug },
-      relations: ['tags', 'author', 'censor'],
+      relations: ['author', 'censor'],
     });
     if (!article) {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
@@ -229,7 +220,7 @@ export class ArticleService {
   async getArticleById(id: number) {
     const article = await this.articleRepository.findOne({
       where: { id },
-      relations: ['tags', 'author.profile', 'censor.profile'],
+      relations: ['author.profile', 'censor.profile'],
     });
     if (!article) {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
