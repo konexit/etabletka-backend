@@ -2,7 +2,9 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   HttpException,
   HttpStatus,
   Param,
@@ -25,6 +27,7 @@ import { GetByAnswerIdsDto } from './dto/get-by-answer-ids.dto';
 import { OptionalJwtAuthGuard } from 'src/auth/jwt/optional-jwt-auth.guard';
 import { CommentResponseDto } from './dto/response-comment.dto';
 import { AnswerResponseDto } from './dto/response-answer.dto';
+import { Answer } from './entities/comment-answer.entity';
 
 @ApiTags('comments')
 @Controller('api/v1/comment')
@@ -38,11 +41,34 @@ export class CommentController {
     @JWTPayload() jwtPayload: JwtPayload,
     @Body() createCommentDto: CreateCommentDto,
   ): Promise<CommentResponseDto> {
+    const { userId } = jwtPayload;
+
+    if (!userId) {
+      throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED);
+    }
+
     const createdComment = await this.commentService.createComment(
-      jwtPayload,
+      userId,
       createCommentDto,
     );
+
     return new CommentResponseDto(createdComment);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('/:commentId')
+  @HttpCode(204)
+  async deleteComment(
+    @JWTPayload() jwtPayload: JwtPayload,
+    @Param('commentId', ParseIntPipe) commentId: Comment['id'],
+  ) {
+    const { userId } = jwtPayload;
+
+    if (!userId) {
+      throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED);
+    }
+
+    return await this.commentService.deleteComment(userId, commentId);
   }
 
   @Post('/ids')
@@ -108,13 +134,52 @@ export class CommentController {
     @Param('commentId', ParseIntPipe) commentId: Comment['id'],
     @Body() createAnswerDto: CreateAnswerDto,
   ): Promise<AnswerResponseDto> {
+    const { userId } = jwtPayload;
+
+    if (!userId) {
+      throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED);
+    }
+
     const createdAnswer = await this.commentService.createAnswer(
-      jwtPayload,
+      userId,
       commentId,
       createAnswerDto,
     );
 
     return new AnswerResponseDto(createdAnswer);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('/:commentId/answers')
+  @HttpCode(204)
+  async deleteAnswers(
+    @JWTPayload() jwtPayload: JwtPayload,
+    @Param('commentId', ParseIntPipe) commentId: Comment['id'],
+  ) {
+    const { userId } = jwtPayload;
+
+    if (!userId) {
+      throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED);
+    }
+
+    return await this.commentService.deleteAnswers(userId, commentId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('/:commentId/answer/:answerId')
+  @HttpCode(204)
+  async deleteAnswer(
+    @JWTPayload() jwtPayload: JwtPayload,
+    @Param('commentId', ParseIntPipe) commentId: Comment['id'],
+    @Param('answerId', ParseIntPipe) answerId: Answer['id'],
+  ) {
+    const { userId } = jwtPayload;
+
+    if (!userId) {
+      throw new HttpException('Unathorized', HttpStatus.UNAUTHORIZED);
+    }
+
+    return await this.commentService.deleteAnswer(userId, commentId, answerId);
   }
 
   @Post('/answer/ids')
