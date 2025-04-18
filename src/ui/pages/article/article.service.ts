@@ -10,7 +10,7 @@ import { CreateArticle } from './dto/create-article.dto';
 import { UpdateArticle } from './dto/update-article.dto';
 
 @Injectable()
-export class BlogService {
+export class ArticleService {
   private cacheTagsKey = 'tags';
   private cacheTagsTTL = 3600_000; // 1 Hour
 
@@ -21,13 +21,7 @@ export class BlogService {
     private tagRepository: Repository<Tag>,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
-  ) {}
-
-  async addTags(ids: Array<number>) {
-    return this.tagRepository.find({
-      where: { id: In(ids) },
-    });
-  }
+  ) { }
 
   async getTags(lang = 'uk') {
     const cachetags = await this.cacheManager.get(this.cacheTagsKey);
@@ -61,9 +55,7 @@ export class BlogService {
     }
 
     if (createPost.tags) {
-      const ids: Array<number> = String(createPost.tags).split(',').map(Number);
-
-      article.tags = await this.addTags(ids);
+      article.tags = createPost.tags;
     }
 
     return this.convertPost(await this.articleRepository.save(article));
@@ -74,10 +66,7 @@ export class BlogService {
     delete updateArticle.tags;
 
     await this.articleRepository.update(id, updateArticle);
-    const article: Article = await this.articleRepository.findOne({
-      where: { id },
-      relations: ['tags'],
-    });
+    const article: Article = await this.articleRepository.findOne({ where: { id } });
     if (!article) {
       throw new HttpException(
         `Can't update article with data: ${updateArticle}`,
@@ -85,26 +74,13 @@ export class BlogService {
       );
     }
 
-    if (tagIds) {
-      if (!Array.isArray(tagIds)) {
-        const ids: Array<number> = String(tagIds).split(',').map(Number);
-
-        console.log('GroupIds', ids);
-        article.tags = await this.addTags(ids);
-      } else {
-        article.tags = await this.addTags(tagIds);
-      }
-    } else {
-      article.tags = [];
-    }
+    article.tags = tagIds ? tagIds : [];
 
     return this.convertPost(await this.articleRepository.save(article));
   }
 
   async delete(id: number): Promise<void> {
-    const article = await this.articleRepository.findOneBy({
-      id: id,
-    });
+    const article = await this.articleRepository.findOneBy({ id });
     if (!article) {
       throw new HttpException('Can`t delete article', HttpStatus.NOT_FOUND);
     }
@@ -141,15 +117,10 @@ export class BlogService {
   }
 
   async addCategoryToPost(id: number, tagId: number): Promise<void> {
-    const article = await this.articleRepository.findOne({
-      where: { id },
-      relations: ['tags'],
-    });
+    const article = await this.articleRepository.findOne({ where: { id } });
 
-    const tag = await this.tagRepository.findOneBy({
-      id: tagId,
-    });
-    article.tags.push(tag);
+    article.tags.push(tagId);
+
     await this.articleRepository.save(article);
   }
 
@@ -292,12 +263,6 @@ export class BlogService {
 
     if (article.seoDescription) {
       article.seoDescription = article.seoDescription[lang];
-    }
-
-    if (article.tags) {
-      for (const tag of article.tags) {
-        tag.title = tag.title[lang];
-      }
     }
 
     return article;

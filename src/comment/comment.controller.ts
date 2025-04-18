@@ -21,7 +21,6 @@ import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { JWTPayload } from 'src/common/decorators/jwt-payload';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { CreateAnswerDto } from './dto/create-answer.dto';
-import { Answer } from './entities/answer.entity';
 import { GetByAnswerIdsDto } from './dto/get-by-answer-ids.dto';
 import { OptionalJwtAuthGuard } from 'src/auth/jwt/optional-jwt-auth.guard';
 import { CommentResponseDto } from './dto/response-comment.dto';
@@ -31,7 +30,7 @@ import { AnswerResponseDto } from './dto/response-answer.dto';
 @Controller('api/v1/comment')
 @UseInterceptors(ClassSerializerInterceptor)
 export class CommentController {
-  constructor(private commentService: CommentService) {}
+  constructor(private commentService: CommentService) { }
 
   @UseGuards(JwtAuthGuard)
   @Post('/create')

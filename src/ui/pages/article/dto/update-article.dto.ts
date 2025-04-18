@@ -1,4 +1,5 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Tag } from '../entities/tag.entity';
 
 export class UpdateArticle {
   @IsOptional()
@@ -44,5 +45,11 @@ export class UpdateArticle {
   seoDescription: JSON;
 
   @IsOptional()
-  tags: [];
+  @IsString()
+  image: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  tags: Tag['id'][];
 }

@@ -1,7 +1,7 @@
 import { Exclude, Expose } from 'class-transformer';
 import { Comment } from '../entities/comment.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Answer } from '../entities/answer.entity';
+import { Answer } from '../entities/comment-answer.entity';
 
 @Exclude()
 export class AnswerResponseDto {

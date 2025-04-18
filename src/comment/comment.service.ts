@@ -6,9 +6,8 @@ import { Product } from 'src/products/product/entities/product.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UserProfile } from 'src/user/entities/user-profile.entity';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
-import { Answer } from './entities/answer.entity';
+import { Answer } from './entities/comment-answer.entity';
 import { CreateAnswerDto } from './dto/create-answer.dto';
-import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class CommentService {

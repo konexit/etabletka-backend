@@ -72,8 +72,8 @@ export class Product {
   @Column({ default: 0, type: 'float' })
   price: number;
 
-  @Column({ name: 'reviews_count', default: 0 })
-  reviewsCount: number;
+  @Column({ name: 'comments_count', default: 0 })
+  commentsCount: number;
 
   @Column({ name: 'rating', default: 0 })
   rating: number;

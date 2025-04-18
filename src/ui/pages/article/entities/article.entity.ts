@@ -3,14 +3,11 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
-import { Tag } from './tag.entity';
 
 @Entity({
   name: 'articles',
@@ -58,6 +55,15 @@ export class Article {
   @Column({ name: 'published', default: false })
   isPublished: boolean;
 
+  @Column({ name: 'image', nullable: true })
+  image: string;
+
+  @Column({ name: 'comments_count', default: 0 })
+  commentsCount: number;
+
+  @Column({ name: 'tags', type: 'int', array: true, default: {} })
+  tags: number[];
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
@@ -71,8 +77,4 @@ export class Article {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'censor_id', referencedColumnName: 'id' })
   censor: User;
-
-  @ManyToMany(() => Tag)
-  @JoinTable({ name: 'articles_tags' })
-  tags: Tag[];
 }

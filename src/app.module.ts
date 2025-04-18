@@ -24,7 +24,7 @@ import { StoreModule } from 'src/store/store.module';
 import { MenuModule } from './ui/menu/menu.module';
 import { SiteOptionModule } from './settings/site-options/site-option.module';
 import { BrandsModule } from './brands/brands.module';
-import { BlogModule } from './ui/pages/blog/blog.module';
+import { ArticleModule } from './ui/pages/article/article.module';
 import { CompanyModule } from 'src/company/company.module';
 import { SearchModule } from './search/search.module';
 import { ProductGroupModule } from './products/groups/product-group.module';
@@ -72,7 +72,7 @@ import { CommentModule } from './comment/comment.module';
     MenuModule,
     SiteOptionModule,
     BrandsModule,
-    BlogModule,
+    ArticleModule,
     SearchModule,
     RefreshModule,
     WsModule,

@@ -1,5 +1,5 @@
 import { ArrayMinSize, IsArray, IsNumber } from 'class-validator';
-import { Answer } from '../entities/answer.entity';
+import { Answer } from '../entities/comment-answer.entity';
 
 export class GetByAnswerIdsDto {
   @IsArray()
