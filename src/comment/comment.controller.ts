@@ -8,6 +8,7 @@ import {
   HttpException,
   HttpStatus,
   Param,
+  ParseEnumPipe,
   ParseIntPipe,
   Post,
   UseGuards,
@@ -16,7 +17,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { CommentService } from './comment.service';
 import { GetByCommentIdsDto } from './dto/get-by-comment-ids.dto';
-import { Comment } from './entities/comment.entity';
+import { Comment, CommentType, ModelId } from './entities/comment.entity';
 import { Product } from 'src/products/product/entities/product.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
@@ -28,12 +29,13 @@ import { OptionalJwtAuthGuard } from 'src/auth/jwt/optional-jwt-auth.guard';
 import { CommentResponseDto } from './dto/response-comment.dto';
 import { AnswerResponseDto } from './dto/response-answer.dto';
 import { Answer } from './entities/comment-answer.entity';
+import { Article } from 'src/ui/pages/article/entities/article.entity';
 
 @ApiTags('comments')
 @Controller('api/v1/comment')
 @UseInterceptors(ClassSerializerInterceptor)
 export class CommentController {
-  constructor(private commentService: CommentService) { }
+  constructor(private commentService: CommentService) {}
 
   @UseGuards(JwtAuthGuard)
   @Post('/create')
@@ -94,11 +96,12 @@ export class CommentController {
     return result;
   }
 
-  @Get('/product/:productId')
-  async getProductComments(
-    @Param('productId', ParseIntPipe) productId: Product['id'],
+  @Get('/:modelType/:modelId')
+  async getModelComments(
+    @Param('modelType', new ParseEnumPipe(CommentType)) modelType: CommentType,
+    @Param('modelId', ParseIntPipe) modelId: ModelId,
   ): Promise<Comment['id'][]> {
-    return this.commentService.getCommentIdsByProductId(productId);
+    return this.commentService.getCommentIdsByModelId(modelType, modelId);
   }
 
   @UseGuards(JwtAuthGuard)

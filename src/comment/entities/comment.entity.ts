@@ -1,3 +1,5 @@
+import { Product } from 'src/products/product/entities/product.entity';
+import { Article } from 'src/ui/pages/article/entities/article.entity';
 import {
   Column,
   Entity,
@@ -6,6 +8,8 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
 } from 'typeorm';
+
+export type ModelId = Product['id'] | Article['id'];
 
 export enum CommentType {
   ARTICLE = 'article',
@@ -18,7 +22,7 @@ export class Comment {
   id: number;
 
   @Column({ name: 'model_id' })
-  modelId: number;
+  modelId: ModelId;
 
   @Column({
     type: 'enum',

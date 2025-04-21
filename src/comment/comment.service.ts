@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, In, Repository } from 'typeorm';
-import { Comment, CommentType } from './entities/comment.entity';
+import { Comment, CommentType, ModelId } from './entities/comment.entity';
 import { Product } from 'src/products/product/entities/product.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UserProfile } from 'src/user/entities/user-profile.entity';
@@ -9,6 +9,7 @@ import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { Answer } from './entities/comment-answer.entity';
 import { CreateAnswerDto } from './dto/create-answer.dto';
 import { User } from 'src/user/entities/user.entity';
+import { Article } from 'src/ui/pages/article/entities/article.entity';
 
 @Injectable()
 export class CommentService {
@@ -293,10 +294,13 @@ export class CommentService {
     });
   }
 
-  async getCommentIdsByProductId(productId: Product['id']) {
+  async getCommentIdsByModelId(
+    modelType: CommentType,
+    modelId: ModelId,
+  ) {
     const comments: Pick<Comment, 'id'>[] = await this.commentRepository.find({
       select: ['id'],
-      where: { type: CommentType.PRODUCT, modelId: productId, approved: true },
+      where: { type: modelType, modelId, approved: true },
       order: {
         id: 'DESC',
       },
