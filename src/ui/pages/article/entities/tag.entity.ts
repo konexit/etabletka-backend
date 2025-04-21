@@ -28,6 +28,9 @@ export class Tag {
   @Column({ name: 'seo_description', type: 'jsonb', nullable: true })
   seoDescription: JSON;
 
+  @Column({ name: 'seo_keywords', type: 'jsonb', nullable: true })
+  seoKeywords: JSON;
+
   @Column({ name: 'seo_text', type: 'jsonb', nullable: true })
   seoText: JSON;
 
