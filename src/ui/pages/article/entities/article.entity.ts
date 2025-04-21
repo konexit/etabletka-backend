@@ -40,9 +40,6 @@ export class Article {
   @Column({ name: 'alt', type: 'jsonb', nullable: true })
   alt: JSON;
 
-  @Column({ name: 'cdn_data', type: 'jsonb', nullable: true })
-  cdnData: JSON;
-
   @Column({ name: 'seo_h1', type: 'jsonb', nullable: true })
   seoH1: JSON;
 
