@@ -68,6 +68,38 @@ export class CommentService {
 
         await entityManager.save(Comment, comment);
 
+        const answers = await entityManager.find(Answer, {
+          where: {
+            commentId: comment.id,
+          },
+        });
+
+        if (answers.length > 0) {
+          const answerUserIds = answers.map((a) => a.userId);
+          const profiles = await entityManager.find(UserProfile, {
+            where: {
+              userId: In(answerUserIds),
+            },
+          });
+
+          const deletionDate = new Date();
+
+          for (const answer of answers) {
+            answer.deletedAt = deletionDate;
+          }
+
+          await entityManager.save(Answer, answers);
+
+          const deletedAnswerIds = new Set(answers.map((a) => a.id));
+
+          for (const profile of profiles) {
+            profile.answers = profile.answers.filter(
+              (answerId) => !deletedAnswerIds.has(answerId),
+            );
+            await entityManager.save(UserProfile, profile);
+          }
+        }
+
         const userProfile = await entityManager.findOne(UserProfile, {
           where: { userId },
         });
@@ -224,7 +256,9 @@ export class CommentService {
           throw new Error('Comment not found');
         }
 
-        comment.answers = comment.answers.filter((id) => !deletedAnswerIds.includes(id));
+        comment.answers = comment.answers.filter(
+          (id) => !deletedAnswerIds.includes(id),
+        );
 
         await entityManager.save(Comment, comment);
       },
