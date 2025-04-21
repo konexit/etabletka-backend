@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 
 @Entity({
-  name: 'tag',
+  name: 'tags',
 })
 export class Tag {
   @PrimaryGeneratedColumn()
@@ -27,6 +27,9 @@ export class Tag {
 
   @Column({ name: 'seo_description', type: 'jsonb', nullable: true })
   seoDescription: JSON;
+
+  @Column({ name: 'seo_text', type: 'jsonb', nullable: true })
+  seoText: JSON;
 
   @Column({ name: 'articles', type: 'int', array: true, default: {} })
   articles: number[];
