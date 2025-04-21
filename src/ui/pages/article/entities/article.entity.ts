@@ -52,6 +52,9 @@ export class Article {
   @Column({ name: 'seo_description', type: 'jsonb', nullable: true })
   seoDescription: JSON;
 
+  @Column({ name: 'seo_keywords', type: 'jsonb', nullable: true })
+  seoKeywords: JSON;
+
   @Column({ name: 'published', default: false })
   isPublished: boolean;
 
