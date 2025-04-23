@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository, SelectQueryBuilder } from 'typeorm';
+import { FindOptionsWhere, In, Raw, Repository, SelectQueryBuilder } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Article } from './entities/article.entity';
 import { Tag } from './entities/tag.entity';
@@ -58,7 +58,7 @@ export class ArticleService {
       article.tags = createPost.tags;
     }
 
-    return this.convertPost(await this.articleRepository.save(article));
+    return this.convertPostLang(await this.articleRepository.save(article));
   }
 
   async update(id: number, updateArticle: UpdateArticle) {
@@ -76,7 +76,7 @@ export class ArticleService {
 
     article.tags = tagIds ? tagIds : [];
 
-    return this.convertPost(await this.articleRepository.save(article));
+    return this.convertPostLang(await this.articleRepository.save(article));
   }
 
   async delete(id: number): Promise<void> {
@@ -123,15 +123,39 @@ export class ArticleService {
     await this.articleRepository.save(article);
   }
 
-  async getArticles(
-    pagination: PaginationDto = {},
-  ): Promise<General.Page<Article>> {
+  async getArticles(pagination: PaginationDto = {}, tagId?: Tag['id']): Promise<General.Page<Omit<Article, 'content'>>> {
     const { take = 15, skip = 0 } = pagination;
-    const queryBuilder = this.articleRepository.createQueryBuilder('article');
-    const articles = await this.fetchData(queryBuilder, take, skip);
+    const where: FindOptionsWhere<Article> = { isPublished: true };
+
+    if (tagId) {
+      where.tags = Raw((alias) => `${alias} @> ARRAY[${tagId}]::int[]`)
+    }
+
+    const [articles, total] = await this.articleRepository.findAndCount({
+      select: [
+        'id',
+        'authorId',
+        'censorId',
+        'title',
+        'excerpt',
+        'alt',
+        'seoH1',
+        'seoTitle',
+        'seoDescription',
+        'seoKeywords',
+        'image',
+        'commentsCount',
+        'tags'
+      ],
+      take,
+      skip,
+      where,
+      order: { publishedAt: 'DESC' },
+    });
+
     if (articles) {
       for (let article of articles) {
-        article = this.convertPost(article);
+        article = this.convertPostLang(article);
       }
     }
 
@@ -140,7 +164,7 @@ export class ArticleService {
       pagination: {
         take,
         skip,
-        total: await queryBuilder.getCount(),
+        total,
       },
     };
   }
@@ -152,7 +176,7 @@ export class ArticleService {
       throw new HttpException('Articles not found', HttpStatus.NOT_FOUND);
 
     for (const article of articles) {
-      Object.assign(article, this.convertPost(article));
+      Object.assign(article, this.convertPostLang(article));
     }
 
     return articles;
@@ -191,7 +215,7 @@ export class ArticleService {
 
     if (articles) {
       for (const article of articles) {
-        Object.assign(article, this.convertPost(article));
+        Object.assign(article, this.convertPostLang(article));
       }
     }
 
@@ -214,7 +238,7 @@ export class ArticleService {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     }
 
-    return this.convertPost(article);
+    return this.convertPostLang(article);
   }
 
   async getArticleById(id: number) {
@@ -226,14 +250,14 @@ export class ArticleService {
       throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
     }
 
-    return this.convertPost(article);
+    return this.convertPostLang(article);
   }
 
-  private convertPost(article: Article, lang = 'uk'): Article {
+  private convertPostLang(article: Article, lang = 'uk'): Article {
     article.title = article.title[lang];
 
     if (article.excerpt) {
-      article.excerpt = article.excerpt[lang];
+      article.excerpt = article.excerpt[lang] ?? '';
     }
 
     if (article.content) {
@@ -241,19 +265,23 @@ export class ArticleService {
     }
 
     if (article.alt) {
-      article.alt = article.alt[lang];
+      article.alt = article.alt[lang] ?? '';
     }
 
     if (article.seoH1) {
-      article.seoH1 = article.seoH1[lang];
+      article.seoH1 = article.seoH1[lang] ?? '';
     }
 
     if (article.seoTitle) {
-      article.seoTitle = article.seoTitle[lang];
+      article.seoTitle = article.seoTitle[lang] ?? '';
     }
 
     if (article.seoDescription) {
-      article.seoDescription = article.seoDescription[lang];
+      article.seoDescription = article.seoDescription[lang] ?? '';
+    }
+
+    if (article.seoKeywords) {
+      article.seoKeywords = article.seoKeywords[lang] ?? '';
     }
 
     return article;

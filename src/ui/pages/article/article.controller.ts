@@ -25,6 +25,8 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { USER_ROLE_JWT_ADMIN } from 'src/user/user.constants';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { GetByArticleIdsDto } from './dto/get-by-article-ids.dto';
+import { Tag } from './entities/tag.entity';
+import { OptionalJwtAuthGuard } from 'src/auth/jwt/optional-jwt-auth.guard';
 
 @ApiTags('post')
 @Controller('api/v1')
@@ -41,6 +43,14 @@ export class ArticleController {
     @Body() createPost: CreateArticle,
   ) {
     return this.articleService.create(createPost);
+  }
+
+  @Get('article')
+  async getArticles(
+    @Query() pagination?: PaginationDto,
+    @Query('tagId', new ParseIntPipe({ optional: true })) tagId?: Tag['id']
+  ): Promise<General.Page<Omit<Article, 'content'>>> {
+    return this.articleService.getArticles(pagination, tagId);
   }
 
   @Post('article/ids')
@@ -73,13 +83,6 @@ export class ArticleController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<Article> {
     return this.articleService.getArticleById(id);
-  }
-
-  @Get('blogs')
-  async getArticles(
-    @Query() pagination?: PaginationDto,
-  ): Promise<General.Page<Article>> {
-    return this.articleService.getArticles(pagination);
   }
 
   @Get('tags')
