@@ -145,7 +145,8 @@ export class ArticleService {
         'seoKeywords',
         'image',
         'commentsCount',
-        'tags'
+        'tags',
+        'publishedAt'
       ],
       take,
       skip,
