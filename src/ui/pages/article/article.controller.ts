@@ -26,6 +26,7 @@ import { USER_ROLE_JWT_ADMIN } from 'src/user/user.constants';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { GetByArticleIdsDto } from './dto/get-by-article-ids.dto';
 import { Tag } from './entities/tag.entity';
+import { GetByArticleTagsIdsDto } from './dto/get-by-article-tags-ids.dto';
 
 @ApiTags('post')
 @Controller('api/v1')
@@ -36,7 +37,7 @@ export class ArticleController {
   @Roles(USER_ROLE_JWT_ADMIN)
   @UseInterceptors(ClassSerializerInterceptor)
   @UseInterceptors(FileInterceptor('image', {}))
-  @Post('article/create')
+  @Post('article')
   async create(
     @UploadedFile() image: Express.Multer.File,
     @Body() createPost: CreateArticle,
@@ -91,25 +92,15 @@ export class ArticleController {
     return this.articleService.getArticleById(id);
   }
 
-  @Get('tags')
-  async getTags() {
-    return this.articleService.getTags();
+  @Get('article-tags')
+  async getArticleTags(): Promise<Tag['id'][]> {
+    return this.articleService.getArticleTags();
   }
 
-  @Get('blog/:category')
-  async getArticlesByTag(
-    @Param('category') category: string,
-    @Query() pagination?: PaginationDto,
-  ): Promise<General.Page<Article>> {
-    return this.articleService.getArticlesByTag(category, pagination);
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Get('blog/:category/:slug')
-  async getArticle(
-    @Param('category') category: string,
-    @Param('slug') slug: string,
-  ): Promise<Article> {
-    return this.articleService.getArticle(category, slug);
+  @Post('article-tags/ids')
+  async getArticleTagsByIds(
+    @Body() getByArticleTagsIdsDto: GetByArticleTagsIdsDto
+  ): Promise<Tag[]> {
+    return this.articleService.getArticleTagsByIds(getByArticleTagsIdsDto.ids);
   }
 }

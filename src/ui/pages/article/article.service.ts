@@ -1,8 +1,6 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, In, Raw, Repository, SelectQueryBuilder } from 'typeorm';
+import { FindOptionsWhere, In, Raw, Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Article } from './entities/article.entity';
 import { Tag } from './entities/tag.entity';
@@ -11,39 +9,12 @@ import { UpdateArticle } from './dto/update-article.dto';
 
 @Injectable()
 export class ArticleService {
-  private cacheTagsKey = 'tags';
-  private cacheTagsTTL = 3600_000; // 1 Hour
-
   constructor(
     @InjectRepository(Article)
     private articleRepository: Repository<Article>,
     @InjectRepository(Tag)
-    private tagRepository: Repository<Tag>,
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
+    private tagRepository: Repository<Tag>
   ) { }
-
-  async getTags(lang = 'uk') {
-    const cachetags = await this.cacheManager.get(this.cacheTagsKey);
-    if (cachetags) {
-      return cachetags;
-    }
-
-    const tags = await this.tagRepository.find({
-      order: { id: 'ASC' },
-    });
-    if (!tags) {
-      throw new HttpException('Blog tags not found', HttpStatus.NOT_FOUND);
-    }
-
-    for (let tag of tags) {
-      tag = this.extractTagLang(tag, lang);
-    }
-
-    await this.cacheManager.set(this.cacheTagsKey, tags, this.cacheTagsTTL);
-
-    return tags;
-  }
 
   async create(createPost: CreateArticle) {
     const article = this.articleRepository.create(createPost);
@@ -86,41 +57,6 @@ export class ArticleService {
     }
 
     await this.articleRepository.delete(id);
-  }
-
-  public async fetchData(
-    queryBuilder: SelectQueryBuilder<Article>,
-    take: number,
-    skip: number,
-    ids?: Array<number>,
-  ) {
-    const query = queryBuilder
-      .select('article')
-      .addSelect('author.id')
-      .addSelect('author.firstName')
-      .addSelect('author.lastName')
-      .addSelect('censor.firstName')
-      .addSelect('censor.id')
-      .addSelect('censor.lastName')
-      .addSelect('tags.id')
-      .addSelect('tags.slug')
-      .addSelect('tags.title')
-      .leftJoin('article.author', 'author')
-      .leftJoin('article.censor', 'censor');
-
-    if (ids) query.where('article.id IN (:...ids)', { ids: ids });
-
-    query.orderBy('article.publishedAt', 'DESC').take(take).skip(skip);
-
-    return query.getMany();
-  }
-
-  async addCategoryToPost(id: number, tagId: number): Promise<void> {
-    const article = await this.articleRepository.findOne({ where: { id } });
-
-    article.tags.push(tagId);
-
-    await this.articleRepository.save(article);
   }
 
   async getArticles(pagination: PaginationDto = {}, tagId?: Tag['id']): Promise<General.Page<Article['id']>> {
@@ -196,65 +132,6 @@ export class ArticleService {
     return article;
   }
 
-  async getArticlesByTag(
-    slug: string,
-    pagination: PaginationDto = {},
-  ): Promise<General.Page<Article>> {
-    const { take = 15, skip = 0 } = pagination;
-
-    const tag = await this.tagRepository.findOne({ where: { slug } });
-
-    if (!tag) {
-      throw new HttpException('Posts tags not found', HttpStatus.NOT_FOUND);
-    }
-
-    if (!tag.articles.length) {
-      return {
-        items: [],
-        pagination: {
-          total: 0,
-          skip,
-          take,
-        },
-      };
-    }
-
-    const queryBuilder: SelectQueryBuilder<Article> =
-      this.articleRepository.createQueryBuilder('article');
-    const total = await queryBuilder
-      .where('article.id IN (:...ids)', { ids: tag.articles })
-      .getCount();
-
-    const articles = await this.fetchData(queryBuilder, take, skip, tag.articles);
-
-    if (articles) {
-      for (const article of articles) {
-        Object.assign(article, this.extractArticleLang(article));
-      }
-    }
-
-    return {
-      items: articles,
-      pagination: {
-        total,
-        skip,
-        take,
-      },
-    };
-  }
-
-  async getArticle(tag: string, slug: string): Promise<Article> {
-    const article = await this.articleRepository.findOne({
-      where: { slug },
-      relations: ['author', 'censor'],
-    });
-    if (!article) {
-      throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
-    }
-
-    return this.extractArticleLang(article);
-  }
-
   async getArticleById(id: number) {
     const article = await this.articleRepository.findOne({
       where: { id },
@@ -265,6 +142,28 @@ export class ArticleService {
     }
 
     return this.extractArticleLang(article);
+  }
+
+  async getArticleTags(): Promise<Tag['id'][]> {
+    const tags = await this.tagRepository.find({ select: ['id'], order: { id: 'ASC' } });
+    if (!tags) {
+      throw new HttpException('Article tags not found', HttpStatus.NOT_FOUND);
+    }
+
+    return tags.map(tag => tag.id);
+  }
+
+  async getArticleTagsByIds(tagIds: Tag['id'][]): Promise<Tag[]> {
+    const tags = await this.tagRepository.find({ where: { id: In(tagIds) } });
+
+    if (!tags.length)
+      throw new HttpException('Articles tags not found', HttpStatus.NOT_FOUND);
+
+    for (let tag of tags) {
+      tag = this.extractTagLang(tag);
+    }
+
+    return tags;
   }
 
   private extractArticleLang(article: Article, lang = 'uk'): Article {
