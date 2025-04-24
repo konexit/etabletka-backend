@@ -236,7 +236,7 @@ export class UserService {
     payload?: JwtPayload,
   ): Promise<
     (
-      | Pick<UserProfile, 'id' | 'userId' | 'firstName' | 'avatar'>
+      | Pick<UserProfile, 'id' | 'userId' | 'firstName' | 'lastName' | 'avatar'>
       | UserProfile
     )[]
   > {
@@ -247,7 +247,7 @@ export class UserService {
     };
 
     if (!payload?.roles.includes(USER_ROLE_JWT_ADMIN)) {
-      queryOptions.select = ['id', 'userId', 'firstName', 'avatar'];
+      queryOptions.select = ['id', 'userId', 'firstName', 'lastName', 'avatar'];
     }
 
     const profiles = await this.userProfileRepository.find(queryOptions);
