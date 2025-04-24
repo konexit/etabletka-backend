@@ -37,7 +37,7 @@ export class ArticleService {
     }
 
     for (let tag of tags) {
-      tag = this.convertRecord(tag, lang);
+      tag = this.extractTagLang(tag, lang);
     }
 
     await this.cacheManager.set(this.cacheTagsKey, tags, this.cacheTagsTTL);
@@ -58,7 +58,7 @@ export class ArticleService {
       article.tags = createPost.tags;
     }
 
-    return this.convertPostLang(await this.articleRepository.save(article));
+    return this.extractArticleLang(await this.articleRepository.save(article));
   }
 
   async update(id: number, updateArticle: UpdateArticle) {
@@ -76,7 +76,7 @@ export class ArticleService {
 
     article.tags = tagIds ? tagIds : [];
 
-    return this.convertPostLang(await this.articleRepository.save(article));
+    return this.extractArticleLang(await this.articleRepository.save(article));
   }
 
   async delete(id: number): Promise<void> {
@@ -123,7 +123,7 @@ export class ArticleService {
     await this.articleRepository.save(article);
   }
 
-  async getArticles(pagination: PaginationDto = {}, tagId?: Tag['id']): Promise<General.Page<Omit<Article, 'content'>>> {
+  async getArticles(pagination: PaginationDto = {}, tagId?: Tag['id']): Promise<General.Page<Article['id']>> {
     const { take = 15, skip = 0 } = pagination;
     const where: FindOptionsWhere<Article> = { isPublished: true };
 
@@ -132,6 +132,25 @@ export class ArticleService {
     }
 
     const [articles, total] = await this.articleRepository.findAndCount({
+      select: ['id'],
+      take,
+      skip,
+      where,
+      order: { publishedAt: 'DESC' },
+    });
+
+    return {
+      items: articles.map(item => item.id),
+      pagination: {
+        take,
+        skip,
+        total,
+      },
+    };
+  }
+
+  async getArticlesByIds(articleIds: Article['id'][]): Promise<Omit<Article, 'content'>[]> {
+    const articles = await this.articleRepository.find({
       select: [
         'id',
         'authorId',
@@ -145,42 +164,36 @@ export class ArticleService {
         'seoKeywords',
         'image',
         'commentsCount',
-        'tags',
-        'publishedAt'
+        'publishedAt',
+        'tags'
       ],
-      take,
-      skip,
-      where,
-      order: { publishedAt: 'DESC' },
+      where: { id: In(articleIds) }
     });
-
-    if (articles) {
-      for (let article of articles) {
-        article = this.convertPostLang(article);
-      }
-    }
-
-    return {
-      items: articles,
-      pagination: {
-        take,
-        skip,
-        total,
-      },
-    };
-  }
-
-  async getArticlesByIds(articleIds: Article['id'][]): Promise<Article[]> {
-    const articles = await this.articleRepository.find({ where: { id: In(articleIds) } });
 
     if (!articles.length)
       throw new HttpException('Articles not found', HttpStatus.NOT_FOUND);
 
-    for (const article of articles) {
-      Object.assign(article, this.convertPostLang(article));
+    for (let article of articles) {
+      article = this.extractArticleLang(article);
     }
 
     return articles;
+  }
+
+  async getArticleContent(id: number, lang: string = 'uk'): Promise<Pick<Article, 'id' | 'content'>> {
+    const article = await this.articleRepository.findOne({
+      select: ['id', 'content'],
+      where: { id }
+    });
+
+    if (!article)
+      throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
+
+    if (article.content) {
+      article.content = article.content[lang];
+    }
+
+    return article;
   }
 
   async getArticlesByTag(
@@ -216,7 +229,7 @@ export class ArticleService {
 
     if (articles) {
       for (const article of articles) {
-        Object.assign(article, this.convertPostLang(article));
+        Object.assign(article, this.extractArticleLang(article));
       }
     }
 
@@ -236,10 +249,10 @@ export class ArticleService {
       relations: ['author', 'censor'],
     });
     if (!article) {
-      throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
     }
 
-    return this.convertPostLang(article);
+    return this.extractArticleLang(article);
   }
 
   async getArticleById(id: number) {
@@ -248,21 +261,17 @@ export class ArticleService {
       relations: ['author.profile', 'censor.profile'],
     });
     if (!article) {
-      throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
     }
 
-    return this.convertPostLang(article);
+    return this.extractArticleLang(article);
   }
 
-  private convertPostLang(article: Article, lang = 'uk'): Article {
+  private extractArticleLang(article: Article, lang = 'uk'): Article {
     article.title = article.title[lang];
 
     if (article.excerpt) {
       article.excerpt = article.excerpt[lang] ?? '';
-    }
-
-    if (article.content) {
-      article.content = article.content[lang];
     }
 
     if (article.alt) {
@@ -288,21 +297,29 @@ export class ArticleService {
     return article;
   }
 
-  private convertRecord(item: Tag, lang = 'uk'): Tag {
-    item.title = item.title[lang];
+  private extractTagLang(tag: Tag, lang = 'uk'): Tag {
+    tag.title = tag.title[lang];
 
-    if (item.seoH1) {
-      item.seoH1 = item.seoH1[lang];
+    if (tag.seoH1) {
+      tag.seoH1 = tag.seoH1[lang] ?? '';
     }
 
-    if (item.seoTitle) {
-      item.seoTitle = item.seoTitle[lang];
+    if (tag.seoTitle) {
+      tag.seoTitle = tag.seoTitle[lang] ?? '';
     }
 
-    if (item.seoDescription) {
-      item.seoDescription = item.seoDescription[lang];
+    if (tag.seoDescription) {
+      tag.seoDescription = tag.seoDescription[lang] ?? '';
     }
 
-    return item;
+    if (tag.seoKeywords) {
+      tag.seoKeywords = tag.seoKeywords[lang] ?? '';
+    }
+
+    if (tag.seoText) {
+      tag.seoText = tag.seoText[lang] ?? '';
+    }
+
+    return tag;
   }
 }

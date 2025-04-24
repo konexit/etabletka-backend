@@ -26,7 +26,6 @@ import { USER_ROLE_JWT_ADMIN } from 'src/user/user.constants';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { GetByArticleIdsDto } from './dto/get-by-article-ids.dto';
 import { Tag } from './entities/tag.entity';
-import { OptionalJwtAuthGuard } from 'src/auth/jwt/optional-jwt-auth.guard';
 
 @ApiTags('post')
 @Controller('api/v1')
@@ -49,14 +48,21 @@ export class ArticleController {
   async getArticles(
     @Query() pagination?: PaginationDto,
     @Query('tagId', new ParseIntPipe({ optional: true })) tagId?: Tag['id']
-  ): Promise<General.Page<Omit<Article, 'content'>>> {
+  ): Promise<General.Page<Article['id']>> {
     return this.articleService.getArticles(pagination, tagId);
+  }
+
+  @Get('article-content/:id')
+  async getArticleContent(
+    @Param('id', ParseIntPipe) id: Article['id']
+  ): Promise<Pick<Article, 'id' | 'content'>> {
+    return this.articleService.getArticleContent(id);
   }
 
   @Post('article/ids')
   async getArticlesByIds(
     @Body() getByArticleIdsDto: GetByArticleIdsDto,
-  ): Promise<Article[]> {
+  ): Promise<Omit<Article, 'content'>[]> {
     return this.articleService.getArticlesByIds(getByArticleIdsDto.ids);
   }
 
