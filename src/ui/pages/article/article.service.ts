@@ -1,11 +1,14 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import slugify from 'slugify';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, In, Raw, Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Article } from './entities/article.entity';
 import { Tag } from './entities/tag.entity';
-import { CreateArticle } from './dto/create-article.dto';
-import { UpdateArticle } from './dto/update-article.dto';
+import { CreateArticleDto } from './dto/create-article.dto';
+import { UpdateArticleDto } from './dto/update-article.dto';
+import { UpdateTagDto } from './dto/update-tag.dto';
+import { CreateTagDto } from './dto/create-tag.dto';
 
 @Injectable()
 export class ArticleService {
@@ -16,41 +19,30 @@ export class ArticleService {
     private tagRepository: Repository<Tag>
   ) { }
 
-  async create(createPost: CreateArticle) {
-    const article = this.articleRepository.create(createPost);
-    if (!article) {
+  async createArticle(createArticleDto: CreateArticleDto, lang: string = 'uk'): Promise<Article> {
+    const newArticle = this.articleRepository.create(Object.assign(createArticleDto, { slug: slugify(createArticleDto.title[lang]) }));
+    if (!newArticle) {
       throw new HttpException(
-        `Can't create article with data: ${createPost}`,
+        `Can't create article with data: ${createArticleDto}`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    if (createPost.tags) {
-      article.tags = createPost.tags;
-    }
-
-    return this.extractArticleLang(await this.articleRepository.save(article));
+    return this.articleRepository.save(newArticle);
   }
 
-  async update(id: number, updateArticle: UpdateArticle) {
-    const tagIds = updateArticle.tags;
-    delete updateArticle.tags;
+  async patchArticle(id: number, updateArticleDto: UpdateArticleDto): Promise<Article> {
+    await this.articleRepository.update(id, updateArticleDto);
 
-    await this.articleRepository.update(id, updateArticle);
     const article: Article = await this.articleRepository.findOne({ where: { id } });
     if (!article) {
-      throw new HttpException(
-        `Can't update article with data: ${updateArticle}`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new HttpException(`Can't update article`, HttpStatus.BAD_REQUEST);
     }
 
-    article.tags = tagIds ? tagIds : [];
-
-    return this.extractArticleLang(await this.articleRepository.save(article));
+    return article;
   }
 
-  async delete(id: number): Promise<void> {
+  async deleteArticle(id: number): Promise<void> {
     const article = await this.articleRepository.findOneBy({ id });
     if (!article) {
       throw new HttpException('Can`t delete article', HttpStatus.NOT_FOUND);
@@ -132,6 +124,18 @@ export class ArticleService {
     return article;
   }
 
+  async createArticleTag(createTagDto: CreateTagDto, lang: string = 'uk'): Promise<Tag> {
+    const newTag = this.tagRepository.create(Object.assign(createTagDto, { slug: slugify(createTagDto.title[lang]) }));
+    if (!newTag) {
+      throw new HttpException(
+        `Can't create article tag with data: ${createTagDto}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return this.tagRepository.save(newTag);
+  }
+
   async getArticleById(id: number) {
     const article = await this.articleRepository.findOne({
       where: { id },
@@ -154,7 +158,18 @@ export class ArticleService {
   }
 
   async getArticleTagsByIds(tagIds: Tag['id'][]): Promise<Tag[]> {
-    const tags = await this.tagRepository.find({ where: { id: In(tagIds) } });
+    const tags = await this.tagRepository.find({
+      select: [
+        'id',
+        'title',
+        'seoTitle',
+        'seoH1',
+        'seoDescription',
+        'seoKeywords',
+        'seoText'
+      ],
+      where: { id: In(tagIds) }
+    });
 
     if (!tags.length)
       throw new HttpException('Articles tags not found', HttpStatus.NOT_FOUND);
@@ -166,11 +181,26 @@ export class ArticleService {
     return tags;
   }
 
+  async patchArticleTag(id: number, updateTagDto: UpdateTagDto): Promise<Tag> {
+    await this.tagRepository.update(id, updateTagDto);
+
+    const tag: Tag = await this.tagRepository.findOne({ where: { id } });
+    if (!tag) {
+      throw new HttpException(`Can't update article tag`, HttpStatus.BAD_REQUEST);
+    }
+
+    return tag;
+  }
+
   private extractArticleLang(article: Article, lang = 'uk'): Article {
     article.title = article.title[lang];
 
     if (article.excerpt) {
       article.excerpt = article.excerpt[lang] ?? '';
+    }
+
+    if (article.content) {
+      article.content = article.content[lang] ?? '';
     }
 
     if (article.alt) {

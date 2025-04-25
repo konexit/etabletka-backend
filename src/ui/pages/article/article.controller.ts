@@ -1,6 +1,5 @@
 import {
   Body,
-  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
@@ -9,15 +8,12 @@ import {
   Patch,
   Post,
   Query,
-  UploadedFile,
-  UseGuards,
-  UseInterceptors,
+  UseGuards
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { CreateArticle } from './dto/create-article.dto';
-import { UpdateArticle } from './dto/update-article.dto';
+import { CreateArticleDto } from './dto/create-article.dto';
+import { UpdateArticleDto } from './dto/update-article.dto';
 import { ArticleService } from './article.service';
 import { Article } from './entities/article.entity';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
@@ -27,6 +23,8 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { GetByArticleIdsDto } from './dto/get-by-article-ids.dto';
 import { Tag } from './entities/tag.entity';
 import { GetByArticleTagsIdsDto } from './dto/get-by-article-tags-ids.dto';
+import { UpdateTagDto } from './dto/update-tag.dto';
+import { CreateTagDto } from './dto/create-tag.dto';
 
 @ApiTags('post')
 @Controller('api/v1')
@@ -35,14 +33,11 @@ export class ArticleController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(USER_ROLE_JWT_ADMIN)
-  @UseInterceptors(ClassSerializerInterceptor)
-  @UseInterceptors(FileInterceptor('image', {}))
   @Post('article')
-  async create(
-    @UploadedFile() image: Express.Multer.File,
-    @Body() createPost: CreateArticle,
-  ) {
-    return this.articleService.create(createPost);
+  async createArticle(
+    @Body() createArticleDto: CreateArticleDto
+  ): Promise<Article> {
+    return this.articleService.createArticle(createArticleDto);
   }
 
   @Get('article')
@@ -70,34 +65,52 @@ export class ArticleController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(USER_ROLE_JWT_ADMIN)
   @Patch('article/:id')
-  async update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateArticle: UpdateArticle,
-  ) {
-    return this.articleService.update(id, updateArticle);
+  async patchArticle(
+    @Param('id', ParseIntPipe) id: Article['id'],
+    @Body() updateArticleDto: UpdateArticleDto,
+  ): Promise<Article> {
+    return this.articleService.patchArticle(id, updateArticleDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(USER_ROLE_JWT_ADMIN)
   @Delete('article/:id')
-  async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.articleService.delete(id);
+  async deleteArticle(@Param('id', ParseIntPipe) id: Article['id']): Promise<void> {
+    return this.articleService.deleteArticle(id);
   }
 
-  @UseInterceptors(ClassSerializerInterceptor)
   @Get('article/:id')
   async getArticleById(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: Article['id'],
   ): Promise<Article> {
     return this.articleService.getArticleById(id);
   }
 
-  @Get('article-tags')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(USER_ROLE_JWT_ADMIN)
+  @Post('article-tag')
+  async createArticleTag(
+    @Body() createTagDto: CreateTagDto
+  ): Promise<Tag> {
+    return this.articleService.createArticleTag(createTagDto);
+  }
+
+  @Get('article-tag')
   async getArticleTags(): Promise<Tag['id'][]> {
     return this.articleService.getArticleTags();
   }
 
-  @Post('article-tags/ids')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(USER_ROLE_JWT_ADMIN)
+  @Patch('article-tag/:id')
+  async patchArticleTag(
+    @Param('id', ParseIntPipe) id: Tag['id'],
+    @Body() updateTagDto: UpdateTagDto,
+  ): Promise<Tag> {
+    return this.articleService.patchArticleTag(id, updateTagDto);
+  }
+
+  @Post('article-tag/ids')
   async getArticleTagsByIds(
     @Body() getByArticleTagsIdsDto: GetByArticleTagsIdsDto
   ): Promise<Tag[]> {

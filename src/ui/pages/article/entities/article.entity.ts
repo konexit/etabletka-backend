@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
+import { LangContent } from 'src/common/types/common/general';
 
 @Entity({
   name: 'articles',
@@ -26,31 +27,31 @@ export class Article {
   publishedAt: Date;
 
   @Column({ name: 'title', type: 'jsonb' })
-  title: JSON;
+  title: LangContent;
 
   @Column({ unique: true })
   slug: string;
 
   @Column({ name: 'excerpt', type: 'jsonb', nullable: true })
-  excerpt: JSON;
+  excerpt: LangContent;
 
   @Column({ name: 'content', type: 'jsonb', nullable: true })
-  content: JSON;
+  content: LangContent;
 
   @Column({ name: 'alt', type: 'jsonb', nullable: true })
-  alt: JSON;
+  alt: LangContent;
 
   @Column({ name: 'seo_h1', type: 'jsonb', nullable: true })
-  seoH1: JSON;
+  seoH1: LangContent;
 
   @Column({ name: 'seo_title', type: 'jsonb', nullable: true })
-  seoTitle: JSON;
+  seoTitle: LangContent;
 
   @Column({ name: 'seo_description', type: 'jsonb', nullable: true })
-  seoDescription: JSON;
+  seoDescription: LangContent;
 
   @Column({ name: 'seo_keywords', type: 'jsonb', nullable: true })
-  seoKeywords: JSON;
+  seoKeywords: LangContent;
 
   @Column({ name: 'published', default: false })
   isPublished: boolean;

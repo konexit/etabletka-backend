@@ -1,52 +1,66 @@
-import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Tag } from '../entities/tag.entity';
+import { User } from 'src/user/entities/user.entity';
+import { Article } from '../entities/article.entity';
+import { Type } from 'class-transformer';
+import { LangContentDto } from 'src/common/dto/lang.dto';
 
-export class UpdateArticle {
+export class UpdateArticleDto {
   @IsOptional()
-  authorId: number;
+  @IsNumber()
+  authorId: User['id'];
 
   @IsOptional()
-  censorId: number;
+  @IsNumber()
+  censorId: User['id'];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  title: Article['title'];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  content: Article['content'];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  excerpt: Article['excerpt'];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  alt: Article['alt'];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  seoH1: Article['seoH1'];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  seoTitle: Article['seoTitle'];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  seoDescription: Article['seoDescription'];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  seoKeywords: Article['seoKeywords'];
 
   @IsOptional()
   @IsString()
-  publishedAt: Date;
+  image: Article['image'];
 
   @IsOptional()
   @IsString()
-  title: JSON;
-
-  @IsOptional()
-  @IsString()
-  content: JSON;
-
-  @IsString()
-  @IsOptional()
-  excerpt: JSON;
-
-  @IsString()
-  @IsOptional()
-  alt: JSON;
-
-  @IsOptional()
-  @IsString()
-  slug: string;
-
-  @IsOptional()
-  @IsString()
-  seoH1: JSON;
-
-  @IsOptional()
-  @IsString()
-  seoTitle: JSON;
-
-  @IsOptional()
-  @IsString()
-  seoDescription: JSON;
-
-  @IsOptional()
-  @IsString()
-  image: string;
+  publishedAt: Article['publishedAt'];
 
   @IsOptional()
   @IsArray()

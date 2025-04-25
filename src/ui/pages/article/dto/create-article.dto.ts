@@ -1,49 +1,63 @@
-import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Tag } from '../entities/tag.entity';
+import { Article } from '../entities/article.entity';
+import { User } from 'src/user/entities/user.entity';
+import { Type } from 'class-transformer';
+import { LangContentDto } from 'src/common/dto/lang.dto';
 
-export class CreateArticle {
-  @IsString()
-  authorId: number;
+export class CreateArticleDto {
+  @IsNumber()
+  authorId: User['id'];
 
-  @IsString()
-  censorId: number;
+  @IsNumber()
+  censorId: User['id'];
 
-  @IsString()
-  publishedAt: Date;
-
-  @IsString()
-  title: JSON;
-
-  @IsString()
-  content: JSON;
-
-  @IsString()
-  @IsOptional()
-  excerpt: JSON;
-
-  @IsString()
-  @IsOptional()
-  alt: JSON;
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  title: Article['title'];
 
   @IsOptional()
-  @IsString()
-  slug: string;
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  content: Article['content'];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  excerpt: Article['excerpt'];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  alt: Article['alt'];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  seoH1: Article['seoH1'];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  seoTitle: Article['seoTitle'];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  seoDescription: Article['seoDescription'];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  seoKeywords: Article['seoKeywords'];
 
   @IsOptional()
   @IsString()
-  seoH1: JSON;
+  image: Article['image'];
 
   @IsOptional()
   @IsString()
-  seoTitle: JSON;
-
-  @IsOptional()
-  @IsString()
-  seoDescription: JSON;
-
-  @IsOptional()
-  @IsString()
-  image: string;
+  publishedAt: Article['publishedAt'];
 
   @IsOptional()
   @IsArray()
