@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { LangContent } from 'src/common/types/common/general';
+import { Tag } from './tag.entity';
 
 @Entity({
   name: 'articles',
@@ -63,7 +64,7 @@ export class Article {
   commentsCount: number;
 
   @Column({ name: 'tags', type: 'int', array: true, default: {} })
-  tags: number[];
+  tags: Tag['id'][];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

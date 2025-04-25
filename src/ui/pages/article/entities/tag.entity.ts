@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Article } from './article.entity';
 
 @Entity({
   name: 'tags',
@@ -36,7 +37,7 @@ export class Tag {
   seoText: LangContent;
 
   @Column({ name: 'articles', type: 'int', array: true, default: {} })
-  articles: number[];
+  articles: Article['id'][];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

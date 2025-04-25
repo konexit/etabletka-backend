@@ -124,6 +124,27 @@ export class ArticleService {
     return article;
   }
 
+  async getArticleRelated(id: Article['id'], take: number): Promise<Article['id'][]> {
+    const originalArticle = await this.articleRepository.findOne({
+      where: { id },
+      select: ['id', 'tags'],
+    });
+
+    if (!originalArticle)
+      throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
+
+    const related = await this.articleRepository
+      .createQueryBuilder('article')
+      .select('article.id')
+      .where('article.id != :id', { id })
+      .andWhere(`article.tags && :tags`, { tags: originalArticle.tags })
+      .orderBy('RANDOM()')
+      .limit(take)
+      .getMany();
+
+    return related.map(article => article.id);
+  }
+
   async createArticleTag(createTagDto: CreateTagDto, lang: string = 'uk'): Promise<Tag> {
     const newTag = this.tagRepository.create(Object.assign(createTagDto, { slug: slugify(createTagDto.title[lang]) }));
     if (!newTag) {

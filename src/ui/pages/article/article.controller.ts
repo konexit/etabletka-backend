@@ -55,6 +55,14 @@ export class ArticleController {
     return this.articleService.getArticleContent(id);
   }
 
+  @Get('article-related/:id')
+  async getArticleRelated(
+    @Param('id', ParseIntPipe) id: Article['id'],
+    @Query('take', new ParseIntPipe({ optional: true })) take?: number
+  ): Promise<Article['id'][]> {
+    return this.articleService.getArticleRelated(id, take);
+  }
+
   @Post('article/ids')
   async getArticlesByIds(
     @Body() getByArticleIdsDto: GetByArticleIdsDto,
