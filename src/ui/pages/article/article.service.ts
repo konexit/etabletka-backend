@@ -136,7 +136,7 @@ export class ArticleService {
     return this.tagRepository.save(newTag);
   }
 
-  async getArticleById(id: number) {
+  async getArticleById(id: number): Promise<Article> {
     const article = await this.articleRepository.findOne({
       where: { id },
       relations: ['author.profile', 'censor.profile'],
