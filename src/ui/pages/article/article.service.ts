@@ -19,7 +19,7 @@ export class ArticleService {
     private tagRepository: Repository<Tag>
   ) { }
 
-  async createArticle(createArticleDto: CreateArticleDto, lang: string = 'uk'): Promise<Article> {
+  async createArticle(createArticleDto: CreateArticleDto, lang = 'uk'): Promise<Article> {
     const newArticle = this.articleRepository.create(Object.assign(createArticleDto, { slug: slugify(createArticleDto.title[lang]) }));
     if (!newArticle) {
       throw new HttpException(
@@ -84,6 +84,7 @@ export class ArticleService {
         'authorId',
         'censorId',
         'title',
+        'slug',
         'excerpt',
         'alt',
         'seoH1',
@@ -108,7 +109,7 @@ export class ArticleService {
     return articles;
   }
 
-  async getArticleContent(id: number, lang: string = 'uk'): Promise<Pick<Article, 'id' | 'content'>> {
+  async getArticleContent(id: number, lang = 'uk'): Promise<Pick<Article, 'id' | 'content'>> {
     const article = await this.articleRepository.findOne({
       select: ['id', 'content'],
       where: { id }
@@ -137,7 +138,7 @@ export class ArticleService {
       .createQueryBuilder('article')
       .select('article.id')
       .where('article.id != :id', { id })
-      .andWhere(`article.tags && :tags`, { tags: originalArticle.tags })
+      .andWhere('article.tags && :tags', { tags: originalArticle.tags })
       .orderBy('RANDOM()')
       .limit(take)
       .getMany();
@@ -145,7 +146,7 @@ export class ArticleService {
     return related.map(article => article.id);
   }
 
-  async createArticleTag(createTagDto: CreateTagDto, lang: string = 'uk'): Promise<Tag> {
+  async createArticleTag(createTagDto: CreateTagDto, lang = 'uk'): Promise<Tag> {
     const newTag = this.tagRepository.create(Object.assign(createTagDto, { slug: slugify(createTagDto.title[lang]) }));
     if (!newTag) {
       throw new HttpException(
@@ -183,6 +184,7 @@ export class ArticleService {
       select: [
         'id',
         'title',
+        'slug',
         'seoTitle',
         'seoH1',
         'seoDescription',
