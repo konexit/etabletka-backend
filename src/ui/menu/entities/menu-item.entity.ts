@@ -25,6 +25,9 @@ export class MenuItem {
   @Column({ length: 200 })
   slug: string;
 
+  @Column({ length: 1000, nullable: true })
+  url: string;
+
   @Column({ default: 0 })
   position: number;
 
