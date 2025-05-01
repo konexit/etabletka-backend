@@ -12,8 +12,8 @@ import {
 export type ModelId = Product['id'] | Article['id'];
 
 export enum CommentType {
-  ARTICLE = 'article',
-  PRODUCT = 'product',
+  Article = 'article',
+  Product = 'product',
 }
 
 @Entity('comments')

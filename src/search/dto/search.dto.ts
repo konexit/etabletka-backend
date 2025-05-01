@@ -1,4 +1,5 @@
-import { IsArray, IsNumber, IsOptional, IsString, Length } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Length } from 'class-validator';
+import { SearchIndexType } from 'src/common/types/search/search.interface';
 
 export class SearchDto {
   @Length(0, 255)
@@ -8,6 +9,10 @@ export class SearchDto {
   @IsOptional()
   @IsString()
   lang?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  active?: boolean;
 
   @IsOptional()
   @IsNumber()
@@ -25,4 +30,13 @@ export class SearchDto {
   @IsArray()
   @IsString({ each: true })
   sort?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  retrieveAttibutes?: string[];
+
+  @IsOptional()
+  @IsEnum(SearchIndexType)
+  searchIndex?: SearchIndexType;
 }

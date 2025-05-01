@@ -23,28 +23,33 @@ import {
   Filter,
   TypeUI,
 } from './dto/facet-search-filters.dto';
+import {
+  SearchIndexConfig,
+  SearchIndexType,
+  SearchIndexesConfig
+} from 'src/common/types/search/search.interface';
 import { SearchDto } from './dto/search.dto';
 import { groupBy, isEmpty } from './utils';
 import { CacheKeys } from 'src/settings/refresh/refresh-keys';
 import { TypeSource } from 'src/products/attributes/product-attributes.enum';
 
-const attributeValues = {};
 // Documentation:  https://www.npmjs.com/package/meilisearch
 @Injectable()
 export class SearchService {
   private readonly logger = new Logger(SearchService.name);
   private client: MeiliSearch;
-  private indexesConfig: IndexesConfig = {
+  private indexesConfig: SearchIndexesConfig = {
     products: {
-      name: 'products',
+      name: SearchIndexType.Products,
       primaryKey: 'id',
       searchableAttr: ['name', 'sync_id'],
-      filterableAttr: ['sync_id'],
+      filterableAttr: ['sync_id', 'active'],
       sortableAttr: ['name', 'price', 'rating'],
       facetAttr: [],
     },
   };
   private SQL_AND = ' AND ';
+  private attributeValues: Record<string, string> = {};
 
   constructor(
     @InjectRepository(Product)
@@ -61,16 +66,10 @@ export class SearchService {
   }
 
   async init() {
-    const filter = (await this.getFilters()).map(({ key }) => key);
-    this.indexesConfig.products.facetAttr = filter;
-    this.indexesConfig.products.filterableAttr = filter.concat(
-      this.indexesConfig.products.filterableAttr,
-    );
-    this.createIndexIfNotExists(this.indexesConfig.products);
-    this.makeIndex(this.indexesConfig.products.name);
+    await this.searchProductInit();
   }
 
-  async makeIndex(index: string, primaryKey: string = 'id', lang: string = 'uk',) {
+  async makeIndex(index: string, primaryKey: string = 'id', lang: string = 'uk') {
     let document: Array<any> = [];
     switch (index) {
       case this.indexesConfig.products.name:
@@ -136,12 +135,12 @@ export class SearchService {
         }
       }
 
-      if (isEmpty(attributeValues)) {
-        Object.assign(attributeValues, attrValues);
+      if (isEmpty(this.attributeValues)) {
+        Object.assign(this.attributeValues, attrValues);
       } else {
         for (const key of Object.keys(attrValues)) {
-          attributeValues[key] = attributeValues[key]
-            ? Object.assign(attributeValues[key], attrValues[key])
+          this.attributeValues[key] = this.attributeValues[key]
+            ? Object.assign(this.attributeValues[key], attrValues[key])
             : { ...attrValues[key] };
         }
       }
@@ -154,24 +153,32 @@ export class SearchService {
     return products;
   }
 
-  async search(text: string, searchParams?: SearchParams) {
-    if (!isNaN(Number(text))) {
-      Object.assign(searchParams, { filter: [`sync_id = ${text}`] });
+  async search(searchDto: SearchDto): Promise<SearchResponse<any, SearchParams & { filter: string[] }>> {
+    const searchParams: SearchParams & { filter: string[] } = {
+      attributesToRetrieve: searchDto.retrieveAttibutes ?? ['*'],
+      filter: []
+    };
+
+    if (searchDto.active != null || searchDto.active != undefined) {
+      searchParams.filter.push(`active = ${searchDto.active}`);
     }
-    return await this.client
+
+    if (!isNaN(Number(searchDto.text))) {
+      searchParams.filter.push(`sync_id = ${searchDto.text}`);
+    }
+
+    return this.client
       .index(this.indexesConfig.products.name)
-      .search(text, searchParams);
+      .search(searchDto.text, searchParams);
   }
 
   getFacetFilters(index: string = 'products'): string[] {
     return this.indexesConfig[index].facetAttr;
   }
 
-  private async createIndexIfNotExists(indexConfig: IndexConfig) {
+  private async createIndexIfNotExists(indexConfig: SearchIndexConfig) {
     const indexes = await this.client.getIndexes();
-    const indexExists = indexes.results.some(
-      (index) => index.uid === indexConfig.name,
-    );
+    const indexExists = indexes.results.some((index) => index.uid === indexConfig.name);
 
     if (!indexExists) {
       await this.client.createIndex(indexConfig.name, {
@@ -218,19 +225,19 @@ export class SearchService {
     }
   }
 
-  async facetSearch(search: SearchDto) {
-    return this.createFacetFilters(search, {
-      attributesToRetrieve: [
+  async facetSearch(searchDto: SearchDto) {
+    return this.createFacetFilters(searchDto, {
+      attributesToRetrieve: searchDto.retrieveAttibutes ?? [
         'id',
         'img',
         'rating',
         'name',
         'price',
       ],
-      limit: search.limit,
-      offset: search.offset,
+      limit: searchDto.limit,
+      offset: searchDto.offset,
       facets: this.getFacetFilters(),
-      sort: search.sort
+      sort: searchDto.sort
     });
   }
 
@@ -464,7 +471,7 @@ export class SearchService {
   private createCheckboxFilterValues(facetDistribution: CategoriesDistribution, filterAttr: Search.Attribute): Search.FilterCheckBoxValue[] {
     return Object.keys(facetDistribution).map((item) => {
       return {
-        name: attributeValues[filterAttr.key][item],
+        name: this.attributeValues[filterAttr.key][item],
         alias: item,
         count: facetDistribution[item],
       };
@@ -549,5 +556,16 @@ export class SearchService {
 
     const [{ attrs }] = await this.productRepository.query(attributeValueSQL);
     return attrs;
+  }
+
+  private async searchProductInit(): Promise<void> {
+    const filters = await this.getFilters();
+    const filterKeys = filters.map(({ key }) => key);
+    this.indexesConfig.products.facetAttr = filterKeys;
+    this.indexesConfig.products.filterableAttr = filterKeys.concat(
+      this.indexesConfig.products.filterableAttr,
+    );
+    await this.createIndexIfNotExists(this.indexesConfig.products);
+    await this.makeIndex(this.indexesConfig.products.name);
   }
 }

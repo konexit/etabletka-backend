@@ -1,3 +1,3 @@
 export interface LangContent {
-    uk: string;
+	uk: string;
 }
