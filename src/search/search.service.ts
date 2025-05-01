@@ -81,7 +81,7 @@ export class SearchService {
           HttpStatus.NOT_FOUND,
         );
     }
-    return await this.addDocumentsToIndex(document, index, primaryKey);
+    return this.addDocumentsToIndex(document, index, primaryKey);
   }
 
   async makePartialIndex(
@@ -92,7 +92,7 @@ export class SearchService {
     fullReplace: boolean = false) {
     let document: Array<any> = [];
     switch (index) {
-      case this.indexesConfig.products.name:
+      case SearchIndexType.Products:
         document = await this.makeProductsIndex(lang, primaryKeys);
         break;
       default:
@@ -227,14 +227,7 @@ export class SearchService {
 
   async facetSearch(searchDto: SearchDto) {
     return this.createFacetFilters(searchDto, {
-      attributesToRetrieve: searchDto.retrieveAttibutes ?? [
-        'id',
-        'img',
-        'rating',
-        'name',
-        'price',
-        'active',
-      ],
+      attributesToRetrieve: searchDto.retrieveAttibutes ?? ['*'],
       limit: searchDto.limit,
       offset: searchDto.offset,
       facets: this.getFacetFilters(),
@@ -510,7 +503,11 @@ export class SearchService {
                 id,
                 sync_id,
                 name->>'${lang}' AS name,
+                attributes #>> '{manufacturer,name,${lang}}' AS "manufacturerName",
                 active,
+                images,
+                slug,
+                comments_count AS "commentsCount",
                 rating
                 ${filterSources.get(TypeSource.HEADDER)?.map(f => `,${f.key[0] == '_' ? f.key.slice(1) : f.key} AS "${f.key}"`).join('') ?? ''}
                 ${this.productAttributesIndexQuery(filterSources.get(TypeSource.ATTRIBUTES)) ?? []}
