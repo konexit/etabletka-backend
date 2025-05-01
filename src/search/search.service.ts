@@ -233,6 +233,7 @@ export class SearchService {
         'rating',
         'name',
         'price',
+        'active',
       ],
       limit: searchDto.limit,
       offset: searchDto.offset,
@@ -316,18 +317,22 @@ export class SearchService {
     }
   }
 
-  private async createFacetFilters(search: SearchDto, searchParams: SearchParams): Promise<FacetSearchFilterDto> {
+  private async createFacetFilters(searchDto: SearchDto, searchParams: SearchParams): Promise<FacetSearchFilterDto> {
     const attributes: Search.Attributes = await this.cacheManager.get(CacheKeys.ProductAttributes);
-    const [selectedCheckboxFilters, selectedRangeFilters, privateFilters] = this.extractFacetFilters(search.filter);
+    const [selectedCheckboxFilters, selectedRangeFilters, privateFilters] = this.extractFacetFilters(searchDto.filter);
     const filterCheckbox = selectedCheckboxFilters.map(f => f.sql).concat(privateFilters).join(this.SQL_AND);
     const filterRange = selectedRangeFilters.map(f => f.sql).join(this.SQL_AND);
-    searchParams.filter = [filterCheckbox, filterRange].filter(f => !!f).join(this.SQL_AND);
-    const searchQueriesPromises: Promise<SearchResponse>[] = [this.client.index(this.indexesConfig.products.name).search(search.text, searchParams)];
+    searchParams.filter = [
+      searchDto.active != null || searchDto.active != undefined ? `active = ${searchDto.active}` : '',
+      filterCheckbox,
+      filterRange
+    ].filter(f => !!f).join(this.SQL_AND);
+    const searchQueriesPromises: Promise<SearchResponse>[] = [this.client.index(this.indexesConfig.products.name).search(searchDto.text, searchParams)];
 
     if (selectedCheckboxFilters.length) {
       const filterScope = privateFilters.concat(filterRange).filter(f => !!f).join(this.SQL_AND);
       selectedCheckboxFilters.forEach(filter => {
-        searchQueriesPromises.push(this.client.index(this.indexesConfig.products.name).search(search.text, {
+        searchQueriesPromises.push(this.client.index(this.indexesConfig.products.name).search(searchDto.text, {
           limit: 0,
           facets: searchParams.facets,
           filter: selectedCheckboxFilters.length == 1 ? filterScope : `${filter.sql} ${filterScope ? `${this.SQL_AND} ${filterScope}` : ''}`
@@ -337,7 +342,7 @@ export class SearchService {
 
     if (selectedRangeFilters.length) {
       searchQueriesPromises.push(
-        this.client.index(this.indexesConfig.products.name).search(search.text, {
+        this.client.index(this.indexesConfig.products.name).search(searchDto.text, {
           limit: 0,
           facets: searchParams.facets,
           filter: filterCheckbox
@@ -420,7 +425,7 @@ export class SearchService {
 
       checkBoxFilters.push(
         this.createFilter(
-          search.lang,
+          searchDto.lang,
           filterAttr,
           this.createCheckboxFilterValues(mainSearchQuery.facetDistribution[key], filterAttr)
         ));
@@ -438,7 +443,7 @@ export class SearchService {
 
       rangeFilters.push(
         this.createFilter(
-          search.lang,
+          searchDto.lang,
           filterAttr,
           this.createRangeFilterValues(mainSearchQuery.facetStats[key], filterAttr)
         ));
