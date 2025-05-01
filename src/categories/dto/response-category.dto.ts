@@ -47,6 +47,9 @@ export class ResponseCategoryDto {
   image: string;
 
   @Expose()
+  slug: string;
+
+  @Expose()
   root: boolean;
 
   @Expose()
