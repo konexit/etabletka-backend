@@ -1,34 +1,66 @@
-import { IsOptional, IsNumber } from 'class-validator';
-import { SectionViews, Type, TypeSource, TypeUI } from '../product-attributes.enum';
+import { Type } from 'class-transformer';
+import {
+  IsOptional,
+  IsNumber,
+  IsString,
+  IsNotEmpty,
+  ValidateNested,
+  IsEnum,
+  IsArray,
+  ArrayMinSize,
+  IsBoolean
+} from 'class-validator';
+import { LangContentDto } from 'src/common/dto/lang.dto';
+import { ProductAttributes } from '../entities/product-attributes.entity';
+import {
+  SearchFilterUIType,
+  SearchIndexDataSource,
+  SearchUISection,
+  SearchUploadDataSource
+} from 'src/common/types/search/search.enum';
 
-export class UpdateProductAttributes {
-  @IsOptional()
+export class UpdateProductAttributesDto {
+  @IsString()
+  @IsNotEmpty()
   key: string;
 
-  @IsOptional()
-  name: JSON;
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  name: LangContentDto;
 
-  @IsOptional()
-  type: Type;
+  @IsEnum(SearchUploadDataSource)
+  type: SearchUploadDataSource;
 
-  @IsOptional()
-  typeUI: TypeUI;
+  @IsEnum(SearchFilterUIType)
+  typeUI: SearchFilterUIType;
 
-  @IsOptional()
-  typeSource: TypeSource;
+  @IsEnum(SearchIndexDataSource)
+  typeSource: SearchIndexDataSource;
 
-  @IsOptional()
+  @IsNumber()
   order: number;
 
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsEnum(SearchUISection, { each: true })
+  sectionViews: SearchUISection[];
+
   @IsOptional()
+  @IsArray()
+  values: JSON;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  mergeKeys: ProductAttributes['key'][];
+
+  @IsBoolean()
   searchEngine: boolean;
 
-  @IsOptional()
+  @IsBoolean()
   ui: boolean;
 
-  @IsOptional()
-  sectionViews: SectionViews[];
-
-  @IsOptional()
-  values: JSON;
+  @IsBoolean()
+  multipleValues: boolean;
 }

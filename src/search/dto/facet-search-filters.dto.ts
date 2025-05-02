@@ -1,20 +1,17 @@
 import { Hits } from 'meilisearch';
+import { SearchFilterUIType } from 'src/common/types/search/search.enum';
+import { SearchFilterValues } from 'src/common/types/search/search.interface';
 
-export enum TypeUI {
-  Checkbox = 'checkbox',
-  Range = 'range'
-}
-
-export class Filter {
+export class FilterDto {
   name: string;
   order: number;
   alias: string;
-  typeUI: TypeUI;
-  values: Search.FilterValues;
+  typeUI: SearchFilterUIType;
+  values: SearchFilterValues;
 }
 
 export class FacetSearchFilterDto {
-  filters: Filter[];
+  filters: FilterDto[];
   products: Hits;
   limit: number;
   offset: number;

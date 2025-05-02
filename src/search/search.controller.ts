@@ -4,7 +4,7 @@ import { SearchDto } from './dto/search.dto';
 import { FacetSearchFilterDto } from './dto/facet-search-filters.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { SearchParams, SearchResponse } from 'meilisearch';
-import { SearchIndexType } from 'src/common/types/search/search.interface';
+import { SearchIndexType } from 'src/common/types/search/search.enum';
 
 @ApiTags('search')
 @Controller('api/v1')

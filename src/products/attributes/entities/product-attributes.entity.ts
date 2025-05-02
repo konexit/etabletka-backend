@@ -1,3 +1,10 @@
+import { LangContent } from 'src/common/types/common/general';
+import {
+  SearchFilterUIType,
+  SearchIndexDataSource,
+  SearchUISection,
+  SearchUploadDataSource
+} from 'src/common/types/search/search.enum';
 import {
   PrimaryGeneratedColumn,
   Column,
@@ -5,7 +12,6 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
 } from 'typeorm';
-import { Type, SectionViews, TypeUI, TypeSource } from '../product-attributes.enum';
 
 @Entity({
   name: 'product_attributes',
@@ -18,38 +24,38 @@ export class ProductAttributes {
   key: string
 
   @Column({ type: 'jsonb' })
-  name: JSON;
+  name: LangContent;
 
   @Column({
     type: 'enum',
-    enum: Type,
-    default: Type.CUSTOM,
+    enum: SearchUploadDataSource,
+    default: SearchUploadDataSource.Custom,
   })
-  type: Type;
+  type: SearchUploadDataSource;
 
   @Column({
     name: 'type_ui',
     type: 'enum',
-    enum: TypeUI,
-    default: TypeUI.Checkbox,
+    enum: SearchFilterUIType,
+    default: SearchFilterUIType.Checkbox,
   })
+  typeUI: SearchFilterUIType;
 
-  typeUI: TypeUI;
   @Column({
     name: 'type_source',
     type: 'enum',
-    enum: TypeSource,
-    default: TypeSource.ATTRIBUTES,
+    enum: SearchIndexDataSource,
+    default: SearchIndexDataSource.Attributes,
   })
-  typeSource: TypeSource;
+  typeSource: SearchIndexDataSource;
 
   @Column({
     name: 'section_views',
     type: 'enum',
-    enum: SectionViews,
+    enum: SearchUISection,
     array: true,
   })
-  sectionViews: SectionViews[];
+  sectionViews: SearchUISection[];
 
   @Column({
     name: 'merge_keys',

@@ -1,5 +1,5 @@
 import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Length } from 'class-validator';
-import { SearchIndexType } from 'src/common/types/search/search.interface';
+import { SearchIndexType } from 'src/common/types/search/search.enum';
 
 export class SearchDto {
   @Length(0, 255)

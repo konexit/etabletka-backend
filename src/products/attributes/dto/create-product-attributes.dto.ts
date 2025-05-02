@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsNumber,
@@ -5,32 +6,54 @@ import {
   IsBoolean,
   IsOptional,
   IsArray,
-  IsObject
+  IsEnum,
+  ValidateNested,
+  ArrayMinSize
 } from 'class-validator';
-import { SectionViews, Type, TypeSource, TypeUI } from '../product-attributes.enum';
+import { LangContentDto } from 'src/common/dto/lang.dto';
+import { ProductAttributes } from '../entities/product-attributes.entity';
+import { 
+  SearchFilterUIType,
+  SearchIndexDataSource,
+  SearchUISection,
+  SearchUploadDataSource 
+} from 'src/common/types/search/search.enum';
 
-export class CreateProductAttributes {
-  @IsOptional()
-  id: number
-
+export class CreateProductAttributesDto {
   @IsString()
   @IsNotEmpty()
   key: string;
 
-  @IsObject()
-  name: JSON;
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  name: LangContentDto;
 
-  @IsNotEmpty()
-  type: Type;
+  @IsEnum(SearchUploadDataSource)
+  type: SearchUploadDataSource;
 
-  @IsNotEmpty()
-  typeUI: TypeUI;
+  @IsEnum(SearchFilterUIType)
+  typeUI: SearchFilterUIType;
 
-  @IsNotEmpty()
-  typeSource: TypeSource
+  @IsEnum(SearchIndexDataSource)
+  typeSource: SearchIndexDataSource;
 
   @IsNumber()
   order: number;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsEnum(SearchUISection, { each: true })
+  sectionViews: SearchUISection[];
+
+  @IsOptional()
+  @IsArray()
+  values: JSON;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  mergeKeys: ProductAttributes['key'][];
 
   @IsBoolean()
   searchEngine: boolean;
@@ -40,19 +63,4 @@ export class CreateProductAttributes {
 
   @IsBoolean()
   multipleValues: boolean;
-
-  @IsArray()
-  sectionViews: SectionViews[];
-
-  @IsArray()
-  values: JSON;
-
-  @IsArray()
-  mergeKeys: string[];
-
-  @IsOptional()
-  createdAt: Date;
-
-  @IsOptional()
-  updatedAt: Date;
 }

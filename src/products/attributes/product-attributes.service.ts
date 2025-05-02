@@ -4,8 +4,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { ProductAttributes } from './entities/product-attributes.entity';
-import { UpdateProductAttributes } from './dto/update-product-attributes.dto';
+import { UpdateProductAttributesDto } from './dto/update-product-attributes.dto';
 import { CacheKeys } from 'src/settings/refresh/refresh-keys';
+import { CreateProductAttributesDto } from './dto/create-product-attributes.dto';
 
 @Injectable()
 export class ProductAttributesService {
@@ -19,15 +20,15 @@ export class ProductAttributesService {
     this.cacheInit();
   }
 
-  async create(createProductAttributes: ProductAttributes): Promise<any> {
+  async create(createProductAttributes: CreateProductAttributesDto): Promise<any> {
     try {
-      return await this.productAttributesRepository.save(this.productAttributesRepository.create(createProductAttributes));
+      return this.productAttributesRepository.save(this.productAttributesRepository.create(createProductAttributes));
     } catch (err) {
       throw new HttpException(err.message, HttpStatus.CONFLICT);
     }
   }
 
-  async update(id: number, updateProductAttributes: UpdateProductAttributes): Promise<UpdateResult> {
+  async update(id: number, updateProductAttributes: UpdateProductAttributesDto): Promise<UpdateResult> {
     try {
       return await this.productAttributesRepository.update(id, updateProductAttributes);
     } catch (err) {

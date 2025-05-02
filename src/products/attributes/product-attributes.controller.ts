@@ -10,8 +10,8 @@ import {
   UseInterceptors
 } from '@nestjs/common';
 import { ProductAttributesService } from './product-attributes.service';
-import { CreateProductAttributes } from './dto/create-product-attributes.dto';
-import { UpdateProductAttributes } from './dto/update-product-attributes.dto';
+import { CreateProductAttributesDto } from './dto/create-product-attributes.dto';
+import { UpdateProductAttributesDto } from './dto/update-product-attributes.dto';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('product-attributes')
@@ -33,7 +33,7 @@ export class ProductAttributesController {
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Post()
-  async create(@Body() createProductAttributesDto: CreateProductAttributes) {
+  async create(@Body() createProductAttributesDto: CreateProductAttributesDto) {
     return this.productAttributesService.create(createProductAttributesDto);
   }
 
@@ -42,7 +42,7 @@ export class ProductAttributesController {
   @Patch('/:id')
   update(
     @Param('id') id: number,
-    @Body() updateProductAttributes: UpdateProductAttributes,
+    @Body() updateProductAttributes: UpdateProductAttributesDto,
   ) {
     return this.productAttributesService.update(id, updateProductAttributes);
   }

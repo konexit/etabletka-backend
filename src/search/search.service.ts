@@ -19,20 +19,30 @@ import {
 } from 'meilisearch';
 import { Repository } from 'typeorm';
 import { Product } from 'src/products/product/entities/product.entity';
+import { FacetSearchFilterDto, FilterDto } from './dto/facet-search-filters.dto';
 import {
-  FacetSearchFilterDto,
-  Filter,
-  TypeUI,
-} from './dto/facet-search-filters.dto';
-import {
+  SearchAttribute,
+  SearchAttributes,
+  SearchFilterAttr,
+  SearchFilterCheckBoxValue,
+  SearchFilterRangeValue,
+  SearchFilterValues,
   SearchIndexConfig,
-  SearchIndexType,
-  SearchIndexesConfig
+  SearchIndexesConfig,
+  SearchPrivateFilters,
+  SearchSelectedCheckboxFacetFilters,
+  SearchSelectedCheckboxFilters,
+  SearchSelectedFilters,
+  SearchSelectedRangeFilters
 } from 'src/common/types/search/search.interface';
 import { SearchDto } from './dto/search.dto';
 import { groupBy, isEmpty } from './utils';
 import { CacheKeys } from 'src/settings/refresh/refresh-keys';
-import { TypeSource } from 'src/products/attributes/product-attributes.enum';
+import {
+  SearchFilterUIType,
+  SearchIndexDataSource,
+  SearchIndexType
+} from 'src/common/types/search/search.enum';
 
 // Documentation:  https://www.npmjs.com/package/meilisearch
 @Injectable()
@@ -237,8 +247,8 @@ export class SearchService implements OnApplicationBootstrap {
    * Example:
    * @param filter price:50-1000;production-form:kapsuly,klipsa,shampun
    */
-  private extractFacetFilters(filters: string): [Search.SelectedCheckboxFilters[], Search.SelectedRangeFilters[], Search.PrivateFilters] {
-    const result: [Search.SelectedCheckboxFilters[], Search.SelectedRangeFilters[], Search.PrivateFilters] = [[], [], []];
+  private extractFacetFilters(filters: string): [SearchSelectedCheckboxFilters[], SearchSelectedRangeFilters[], SearchPrivateFilters] {
+    const result: [SearchSelectedCheckboxFilters[], SearchSelectedRangeFilters[], SearchPrivateFilters] = [[], [], []];
     if (!filters) return result;
     filters.split(';').forEach((param) => {
       const [key, value] = param.split(':');
@@ -248,21 +258,21 @@ export class SearchService implements OnApplicationBootstrap {
         result[2].push(filter.sql);
         return;
       }
-      if (filter.type === TypeUI.Checkbox) {
-        result[0].push(filter as Search.SelectedCheckboxFilters);
+      if (filter.type === SearchFilterUIType.Checkbox) {
+        result[0].push(filter as SearchSelectedCheckboxFilters);
       } else {
-        result[1].push(filter as Search.SelectedRangeFilters);
+        result[1].push(filter as SearchSelectedRangeFilters);
       }
     });
     return result;
   }
 
-  private parseFilter(key: string, value: string): Search.SelectedFilters {
+  private parseFilter(key: string, value: string): SearchSelectedFilters {
     const privateFilter = key[0] == '_';
     if (value.includes('-')) {
       const [min, max] = value.split('-').map(Number);
       const result = {
-        type: TypeUI.Range,
+        type: SearchFilterUIType.Range,
         key,
         privateFilter,
         max,
@@ -280,7 +290,7 @@ export class SearchService implements OnApplicationBootstrap {
     } else if (value.includes(',')) {
       const items = value.split(',');
       return {
-        type: TypeUI.Checkbox,
+        type: SearchFilterUIType.Checkbox,
         key,
         privateFilter,
         value: items,
@@ -288,7 +298,7 @@ export class SearchService implements OnApplicationBootstrap {
       };
     } else {
       return {
-        type: TypeUI.Checkbox,
+        type: SearchFilterUIType.Checkbox,
         key,
         privateFilter,
         value: [value],
@@ -299,7 +309,7 @@ export class SearchService implements OnApplicationBootstrap {
 
   private async createFacetFilters(searchDto: SearchDto, searchParams: SearchParams): Promise<FacetSearchFilterDto> {
     const searchIndex = searchDto.searchIndex ?? SearchIndexType.Products;
-    const attributes: Search.Attributes = await this.cacheManager.get(CacheKeys.ProductAttributes);
+    const attributes: SearchAttributes = await this.cacheManager.get(CacheKeys.ProductAttributes);
     const [selectedCheckboxFilters, selectedRangeFilters, privateFilters] = this.extractFacetFilters(searchDto.filter);
     const filterCheckbox = selectedCheckboxFilters.map(f => f.sql).concat(privateFilters).join(this.SQL_AND);
     const filterRange = selectedRangeFilters.map(f => f.sql).join(this.SQL_AND);
@@ -334,7 +344,7 @@ export class SearchService implements OnApplicationBootstrap {
     const mainSearchQuery = selectedFiltersResults[0];
 
     if (selectedCheckboxFilters.length) {
-      let availableCheckboxFilterValue: Record<string, Search.SelectedCheckboxFacetFilters> = {};
+      let availableCheckboxFilterValue: Record<string, SearchSelectedCheckboxFacetFilters> = {};
 
       if (selectedCheckboxFilters.length > 1) {
         availableCheckboxFilterValue = selectedCheckboxFilters.reduce((acc, currentFilter) => {
@@ -392,17 +402,17 @@ export class SearchService implements OnApplicationBootstrap {
     }
 
     const filtersWarn: string[] = [];
-    const filters: Filter[] = [];
+    const filters: FilterDto[] = [];
 
-    const checkBoxFilters: Filter[] = [];
+    const checkBoxFilters: FilterDto[] = [];
     for (const key in mainSearchQuery.facetDistribution) {
-      const filterAttr: Search.Attribute = attributes[key];
+      const filterAttr: SearchAttribute = attributes[key];
       if (!filterAttr) {
         filtersWarn.push(key);
         continue;
       }
 
-      if (!filterAttr.ui || filterAttr.typeUI == TypeUI.Range) continue;
+      if (!filterAttr.ui || filterAttr.typeUI == SearchFilterUIType.Range) continue;
 
       checkBoxFilters.push(
         this.createFilter(
@@ -412,9 +422,9 @@ export class SearchService implements OnApplicationBootstrap {
         ));
     }
 
-    const rangeFilters: Filter[] = [];
+    const rangeFilters: FilterDto[] = [];
     for (const key in mainSearchQuery.facetStats) {
-      const filterAttr: Search.Attribute = attributes[key];
+      const filterAttr: SearchAttribute = attributes[key];
       if (!filterAttr) {
         filtersWarn.push(key);
         continue;
@@ -446,7 +456,7 @@ export class SearchService implements OnApplicationBootstrap {
     };
   }
 
-  private createRangeFilterValues(facetStat: FacetStat, filterAttr: Search.Attribute): Search.FilterRangeValue {
+  private createRangeFilterValues(facetStat: FacetStat, filterAttr: SearchAttribute): SearchFilterRangeValue {
     return {
       alias: filterAttr.key,
       min: facetStat.min,
@@ -454,7 +464,7 @@ export class SearchService implements OnApplicationBootstrap {
     };
   }
 
-  private createCheckboxFilterValues(searchIndex: SearchIndexType, facetDistribution: CategoriesDistribution, filterAttr: Search.Attribute): Search.FilterCheckBoxValue[] {
+  private createCheckboxFilterValues(searchIndex: SearchIndexType, facetDistribution: CategoriesDistribution, filterAttr: SearchAttribute): SearchFilterCheckBoxValue[] {
     return Object.keys(facetDistribution).map((item) => {
       return {
         name: this.indexesConfig[searchIndex].localizedSlugMap[filterAttr.key][item],
@@ -464,7 +474,7 @@ export class SearchService implements OnApplicationBootstrap {
     });
   }
 
-  private createFilter(lang: string, filterAttr: Search.Attribute, filterValues: Search.FilterValues): Filter {
+  private createFilter(lang: string, filterAttr: SearchAttribute, filterValues: SearchFilterValues): FilterDto {
     return {
       name: filterAttr.name[lang],
       order: filterAttr.order,
@@ -474,7 +484,7 @@ export class SearchService implements OnApplicationBootstrap {
     };
   }
 
-  private async getFilters(): Promise<Search.FilterAttr[]> {
+  private async getFilters(): Promise<SearchFilterAttr[]> {
     return this.productRepository.query(`
       SELECT 
         key,
@@ -485,7 +495,7 @@ export class SearchService implements OnApplicationBootstrap {
       WHERE search_engine = true`);
   }
 
-  private productIndexQuery(lang: string, filters: Search.FilterAttr[], productIds?: string[]): string {
+  private productIndexQuery(lang: string, filters: SearchFilterAttr[], productIds?: string[]): string {
     const filterSources = groupBy(filters, f => f.typeSource);
     return `SELECT
                 id,
@@ -497,13 +507,13 @@ export class SearchService implements OnApplicationBootstrap {
                 slug,
                 comments_count AS "commentsCount",
                 rating
-                ${filterSources.get(TypeSource.HEADDER)?.map(f => `,${f.key[0] == '_' ? f.key.slice(1) : f.key} AS "${f.key}"`).join('') ?? ''}
-                ${this.productAttributesIndexQuery(filterSources.get(TypeSource.ATTRIBUTES)) ?? []}
+                ${filterSources.get(SearchIndexDataSource.Headder)?.map(f => `,${f.key[0] == '_' ? f.key.slice(1) : f.key} AS "${f.key}"`).join('') ?? ''}
+                ${this.productAttributesIndexQuery(filterSources.get(SearchIndexDataSource.Attributes)) ?? []}
             FROM products p
             WHERE search_engine = true ${productIds ? ` AND p.id IN(${productIds.join(',')})` : ''}`;
   }
 
-  private productAttributesIndexQuery(filters: Search.FilterAttr[]): string {
+  private productAttributesIndexQuery(filters: SearchFilterAttr[]): string {
     const slugSQL = (key: string) => `SELECT jsonb_path_query(p.attributes, '$."${key}"[*].slug')`;
     const slugAggSQL = (unique = false) => `SELECT jsonb_agg(${unique ? 'DISTINCT' : ''} slug)`;
     return filters.map(f => {
