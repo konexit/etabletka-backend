@@ -224,23 +224,23 @@ export class SearchService implements OnApplicationBootstrap {
 
   /**
    * Supported filter types:
-   * - `range` [key:value1&value2] - separator `&`;
-   * - `checkbox` [key:value1_value2_value3] - separator `_`;
+   * - `range` [key:value1-value2] - separator `-`;
+   * - `checkbox` [key:value1,value2,value3] - separator `,`;
    * 
    * All filters can be private, so we need to add an underscore `_` to the beginning of the key
    *  
    * Example: 
-   * - [`_key:`value1_value2_value3]
+   * - [`_key`:value1,value2,value3]
    * 
-   * Filter merging template: filter1/filter2/filter... - separator `/`;
+   * Filter merging template: filter1;filter2;filter... - separator `;`;
    *
    * Example:
-   * @param filter price:50&1000/production-form:kapsuly_klipsa_shampun
+   * @param filter price:50-1000;production-form:kapsuly,klipsa,shampun
    */
   private extractFacetFilters(filters: string): [Search.SelectedCheckboxFilters[], Search.SelectedRangeFilters[], Search.PrivateFilters] {
     const result: [Search.SelectedCheckboxFilters[], Search.SelectedRangeFilters[], Search.PrivateFilters] = [[], [], []];
     if (!filters) return result;
-    filters.split('/').forEach((param) => {
+    filters.split(';').forEach((param) => {
       const [key, value] = param.split(':');
       if (!key || !value) return;
       const filter = this.parseFilter(key, value);
@@ -259,8 +259,8 @@ export class SearchService implements OnApplicationBootstrap {
 
   private parseFilter(key: string, value: string): Search.SelectedFilters {
     const privateFilter = key[0] == '_';
-    if (value.includes('&')) {
-      const [min, max] = value.split('&').map(Number);
+    if (value.includes('-')) {
+      const [min, max] = value.split('-').map(Number);
       const result = {
         type: TypeUI.Range,
         key,
@@ -277,8 +277,8 @@ export class SearchService implements OnApplicationBootstrap {
         result.sql = `${key} ${min} TO ${max}`;
       }
       return result;
-    } else if (value.includes('_')) {
-      const items = value.split('_');
+    } else if (value.includes(',')) {
+      const items = value.split(',');
       return {
         type: TypeUI.Checkbox,
         key,
