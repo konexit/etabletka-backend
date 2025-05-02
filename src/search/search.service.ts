@@ -23,6 +23,7 @@ import { FacetSearchFilterDto, FilterDto } from './dto/facet-search-filters.dto'
 import {
   SearchAttribute,
   SearchAttributes,
+  SearchFacetFilters,
   SearchFilterAttr,
   SearchFilterCheckBoxValue,
   SearchFilterRangeValue,
@@ -233,84 +234,95 @@ export class SearchService implements OnApplicationBootstrap {
   }
 
   /**
-   * Supported filter types:
-   * - `range` [key:value1-value2] - separator `-`;
-   * - `checkbox` [key:value1,value2,value3] - separator `,`;
+   * Extracts and processes facet filters from the provided input.
    * 
-   * All filters can be private, so we need to add an underscore `_` to the beginning of the key
-   *  
-   * Example: 
-   * - [`_key`:value1,value2,value3]
-   * 
-   * Filter merging template: filter1;filter2;filter... - separator `;`;
-   *
-   * Example:
-   * @param filter price:50-1000;production-form:kapsuly,klipsa,shampun
+   * @param filters An array of `SearchFacetFilter` to be processed.
+   * @returns Processed filters in a structured format.
    */
-  private extractFacetFilters(filters: string): [SearchSelectedCheckboxFilters[], SearchSelectedRangeFilters[], SearchPrivateFilters] {
-    const result: [SearchSelectedCheckboxFilters[], SearchSelectedRangeFilters[], SearchPrivateFilters] = [[], [], []];
-    if (!filters) return result;
-    filters.split(';').forEach((param) => {
-      const [key, value] = param.split(':');
-      if (!key || !value) return;
-      const filter = this.parseFilter(key, value);
+  private extractFacetFilters(filters: SearchFacetFilters): [SearchSelectedCheckboxFilters[], SearchSelectedRangeFilters[], SearchPrivateFilters] {
+    const result: [
+      SearchSelectedCheckboxFilters[],
+      SearchSelectedRangeFilters[],
+      SearchPrivateFilters
+    ] = [
+        [],
+        [],
+        []
+      ];
+
+    if (!filters) {
+      return result;
+    }
+
+    for (const f of filters) {
+      const [key, value] = f.filter.split(':');
+
+      if (!key || !value) {
+        continue;
+      }
+
+      const filter = this.parseFilter(key, value, f.type);
       if (filter.privateFilter) {
         result[2].push(filter.sql);
-        return;
+        continue;
       }
+
       if (filter.type === SearchFilterUIType.Checkbox) {
-        result[0].push(filter as SearchSelectedCheckboxFilters);
+        result[0].push(filter);
       } else {
-        result[1].push(filter as SearchSelectedRangeFilters);
+        result[1].push(filter);
       }
-    });
+    }
+
     return result;
   }
 
-  private parseFilter(key: string, value: string): SearchSelectedFilters {
+  private parseFilter<T extends SearchSelectedFilters>(key: string, value: string, filterUIType: T['type']): T {
     const privateFilter = key[0] == '_';
-    if (value.includes('-')) {
-      const [min, max] = value.split('-').map(Number);
-      const result = {
-        type: SearchFilterUIType.Range,
-        key,
-        privateFilter,
-        max,
-        min,
-        sql: ''
-      };
-      if (min && !max) {
-        result.sql = `${key} >= ${min}`;
-      } else if (max && !min) {
-        result.sql = `${key} <= ${max}`;
-      } else {
-        result.sql = `${key} ${min} TO ${max}`;
+
+    switch (filterUIType) {
+      case SearchFilterUIType.Checkbox: {
+        const items = value.split(',');
+        return {
+          type: filterUIType,
+          key,
+          privateFilter,
+          value: items,
+          sql: `${key} IN [${items.map(v => `'${v}'`).join(',')}]`
+        } as T;
       }
-      return result;
-    } else if (value.includes(',')) {
-      const items = value.split(',');
-      return {
-        type: SearchFilterUIType.Checkbox,
-        key,
-        privateFilter,
-        value: items,
-        sql: `${key} IN [${items.map(v => `'${v}'`).join(',')}]`
-      };
-    } else {
-      return {
-        type: SearchFilterUIType.Checkbox,
-        key,
-        privateFilter,
-        value: [value],
-        sql: `${key} = '${value}'`
-      };
+
+      case SearchFilterUIType.Range: {
+        const [min, max] = value.split('-').map(Number);
+        const result = {
+          type: filterUIType,
+          key,
+          privateFilter,
+          max,
+          min,
+          sql: ''
+        };
+
+        if (min && !max) {
+          result.sql = `${key} >= ${min}`;
+        } else if (max && !min) {
+          result.sql = `${key} <= ${max}`;
+        } else {
+          result.sql = `${key} ${min} TO ${max}`;
+        }
+
+        return result as T;
+      }
+
+      default:
+        throw new HttpException(`Filter ui type '${filterUIType}' not supported`, HttpStatus.BAD_REQUEST);
     }
   }
 
   private async createFacetFilters(searchDto: SearchDto, searchParams: SearchParams): Promise<FacetSearchFilterDto> {
     const searchIndex = searchDto.searchIndex ?? SearchIndexType.Products;
     const attributes: SearchAttributes = await this.cacheManager.get(CacheKeys.ProductAttributes);
-    const [selectedCheckboxFilters, selectedRangeFilters, privateFilters] = this.extractFacetFilters(searchDto.filter);
+    const [selectedCheckboxFilters, selectedRangeFilters, privateFilters] = this.extractFacetFilters(searchDto.filters);
     const filterCheckbox = selectedCheckboxFilters.map(f => f.sql).concat(privateFilters).join(this.SQL_AND);
     const filterRange = selectedRangeFilters.map(f => f.sql).join(this.SQL_AND);
     searchParams.filter = [

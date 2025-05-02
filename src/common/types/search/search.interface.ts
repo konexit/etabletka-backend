@@ -16,6 +16,46 @@ export interface SearchIndexConfig {
   facetAttr?: string[];
 }
 
+/**
+ * Supported filter types:
+ * 
+ * - `range`: Specifies a range for the key. The format is `[key:value1-value2]` with a `-` separator.
+ *   Example:
+ *   - `price:50-1000`
+ * 
+ * - `checkbox`: Specifies multiple values for the key. The format is `[key:value1,value2,value3]` with a `,` separator.
+ *   Example:
+ *   - `production-form:kapsuly,klipsa,shampun`
+ * 
+ * All filters can be private by adding an underscore `_` to the beginning of the key.
+ * 
+ * Example for a private filter:
+ * - `_key`:value1,value2,value3
+ */
+export interface SearchFacetFilter {
+  type: SearchFilterUIType;
+  filter: string;
+};
+
+export interface SearchSelectedCheckboxFilters {
+  type: SearchFilterUIType.Checkbox;
+  key: string;
+  privateFilter: boolean;
+  value: string[];
+  sql: string;
+}
+
+export interface SearchSelectedRangeFilters {
+  type: SearchFilterUIType.Range;
+  key: string;
+  privateFilter: boolean;
+  min: number;
+  max: number;
+  sql: string;
+}
+
+export type SearchFacetFilters = SearchFacetFilter[];
+
 export type SearchIndexesConfig = {
   [K in SearchIndexType]: SearchIndexConfig;
 };
@@ -64,24 +104,7 @@ export type SearchFilterAttr = {
   typeSource: SearchIndexDataSource;
 };
 
-export type SearchSelectedCheckboxFilters = {
-  type: string;
-  key: string;
-  sql: string;
-  value: string[];
-  privateFilter: boolean;
-};
-
 export type SearchSelectedCheckboxFacetFilters = Record<string, any>;
-
-export type SearchSelectedRangeFilters = {
-  type: string;
-  key: string;
-  sql: string;
-  min: number;
-  max: number;
-  privateFilter: boolean;
-};
 
 export type SearchPrivateFilters = string[];
 

@@ -1,5 +1,16 @@
-import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Length } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Length,
+  ValidateNested
+} from 'class-validator';
 import { SearchIndexType } from 'src/common/types/search/search.enum';
+import { SearchFacetFilterDto } from './facet-search-filters.dto';
 
 export class SearchDto {
   @Length(0, 255)
@@ -23,8 +34,10 @@ export class SearchDto {
   offset?: number;
 
   @IsOptional()
-  @IsString()
-  filter?: string;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SearchFacetFilterDto)
+  filters?: SearchFacetFilterDto[];
 
   @IsOptional()
   @IsArray()
