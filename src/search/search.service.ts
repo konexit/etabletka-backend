@@ -321,35 +321,50 @@ export class SearchService implements OnApplicationBootstrap {
 
   private async createFacetFilters(searchDto: SearchDto, searchParams: SearchParams): Promise<FacetSearchFilterDto> {
     const searchIndex = searchDto.searchIndex ?? SearchIndexType.Products;
+    const filterActive = searchDto.active !== null && searchDto.active !== undefined
+      ? `active = ${searchDto.active}`
+      : '';
+
     const attributes: SearchAttributes = await this.cacheManager.get(CacheKeys.ProductAttributes);
     const [selectedCheckboxFilters, selectedRangeFilters, privateFilters] = this.extractFacetFilters(searchDto.filters);
+
     const filterCheckbox = selectedCheckboxFilters.map(f => f.sql).concat(privateFilters).join(this.SQL_AND);
     const filterRange = selectedRangeFilters.map(f => f.sql).join(this.SQL_AND);
-    searchParams.filter = [
-      searchDto.active != null || searchDto.active != undefined ? `active = ${searchDto.active}` : '',
-      filterCheckbox,
-      filterRange
-    ].filter(f => !!f).join(this.SQL_AND);
-    const searchQueriesPromises: Promise<SearchResponse>[] = [this.client.index(searchIndex).search(searchDto.text, searchParams)];
 
+    // Combine all filters: active, checkbox, and range
+    searchParams.filter = [filterActive, filterCheckbox, filterRange].filter(f => !!f).join(this.SQL_AND);
+
+    // Main search query
+    const searchQueriesPromises: Promise<SearchResponse>[] = [
+      this.client.index(searchIndex).search(searchDto.text, searchParams)
+    ];
+
+    // Facet queries for checkbox filters
     if (selectedCheckboxFilters.length) {
-      const filterScope = privateFilters.concat(filterRange).filter(f => !!f).join(this.SQL_AND);
+      const filterScope = [filterActive, ...privateFilters, filterRange].filter(f => !!f).join(this.SQL_AND);
       selectedCheckboxFilters.forEach(filter => {
+        const checkboxFilter = selectedCheckboxFilters.length === 1
+          ? filterScope
+          : [filter.sql, filterScope].filter(f => !!f).join(this.SQL_AND);
+
         searchQueriesPromises.push(this.client.index(searchIndex).search(searchDto.text, {
           limit: 0,
           facets: searchParams.facets,
-          filter: selectedCheckboxFilters.length == 1 ? filterScope : `${filter.sql} ${filterScope ? `${this.SQL_AND} ${filterScope}` : ''}`
+          filter: checkboxFilter,
         }));
       });
     }
 
+    // Facet queries for range filters
     if (selectedRangeFilters.length) {
+      const rangeFilter = [filterActive, filterCheckbox].filter(f => !!f).join(this.SQL_AND);
       searchQueriesPromises.push(
         this.client.index(searchIndex).search(searchDto.text, {
           limit: 0,
           facets: searchParams.facets,
-          filter: filterCheckbox
-        }));
+          filter: rangeFilter,
+        })
+      );
     }
 
     const selectedFiltersResults = await Promise.all(searchQueriesPromises);
