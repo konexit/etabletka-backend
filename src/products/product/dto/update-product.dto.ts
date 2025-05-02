@@ -1,6 +1,6 @@
 import { IsOptional } from 'class-validator';
 
-export class UpdateProduct {
+export class UpdateProductDto {
   @IsOptional()
   syncId: number;
 
@@ -65,7 +65,7 @@ export class UpdateProduct {
   seoTitle: JSON;
 
   @IsOptional()
-  attributes: JSON;
+  attributes: Products.AttributesRaw;
 
   @IsOptional()
   badges: [];

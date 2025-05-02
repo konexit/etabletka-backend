@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
   Logger,
+  OnApplicationBootstrap,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -35,12 +36,14 @@ import { TypeSource } from 'src/products/attributes/product-attributes.enum';
 
 // Documentation:  https://www.npmjs.com/package/meilisearch
 @Injectable()
-export class SearchService {
+export class SearchService implements OnApplicationBootstrap {
   private readonly logger = new Logger(SearchService.name);
+  private SQL_AND = ' AND ';
   private client: MeiliSearch;
   private indexesConfig: SearchIndexesConfig = {
     products: {
       name: SearchIndexType.Products,
+      localizedSlugMap: {},
       primaryKey: 'id',
       searchableAttr: ['name', 'sync_id'],
       filterableAttr: ['sync_id', 'active'],
@@ -48,8 +51,6 @@ export class SearchService {
       facetAttr: [],
     },
   };
-  private SQL_AND = ' AND ';
-  private attributeValues: Record<string, string> = {};
 
   constructor(
     @InjectRepository(Product)
@@ -62,14 +63,13 @@ export class SearchService {
       host: this.configService.get('MEILISEARCH_HOST'),
       apiKey: this.configService.get('MEILISEARCH_KEY'),
     });
-    this.init();
   }
 
-  async init() {
+  async onApplicationBootstrap() {
     await this.searchProductInit();
   }
 
-  async makeIndex(index: string, primaryKey: string = 'id', lang: string = 'uk') {
+  async makeIndex(index: string, primaryKey = 'id', lang = 'uk') {
     let document: Array<any> = [];
     switch (index) {
       case this.indexesConfig.products.name:
@@ -84,12 +84,7 @@ export class SearchService {
     return this.addDocumentsToIndex(document, index, primaryKey);
   }
 
-  async makePartialIndex(
-    index: string,
-    primaryKey: string = 'id',
-    primaryKeys: string[],
-    lang: string = 'uk',
-    fullReplace: boolean = false) {
+  async makePartialIndex(index: string, primaryKey = 'id', primaryKeys: string[], lang = 'uk', fullReplace = false) {
     let document: Array<any> = [];
     switch (index) {
       case SearchIndexType.Products:
@@ -121,7 +116,7 @@ export class SearchService {
     const filters = await this.getFilters();
     const [products, attrValues] = await Promise.all([
       this.productRepository.query(this.productIndexQuery(lang, filters, productIds)),
-      this.getAttributeValue(productIds)
+      this.getLocalizedSlugMap(productIds)
     ]);
 
     if (attrValues) {
@@ -135,12 +130,12 @@ export class SearchService {
         }
       }
 
-      if (isEmpty(this.attributeValues)) {
-        Object.assign(this.attributeValues, attrValues);
+      if (isEmpty(this.indexesConfig.products.localizedSlugMap)) {
+        Object.assign(this.indexesConfig.products.localizedSlugMap, attrValues);
       } else {
         for (const key of Object.keys(attrValues)) {
-          this.attributeValues[key] = this.attributeValues[key]
-            ? Object.assign(this.attributeValues[key], attrValues[key])
+          this.indexesConfig.products.localizedSlugMap[key] = this.indexesConfig.products.localizedSlugMap[key]
+            ? Object.assign(this.indexesConfig.products.localizedSlugMap[key], attrValues[key])
             : { ...attrValues[key] };
         }
       }
@@ -172,7 +167,7 @@ export class SearchService {
       .search(searchDto.text, searchParams);
   }
 
-  getFacetFilters(index: string = 'products'): string[] {
+  getFacetFilters(index = SearchIndexType.Products): string[] {
     return this.indexesConfig[index].facetAttr;
   }
 
@@ -199,11 +194,7 @@ export class SearchService {
     await index.updateSortableAttributes(indexConfig.sortableAttr);
   }
 
-  private async addDocumentsToIndex(
-    documents: Array<any>,
-    index: string,
-    primaryKey: string
-  ): Promise<any> {
+  private async addDocumentsToIndex(documents: Array<any>, index: string, primaryKey: string): Promise<any> {
     try {
       return this.client.index(index).addDocuments(documents, { primaryKey });
     } catch (error) {
@@ -212,11 +203,7 @@ export class SearchService {
     }
   }
 
-  private async updateDocumentsInIndex(
-    documents: Array<any>,
-    index: string,
-    primaryKey: string
-  ): Promise<any> {
+  private async updateDocumentsInIndex(documents: Array<any>, index: string, primaryKey: string): Promise<any> {
     try {
       return this.client.index(index).updateDocuments(documents, { primaryKey });
     } catch (error) {
@@ -311,6 +298,7 @@ export class SearchService {
   }
 
   private async createFacetFilters(searchDto: SearchDto, searchParams: SearchParams): Promise<FacetSearchFilterDto> {
+    const searchIndex = searchDto.searchIndex ?? SearchIndexType.Products;
     const attributes: Search.Attributes = await this.cacheManager.get(CacheKeys.ProductAttributes);
     const [selectedCheckboxFilters, selectedRangeFilters, privateFilters] = this.extractFacetFilters(searchDto.filter);
     const filterCheckbox = selectedCheckboxFilters.map(f => f.sql).concat(privateFilters).join(this.SQL_AND);
@@ -320,12 +308,12 @@ export class SearchService {
       filterCheckbox,
       filterRange
     ].filter(f => !!f).join(this.SQL_AND);
-    const searchQueriesPromises: Promise<SearchResponse>[] = [this.client.index(this.indexesConfig.products.name).search(searchDto.text, searchParams)];
+    const searchQueriesPromises: Promise<SearchResponse>[] = [this.client.index(searchIndex).search(searchDto.text, searchParams)];
 
     if (selectedCheckboxFilters.length) {
       const filterScope = privateFilters.concat(filterRange).filter(f => !!f).join(this.SQL_AND);
       selectedCheckboxFilters.forEach(filter => {
-        searchQueriesPromises.push(this.client.index(this.indexesConfig.products.name).search(searchDto.text, {
+        searchQueriesPromises.push(this.client.index(searchIndex).search(searchDto.text, {
           limit: 0,
           facets: searchParams.facets,
           filter: selectedCheckboxFilters.length == 1 ? filterScope : `${filter.sql} ${filterScope ? `${this.SQL_AND} ${filterScope}` : ''}`
@@ -335,7 +323,7 @@ export class SearchService {
 
     if (selectedRangeFilters.length) {
       searchQueriesPromises.push(
-        this.client.index(this.indexesConfig.products.name).search(searchDto.text, {
+        this.client.index(searchIndex).search(searchDto.text, {
           limit: 0,
           facets: searchParams.facets,
           filter: filterCheckbox
@@ -420,7 +408,7 @@ export class SearchService {
         this.createFilter(
           searchDto.lang,
           filterAttr,
-          this.createCheckboxFilterValues(mainSearchQuery.facetDistribution[key], filterAttr)
+          this.createCheckboxFilterValues(searchIndex, mainSearchQuery.facetDistribution[key], filterAttr)
         ));
     }
 
@@ -466,10 +454,10 @@ export class SearchService {
     };
   }
 
-  private createCheckboxFilterValues(facetDistribution: CategoriesDistribution, filterAttr: Search.Attribute): Search.FilterCheckBoxValue[] {
+  private createCheckboxFilterValues(searchIndex: SearchIndexType, facetDistribution: CategoriesDistribution, filterAttr: Search.Attribute): Search.FilterCheckBoxValue[] {
     return Object.keys(facetDistribution).map((item) => {
       return {
-        name: this.attributeValues[filterAttr.key][item],
+        name: this.indexesConfig[searchIndex].localizedSlugMap[filterAttr.key][item],
         alias: item,
         count: facetDistribution[item],
       };
@@ -517,7 +505,7 @@ export class SearchService {
 
   private productAttributesIndexQuery(filters: Search.FilterAttr[]): string {
     const slugSQL = (key: string) => `SELECT jsonb_path_query(p.attributes, '$."${key}"[*].slug')`;
-    const slugAggSQL = (unique: boolean = false) => `SELECT jsonb_agg(${unique ? 'DISTINCT' : ''} slug)`;
+    const slugAggSQL = (unique = false) => `SELECT jsonb_agg(${unique ? 'DISTINCT' : ''} slug)`;
     return filters.map(f => {
       if (f.mergeKeys.length) {
         return `,(${slugAggSQL(true)} AS "${f.key}" FROM (${[...f.mergeKeys, f.key].map(key => `${slugSQL(key)} AS slug`).join(' UNION ALL ')})) AS "${f.key}"`;
@@ -531,9 +519,11 @@ export class SearchService {
     }).join('');
   }
 
-  private async getAttributeValue(productIds?: string[]) {
-    const productIdsSQL = productIds ? ` AND id IN(${productIds.join(',')})` : '';
-    const attributeValueSQL = `
+  private async getLocalizedSlugMap(productIds?: string[]): Promise<Record<string, Record<string, string>>> {
+    const useFilter = Array.isArray(productIds) && productIds.length;
+    const productIdsCondition = useFilter ? 'AND p.id = ANY($1)' : '';
+
+    const localizedSlugMapSQL = `
       SELECT jsonb_object_agg(key, value) AS attrs
       FROM (
           SELECT key,
@@ -543,7 +533,7 @@ export class SearchService {
               jsonb_array_elements(val) AS elem
           WHERE jsonb_typeof(val) = 'array'
             AND elem->>'slug' IS NOT NULL
-            AND elem->'name'->>'uk' IS NOT NULL ${productIdsSQL}
+            AND elem->'name'->>'uk' IS NOT NULL ${productIdsCondition}
           GROUP BY key
           UNION ALL
           SELECT key,
@@ -552,11 +542,12 @@ export class SearchService {
               jsonb_each(p.attributes) AS attr(key, val)
           WHERE jsonb_typeof(val) = 'object'
             AND val->>'slug' IS NOT NULL
-            AND val->'name'->>'uk' IS NOT NULL ${productIdsSQL}
+            AND val->'name'->>'uk' IS NOT NULL ${productIdsCondition}
           GROUP BY key
       )`;
 
-    const [{ attrs }] = await this.productRepository.query(attributeValueSQL);
+    const params = useFilter ? productIds : [];
+    const [{ attrs }] = await this.productRepository.query(localizedSlugMapSQL, params);
     return attrs;
   }
 

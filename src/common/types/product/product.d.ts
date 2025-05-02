@@ -1,4 +1,10 @@
 declare namespace Products {
+  export type AttributeType = 'attributes' | 'main' | 'preview';
+
+  export type AttributeKey = 'size' | 'alcohol' | 'package' | 'quantity' | 'manufacturer' | 'primary-packaging' | 'production-form' |
+    'brand-series-line' | 'country-of-origin' | 'prescription' | 'active-substance' | 'dosage' | 'pregnant' | 'quantity-primary-packaging' |
+    'storage-temperature' | 'brand' | 'brand-name';
+
   export type Product = {
     id: number;
     syncId: number;
@@ -45,7 +51,20 @@ declare namespace Products {
     }
   }
 
-  export type AttributeType = 'attributes' | 'main' | 'preview';
+  export type AttributeValueRaw = {
+    id: number | null;
+    color: string | null;
+    icon: string | null;
+    path: string | null;
+    name: {
+      uk: string;
+    };
+    slug: string;
+  }
+
+  export type AttributesRaw = {
+    [key in AttributeKey]: AttributeValueRaw | AttributeValueRaw[]
+  }
 
   export type Attribute = {
     name: string;

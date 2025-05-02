@@ -19,7 +19,7 @@ import { Product } from './entities/product.entity';
 import { ProductService } from './product.service';
 import { CreateProduct } from './dto/create-product.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { UpdateProduct } from './dto/update-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 import { Request } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { OptionalJwtAuthGuard } from 'src/auth/jwt/optional-jwt-auth.guard';
@@ -46,13 +46,13 @@ export class ProductController {
   update(
     @Req() request: Request,
     @Param('id') id: number,
-    @Body() updateProduct: UpdateProduct,
+    @Body() updateProductDto: UpdateProductDto,
   ) {
     const token = request.headers.authorization?.split(' ')[1] ?? '';
 
-    if (updateProduct.name && typeof updateProduct.name === 'string') {
+    if (updateProductDto.name && typeof updateProductDto.name === 'string') {
       try {
-        updateProduct.name = JSON.parse(updateProduct.name);
+        updateProductDto.name = JSON.parse(updateProductDto.name);
       } catch (error) {
         throw new HttpException(
           'Invalid JSON format in "name" property',
@@ -62,11 +62,11 @@ export class ProductController {
     }
 
     if (
-      updateProduct.shortName &&
-      typeof updateProduct.shortName === 'string'
+      updateProductDto.shortName &&
+      typeof updateProductDto.shortName === 'string'
     ) {
       try {
-        updateProduct.shortName = JSON.parse(updateProduct.shortName);
+        updateProductDto.shortName = JSON.parse(updateProductDto.shortName);
       } catch (error) {
         throw new HttpException(
           'Invalid JSON format in "shortName" property',
@@ -75,9 +75,9 @@ export class ProductController {
       }
     }
 
-    if (updateProduct.seoH1 && typeof updateProduct.seoH1 === 'string') {
+    if (updateProductDto.seoH1 && typeof updateProductDto.seoH1 === 'string') {
       try {
-        updateProduct.seoH1 = JSON.parse(updateProduct.seoH1);
+        updateProductDto.seoH1 = JSON.parse(updateProductDto.seoH1);
       } catch (error) {
         throw new HttpException(
           'Invalid JSON format in "seoH1" property',
@@ -86,9 +86,9 @@ export class ProductController {
       }
     }
 
-    if (updateProduct.seoTitle && typeof updateProduct.seoTitle === 'string') {
+    if (updateProductDto.seoTitle && typeof updateProductDto.seoTitle === 'string') {
       try {
-        updateProduct.seoTitle = JSON.parse(updateProduct.seoTitle);
+        updateProductDto.seoTitle = JSON.parse(updateProductDto.seoTitle);
       } catch (error) {
         throw new HttpException(
           'Invalid JSON format in "seoTitle" property',
@@ -98,11 +98,11 @@ export class ProductController {
     }
 
     if (
-      updateProduct.seoDescription &&
-      typeof updateProduct.seoDescription === 'string'
+      updateProductDto.seoDescription &&
+      typeof updateProductDto.seoDescription === 'string'
     ) {
       try {
-        updateProduct.seoDescription = JSON.parse(updateProduct.seoDescription);
+        updateProductDto.seoDescription = JSON.parse(updateProductDto.seoDescription);
       } catch (error) {
         throw new HttpException(
           'Invalid JSON format in "seoDescription" property',
@@ -111,7 +111,7 @@ export class ProductController {
       }
     }
 
-    return this.productService.update(token, id, updateProduct);
+    return this.productService.update(token, id, updateProductDto);
   }
 
   @Delete('/product/:id')

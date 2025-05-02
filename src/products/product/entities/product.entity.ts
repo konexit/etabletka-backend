@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
   ManyToMany,
   JoinTable,
+  Index,
 } from 'typeorm';
 import { ProductRemnant } from 'src/products/remnants/entities/product-remnant.entity';
 import { ProductType } from 'src/products/types/entities/product-type.entity';
@@ -16,6 +17,7 @@ import { Badge } from 'src/products/badge/entities/badge.entity';
 import { Discount } from 'src/promo/discount/entities/discount.entity';
 import { Brand } from 'src/brands/entities/brand.entity';
 import { ProductGroup } from 'src/products/groups/entities/product-group.entity';
+import { Category } from 'src/categories/entities/category.entity';
 
 @Entity({
   name: 'products',
@@ -98,12 +100,12 @@ export class Product {
 
   @Column({ name: 'morion_code', default: 0 })
   morionCode: number;
-
+  
   @Column({ type: 'jsonb', nullable: true })
-  attributes: JSON;
+  attributes: Products.AttributesRaw;
 
   @Column({ name: 'categories', type: 'integer', array: true, default: {} })
-  categories: number[];
+  categories: Category['id'][];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

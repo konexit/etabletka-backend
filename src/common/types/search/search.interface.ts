@@ -4,6 +4,7 @@ export enum SearchIndexType {
 
 export interface SearchIndexConfig {
   name: SearchIndexType;
+  localizedSlugMap: Record<string, Record<string, string>>;
   primaryKey: string;
   searchableAttr: string[];
   filterableAttr: string[];

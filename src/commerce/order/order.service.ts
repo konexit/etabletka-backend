@@ -606,6 +606,8 @@ export class OrderService {
           throw new NotFoundException(`Product with ID ${item.id} not found`);
         }
 
+        const manufacturer = product.attributes['manufacturer'];
+        const manufacturerName = (Array.isArray(manufacturer) ? manufacturer[0]?.name?.uk : manufacturer?.name?.uk) ?? 'unknown';
         const priceAmount = product.price * item.quantity;
         orderAmountSum += priceAmount;
 
@@ -614,9 +616,7 @@ export class OrderService {
             .createCommonBodyListBuilder()
             .setRowId(rowId)
             .setName(product.name['uk'])
-            .setProducer(
-              product.attributes['manufacturer']?.name?.uk || 'unknown',
-            )
+            .setProducer(manufacturerName)
             .setCount(item.quantity)
             .setGoodsId(product.syncId)
             .setPriceInternet(product.price)

@@ -14,7 +14,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Discount } from 'src/promo/discount/entities/discount.entity';
 import { Product } from './entities/product.entity';
 import { CreateProduct } from './dto/create-product.dto';
-import { UpdateProduct } from './dto/update-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 import { Category } from 'src/categories/entities/category.entity';
 import { ProductGroup } from 'src/products/groups/entities/product-group.entity';
 import { ProductRemnant } from 'src/products/remnants/entities/product-remnant.entity';
@@ -57,7 +57,7 @@ export class ProductService {
   async update(
     token: string,
     id: number,
-    updateProduct: UpdateProduct,
+    updateProductDto: UpdateProductDto,
     lang = 'uk',
   ): Promise<Product> {
     if (!token || typeof token !== 'string') {
@@ -69,26 +69,26 @@ export class ProductService {
       throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
     }
 
-    const productBadgeIds = updateProduct.badges;
-    delete updateProduct.badges;
+    const productBadgeIds = updateProductDto.badges;
+    delete updateProductDto.badges;
 
-    const productDiscountIds = updateProduct.discounts;
-    delete updateProduct.discounts;
+    const productDiscountIds = updateProductDto.discounts;
+    delete updateProductDto.discounts;
 
-    const productGroupIds = updateProduct.productGroups;
-    delete updateProduct.productGroups;
+    const productGroupIds = updateProductDto.productGroups;
+    delete updateProductDto.productGroups;
 
-    const productRemnantIds = updateProduct.productRemnants;
-    delete updateProduct.productRemnants;
+    const productRemnantIds = updateProductDto.productRemnants;
+    delete updateProductDto.productRemnants;
 
-    await this.productRepository.update(id, updateProduct);
+    await this.productRepository.update(id, updateProductDto);
     const product = await this.productRepository.findOne({
       where: { id },
       relations: ['badges', 'categories', 'discounts', 'productGroups'],
     });
     if (!product) {
       throw new HttpException(
-        `Can't update product with data: ${updateProduct}`,
+        `Can't update product with data: ${updateProductDto}`,
         HttpStatus.NOT_FOUND,
       );
     }
