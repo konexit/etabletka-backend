@@ -42,7 +42,7 @@ export class CategoriesService {
           const formatMenu = await this.formatMenu();
           return formatMenu.map((category) => new ResponseCategoryDto(category, 'uk'));
         case 'menu-root':
-          const formatMenuRoot = await this.formatMenuRoot();
+          const formatMenuRoot = await this.findByRoot();
           return formatMenuRoot.map((category) => new ResponseCategoryDto(category, 'uk'));
       }
     }
@@ -103,7 +103,10 @@ export class CategoriesService {
 
   private async findByRoot(): Promise<Category[]> {
     return this.categoryRepository.find({
-      where: { root: true, active: true },
+      where: {
+        root: true,
+        active: true
+      },
       order: {
         position: 'ASC',
       },
@@ -182,17 +185,6 @@ export class CategoriesService {
     );
 
     return categoryMenu;
-  }
-
-  private async formatMenuRoot() {
-    const resultMenu: Category[] = [];
-    const rootCategories: Category[] = await this.findByRoot();
-
-    for (let i = 0; i < rootCategories.length; i++) {
-      resultMenu.push(rootCategories[i]);
-    }
-
-    return resultMenu;
   }
 
   private getCategoryTree(
