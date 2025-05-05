@@ -1,5 +1,5 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { HttpException, HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
 import { LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'typeorm';
@@ -8,10 +8,14 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
 import { CacheKeys } from 'src/settings/refresh/refresh-keys';
+import { ResponseCategoryDto } from './dto/response-category.dto';
+import { FilterCategoryDto } from './dto/filter-category.dto';
 
 @Injectable()
 export class CategoriesService {
   private readonly logger = new Logger(CategoriesService.name);
+  private cacheMenuTTL = 60_000;
+
   constructor(
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
@@ -19,65 +23,55 @@ export class CategoriesService {
     private cacheManager: Cache,
   ) { }
 
-  private cacheMenuTTL = 60000;
-
-  create(createCategoryDto: CreateCategoryDto) {
+  createCategory(createCategoryDto: CreateCategoryDto) {
     return 'This action adds a new category';
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
+  patchCategory(id: number, updateCategoryDto: UpdateCategoryDto) {
     return `This action updates a #${id} category`;
   }
 
-  remove(id: number) {
+  removeCategory(id: number) {
     return `This action removes a #${id} category`;
   }
 
-  async formatMenu(depth: number = 3) {
-    const cacheCategoryMenu: ReturnType<typeof this.buildMenuTree> = await this.cacheManager.get(CacheKeys.Categories);
-
-    if (cacheCategoryMenu) return cacheCategoryMenu;
-
-    const categories = await this.categoryRepository.find({
-      where: { active: true },
-      order: {
-        position: 'ASC',
-      },
-    });
-
-    const categoryMenu = this.buildMenuTree(categories, depth);
-
-    await this.cacheManager.set(
-      CacheKeys.Categories,
-      categoryMenu,
-      this.cacheMenuTTL,
-    );
-
-    return categoryMenu;
-  }
-
-  async formatMenuRoot() {
-    const resultMenu: Category[] = [];
-    const rootCategories: Category[] = await this.findByRoot();
-
-    for (let i = 0; i < rootCategories.length; i++) {
-      resultMenu.push(rootCategories[i]);
+  async findAll(format: string) {
+    if (format) {
+      switch (format) {
+        case 'menu':
+          const formatMenu = await this.formatMenu();
+          return formatMenu.map((category) => new ResponseCategoryDto(category, 'uk'));
+        case 'menu-root':
+          const formatMenuRoot = await this.formatMenuRoot();
+          return formatMenuRoot.map((category) => new ResponseCategoryDto(category, 'uk'));
+      }
     }
 
-    return resultMenu;
+    return this.categoryRepository.find();
   }
 
-  async findAll() {
-    return await this.categoryRepository.find();
+  async getCategoryById(id: number, depth: number, lang: string): Promise<ResponseCategoryDto> {
+    const category = await this.findById(id, depth ?? 3);
+
+    if (!category) {
+      throw new NotFoundException();
+    }
+
+    return new ResponseCategoryDto(category, lang ?? 'uk');
   }
 
-  async findByRoot(): Promise<Category[]> {
-    return await this.categoryRepository.find({
-      where: { root: true, active: true },
-      order: {
-        position: 'ASC',
-      },
-    });
+  async findByFilter(filterCategoryDto: FilterCategoryDto): Promise<any> {
+    if (filterCategoryDto.root) {
+      return this.findByRoot();
+    } else if (filterCategoryDto.parent_id) {
+      return this.findByParentId(filterCategoryDto.parent_id);
+    } else if (filterCategoryDto.slug) {
+      return this.findBySlug(filterCategoryDto.slug);
+    } else if (filterCategoryDto.path) {
+      return this.findByPath(filterCategoryDto.path);
+    }
+
+    throw new NotFoundException('Filter not supported');
   }
 
   async findById(id: number, depth: number = 3) {
@@ -103,12 +97,26 @@ export class CategoriesService {
     };
   }
 
-  async findByParentId(id: number): Promise<Category[]> {
+  async cacheReset() {
+    this.cacheManager.set(CacheKeys.Categories, null);
+  }
+
+  private async findByRoot(): Promise<Category[]> {
+    return this.categoryRepository.find({
+      where: { root: true, active: true },
+      order: {
+        position: 'ASC',
+      },
+    });
+  }
+
+  private async findByParentId(id: number): Promise<Category[]> {
     const { lft, rgt } = await this.categoryRepository.findOne({
       where: { id },
       select: ['lft', 'rgt'],
     });
-    return await this.categoryRepository.find({
+
+    return this.categoryRepository.find({
       where: {
         active: true,
         lft: MoreThanOrEqual(lft),
@@ -120,14 +128,11 @@ export class CategoriesService {
     });
   }
 
-  async findBySlug(slug: string): Promise<any> {
-    return await this.categoryRepository.findOneBy({ slug, active: true });
+  private async findBySlug(slug: string): Promise<Category> {
+    return this.categoryRepository.findOneBy({ slug, active: true });
   }
 
-  async findByPath(path: string): Promise<{
-    formatCategory: Category;
-    idMap: Map<number, Category>;
-  }> {
+  private async findByPath(path: string): Promise<{ formatCategory: Category; idMap: Map<number, Category>; }> {
     const idMap: Map<number, Category> = new Map();
     const category = await this.categoryRepository.findOneBy({
       path,
@@ -154,8 +159,40 @@ export class CategoriesService {
     return { formatCategory: category, idMap };
   }
 
-  async cacheReset() {
-    this.cacheManager.set(CacheKeys.Categories, null);
+  private async formatMenu(depth: number = 3) {
+    const cacheCategoryMenu: ReturnType<typeof this.buildMenuTree> = await this.cacheManager.get(CacheKeys.Categories);
+
+    if (cacheCategoryMenu) return cacheCategoryMenu;
+
+    const categories = await this.categoryRepository.find({
+      where: {
+        active: true
+      },
+      order: {
+        position: 'ASC',
+      },
+    });
+
+    const categoryMenu = this.buildMenuTree(categories, depth);
+
+    await this.cacheManager.set(
+      CacheKeys.Categories,
+      categoryMenu,
+      this.cacheMenuTTL,
+    );
+
+    return categoryMenu;
+  }
+
+  private async formatMenuRoot() {
+    const resultMenu: Category[] = [];
+    const rootCategories: Category[] = await this.findByRoot();
+
+    for (let i = 0; i < rootCategories.length; i++) {
+      resultMenu.push(rootCategories[i]);
+    }
+
+    return resultMenu;
   }
 
   private getCategoryTree(

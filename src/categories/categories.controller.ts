@@ -1,12 +1,11 @@
 import {
-  BadRequestException,
   Body,
   ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -14,96 +13,58 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from '../auth/auth.guard';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { ResponseCategoryDto } from './dto/response-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
+import { FilterCategoryDto } from './dto/filter-category.dto';
 
 @ApiTags('categories')
 @Controller('api/v1')
 @UseInterceptors(ClassSerializerInterceptor)
 export class CategoriesController {
-  constructor(private readonly categoriesService: CategoriesService) {}
+  constructor(private readonly categoriesService: CategoriesService) { }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('/categories')
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoriesService.create(createCategoryDto);
+  createCategory(@Body() createCategoryDto: CreateCategoryDto) {
+    return this.categoriesService.createCategory(createCategoryDto);
   }
 
   @Get('/categories')
-  async findAll(@Query('format') format: string) {
-    if (format) {
-      switch (format) {
-        case 'menu':
-          return (await this.categoriesService.formatMenu()).map(
-            (category) => new ResponseCategoryDto(category, 'uk'),
-          );
-        case 'menu-root':
-          return (await this.categoriesService.formatMenuRoot()).map(
-            (category) => new ResponseCategoryDto(category, 'uk'),
-          );
-      }
-    }
-    return await this.categoriesService.findAll();
+  async findAll(@Query('format') format?: string) {
+    return this.categoriesService.findAll(format);
   }
 
   @Get('/categories/filter')
   @UseInterceptors(ClassSerializerInterceptor)
-  async findByFilter(
-    @Query('root') root: boolean,
-    @Query('parent_id') parentId: number,
-    @Query('id') id: number,
-    @Query('slug') slug: string,
-    @Query('path') path: string,
-  ) {
-    if (root) {
-      return await this.categoriesService.findByRoot();
-    } else if (parentId) {
-      return await this.categoriesService.findByParentId(parentId);
-    } else if (slug) {
-      return await this.categoriesService.findBySlug(slug);
-    } else if (path) {
-      return await this.categoriesService.findByPath(path);
-    }
+  async findByFilter(@Query() filterCategoryDto: FilterCategoryDto): Promise<any> {
+    return this.categoriesService.findByFilter(filterCategoryDto);
   }
 
   @Get('/categories/:id')
   @UseInterceptors(ClassSerializerInterceptor)
   async getCategoryById(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
+    @Query('depth', new ParseIntPipe({ optional: true })) depth: number,
     @Query('lang') lang: string,
-    @Query('depth') depth: string,
-  ) {
-    const parsedId = parseInt(id);
-
-    if (isNaN(parsedId)) {
-      throw new BadRequestException();
-    }
-
-    const category = await this.categoriesService.findById(
-      parsedId,
-      parseInt(depth),
-    );
-
-    if (!category) throw new NotFoundException();
-
-    return new ResponseCategoryDto(category, lang);
+  ): Promise<ResponseCategoryDto> {
+    return this.categoriesService.getCategoryById(id, depth, lang);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch('/categories/:id')
-  update(
-    @Param('id') id: string,
+  patchCategory(
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateCategoryDto: UpdateCategoryDto,
   ) {
-    return this.categoriesService.update(+id, updateCategoryDto);
+    return this.categoriesService.patchCategory(id, updateCategoryDto);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete('/categories/:id')
-  remove(@Param('id') id: string) {
-    return this.categoriesService.remove(+id);
+  removeCategory(@Param('id', ParseIntPipe) id: number) {
+    return this.categoriesService.removeCategory(id);
   }
 }

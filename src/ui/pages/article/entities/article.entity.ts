@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
-import { LangContent } from 'src/common/types/common/general';
+import { LangContent } from 'src/common/types/common/general.interface';
 import { Tag } from './tag.entity';
 
 @Entity({

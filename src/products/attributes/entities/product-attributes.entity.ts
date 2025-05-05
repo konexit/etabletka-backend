@@ -1,4 +1,4 @@
-import { LangContent } from 'src/common/types/common/general';
+import { LangContent } from 'src/common/types/common/general.interface';
 import {
   SearchFilterUIType,
   SearchIndexDataSource,
