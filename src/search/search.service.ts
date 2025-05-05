@@ -233,12 +233,15 @@ export class SearchService implements OnApplicationBootstrap {
     });
   }
 
-  /**
-   * Extracts and processes facet filters from the provided input.
-   * 
-   * @param filters An array of `SearchFacetFilter` to be processed.
-   * @returns Processed filters in a structured format.
-   */
+/**
+ * Extracts and categorizes facet filters into checkbox, range, and private filters.
+ *
+ * @param filters - Array of raw facet filter inputs.
+ * @returns A tuple:
+ *   - [0] Selected checkbox filters
+ *   - [1] Selected range filters
+ *   - [2] Private filters as SQL strings
+ */
   private extractFacetFilters(filters: SearchFacetFilters): [SearchSelectedCheckboxFilters[], SearchSelectedRangeFilters[], SearchPrivateFilters] {
     const result: [
       SearchSelectedCheckboxFilters[],
