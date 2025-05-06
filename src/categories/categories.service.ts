@@ -8,7 +8,15 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
 import { CacheKeys } from 'src/settings/refresh/refresh-keys';
 import { FilterCategoryDto } from './dto/filter-category.dto';
-import { Categories, CategoryMenuRoot, CategoryNav, CategoryNavNode, DefaultDepth } from './categories.interface';
+import {
+  Categories,
+  CategoryFilter,
+  CategoryMenu,
+  CategoryMenuRoot,
+  CategoryNav,
+  CategoryNavNode,
+  DefaultDepth
+} from './categories.interface';
 
 @Injectable()
 export class CategoriesService {
@@ -39,14 +47,14 @@ export class CategoriesService {
   }
 
   async findAll(format: string, lang = 'uk'): Promise<Categories> {
-    if (format) {
-      switch (format) {
-        case 'menu-root':
-          return this.formatMenuRoot(await this.findByRoot(), lang);
-      }
+    switch (format) {
+      case 'menu':
+        return this.formatMenu(this.defaultDepth.navRoot, lang);
+      case 'menu-root':
+        return this.formatMenuRoot(lang);
+      default:
+        return this.categoryRepository.find();
     }
-
-    return this.categoryRepository.find();
   }
 
   async getNavCategory(id: number, depth: number, lang = 'uk'): Promise<CategoryNav> {
@@ -92,7 +100,7 @@ export class CategoriesService {
     } as CategoryNav;
   }
 
-  async findByFilter(filterCategoryDto: FilterCategoryDto): Promise<any> {
+  async findByFilter(filterCategoryDto: FilterCategoryDto): Promise<CategoryFilter> {
     if (filterCategoryDto.root) {
       return this.findByRoot();
     } else if (filterCategoryDto.parent_id) {
@@ -190,12 +198,76 @@ export class CategoriesService {
     return buildTree(rootId, 1);
   }
 
-  private formatMenuRoot(categories: Category[], lang: string): CategoryMenuRoot[] {
+  private async formatMenuRoot(lang: string): Promise<CategoryMenuRoot[]> {
+    const categories = await this.categoryRepository.find({
+      select: ['id', 'name', 'icon', 'slug'],
+      where: {
+        root: true,
+        active: true
+      },
+      order: {
+        position: 'ASC',
+      },
+    });
+
     return categories.map((c) => ({
       id: c.id,
       name: c.name[lang],
       icon: c.icon,
       slug: c.slug,
     }));
+  }
+
+  private async formatMenu(depthLimit: number, lang: string): Promise<CategoryMenu[]> {
+    const map = new Map<number, CategoryMenu>();
+    const parentMap = new Map<number, number[]>();
+    const rootIds: number[] = [];
+
+    const categories = await this.categoryRepository.find({
+      select: ['id', 'parentId', 'root', 'name', 'icon', 'slug', 'image'],
+      where: {
+        active: true,
+      },
+      order: {
+        position: 'ASC',
+      },
+    });
+
+    for (const row of categories) {
+      const node: CategoryMenu = {
+        id: row.id,
+        name: row.name?.[lang] || '',
+        slug: row.slug,
+        image: row.image || '',
+        children: [],
+      };
+
+      map.set(row.id, node);
+
+      if (row.root) {
+        rootIds.push(row.id);
+      }
+
+      const parentId = row.parentId;
+      if (parentId !== null && parentId !== undefined) {
+        if (!parentMap.has(parentId)) {
+          parentMap.set(parentId, []);
+        }
+        parentMap.get(parentId)!.push(row.id);
+      }
+    }
+
+    function buildTree(parentId: Category['id'], currentDepth: number): CategoryMenu {
+      const node = map.get(parentId)!;
+      if (currentDepth >= depthLimit) {
+        return node;
+      }
+
+      const childIds = parentMap.get(parentId) || [];
+      node.children = childIds.map((childId) => buildTree(childId, currentDepth + 1));
+      return node;
+    }
+
+    return rootIds.map((rootId) => buildTree(rootId, 1));;
   }
 }

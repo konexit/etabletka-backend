@@ -34,12 +34,22 @@ export interface CategoryMenuRoot {
 	slug: string;
 }
 
+export interface CategoryMenu {
+	id: Category['id'];
+	name: Category['name'];
+	slug: string;
+	image: string;
+	children: CategoryMenu[];
+}
+
 export type CategoryNav = RootCategoryNav | NonRootCategoryNav;
 
-export type Categories = Category[] | CategoryMenuRoot[];
+export type Categories = Category[] | CategoryMenuRoot[] | CategoryMenu[];
 
 export type DefaultDepth = {
 	nav: number;
 	navRoot: number;
 };
+
+export type CategoryFilter = Category | Category[];
 

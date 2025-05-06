@@ -18,7 +18,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { FilterCategoryDto } from './dto/filter-category.dto';
-import { Categories, CategoryNav } from './categories.interface';
+import { Categories, CategoryFilter, CategoryNav } from './categories.interface';
 
 @ApiTags('categories')
 @Controller('api/v1')
@@ -39,7 +39,7 @@ export class CategoriesController {
 
   @Get('/categories/filter')
   @UseInterceptors(ClassSerializerInterceptor)
-  async findByFilter(@Query() filterCategoryDto: FilterCategoryDto): Promise<any> {
+  async findByFilter(@Query() filterCategoryDto: FilterCategoryDto): Promise<CategoryFilter> {
     return this.categoriesService.findByFilter(filterCategoryDto);
   }
 
