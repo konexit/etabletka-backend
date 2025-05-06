@@ -37,3 +37,9 @@ export interface CategoryMenuRoot {
 export type CategoryNav = RootCategoryNav | NonRootCategoryNav;
 
 export type Categories = Category[] | CategoryMenuRoot[];
+
+export type DefaultDepth = {
+	nav: number;
+	navRoot: number;
+};
+

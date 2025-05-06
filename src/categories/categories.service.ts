@@ -8,12 +8,16 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
 import { CacheKeys } from 'src/settings/refresh/refresh-keys';
 import { FilterCategoryDto } from './dto/filter-category.dto';
-import { Categories, CategoryMenuRoot, CategoryNav, CategoryNavNode } from './categories.interface';
+import { Categories, CategoryMenuRoot, CategoryNav, CategoryNavNode, DefaultDepth } from './categories.interface';
 
 @Injectable()
 export class CategoriesService {
   private readonly logger = new Logger(CategoriesService.name);
   private cacheMenuTTL = 60_000;
+  private defaultDepth: DefaultDepth = {
+    nav: 1,
+    navRoot: 3
+  };
 
   constructor(
     @InjectRepository(Category)
@@ -55,6 +59,7 @@ export class CategoriesService {
       throw new NotFoundException();
     }
 
+
     const categoryBreadcrumbs = await this.categoryRepository.find({
       select: ['id', 'name', 'slug'],
       where: { id: In(category.path), active: true },
@@ -70,7 +75,9 @@ export class CategoriesService {
       },
     });
 
-    const children = this.getCategoryTree<typeof category.root>(category.root, category.id, categoryChildren, depth);
+    const defaultDepth = category.root ? this.defaultDepth.navRoot : this.defaultDepth.nav;
+
+    const children = this.getCategoryTree<typeof category.root>(category.root, category.id, categoryChildren, depth ?? defaultDepth);
 
     const breadcrumbs = categoryBreadcrumbs.map(b => ({
       name: b.name[lang],
