@@ -6,7 +6,7 @@ import {
   UpdateDateColumn
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Breadcrumbs, LangContent } from 'src/common/types/common/general.interface';
+import { LangContent } from 'src/common/types/common/general.interface';
 @Entity({
   name: 'categories',
 })
@@ -80,9 +80,6 @@ export class Category {
   @Column({ name: 'show_menu', default: true })
   @Exclude()
   showMenu: boolean;
-
-  @Column({ name: 'breadcrumbs', type: 'jsonb', nullable: true })
-  breadcrumbs: Breadcrumbs;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   @Exclude()
