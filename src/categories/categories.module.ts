@@ -11,7 +11,3 @@ import { Category } from './entities/category.entity';
   exports: [CategoriesService, CategoriesModule],
 })
 export class CategoriesModule {}
-
-export type CategoryNode = Category & {
-  children: CategoryNode[];
-};

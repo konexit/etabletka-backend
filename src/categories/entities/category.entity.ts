@@ -6,7 +6,7 @@ import {
   UpdateDateColumn
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Breadcrumbs } from 'src/common/types/common/general.interface';
+import { Breadcrumbs, LangContent } from 'src/common/types/common/general.interface';
 @Entity({
   name: 'categories',
 })
@@ -29,14 +29,14 @@ export class Category {
   productCount: number;
 
   @Column({ type: 'jsonb', nullable: true })
-  name: JSON;
+  name: LangContent;
 
   @Column({ name: 'name_short', type: 'jsonb', nullable: true })
   @Exclude()
-  nameShort: JSON;
+  nameShort: LangContent;
 
-  @Column({ nullable: true })
-  path: string;
+  @Column({ type: 'integer', array: true, default: {} })
+  path: Category['id'][];
 
   @Column({ nullable: true })
   slug: string;

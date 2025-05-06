@@ -1,15 +1,14 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { HttpException, HttpStatus, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
-import { LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'typeorm';
-import { CategoryNode } from './categories.module';
+import { In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
 import { CacheKeys } from 'src/settings/refresh/refresh-keys';
-import { ResponseCategoryDto } from './dto/response-category.dto';
 import { FilterCategoryDto } from './dto/filter-category.dto';
+import { Categories, CategoryMenuRoot, CategoryNav, CategoryNavNode } from './categories.interface';
 
 @Injectable()
 export class CategoriesService {
@@ -35,29 +34,55 @@ export class CategoriesService {
     return `This action removes a #${id} category`;
   }
 
-  async findAll(format: string) {
+  async findAll(format: string, lang = 'uk'): Promise<Categories> {
     if (format) {
       switch (format) {
-        case 'menu':
-          const formatMenu = await this.formatMenu();
-          return formatMenu.map((category) => new ResponseCategoryDto(category, 'uk'));
         case 'menu-root':
-          const formatMenuRoot = await this.findByRoot();
-          return formatMenuRoot.map((category) => new ResponseCategoryDto(category, 'uk'));
+          return this.formatMenuRoot(await this.findByRoot(), lang);
       }
     }
 
     return this.categoryRepository.find();
   }
 
-  async getCategoryById(id: number, depth: number, lang: string): Promise<ResponseCategoryDto> {
-    const category = await this.findById(id, depth ?? 3);
+  async getNavCategory(id: number, depth: number, lang = 'uk'): Promise<CategoryNav> {
+    const category = await this.categoryRepository.findOne({
+      select: ['id', 'name', 'slug', 'root', 'path', 'lft', 'rgt'],
+      where: { id, active: true },
+    });
 
     if (!category) {
       throw new NotFoundException();
     }
 
-    return new ResponseCategoryDto(category, lang ?? 'uk');
+    const categoryBreadcrumbs = await this.categoryRepository.find({
+      select: ['id', 'name', 'slug'],
+      where: { id: In(category.path), active: true },
+      order: { lft: 'ASC' },
+    });
+
+    const categoryChildren = await this.categoryRepository.find({
+      select: ['id', 'name', 'slug', 'parentId', ...(category.root ? ['icon', 'image'] as (keyof Category)[] : [])],
+      where: {
+        active: true,
+        lft: MoreThanOrEqual(category.lft),
+        rgt: LessThanOrEqual(category.rgt),
+      },
+    });
+
+    const children = this.getCategoryTree<typeof category.root>(category.root, category.id, categoryChildren, depth);
+
+    const breadcrumbs = categoryBreadcrumbs.map(b => ({
+      name: b.name[lang],
+      index: true,
+      path: `/category/${b.slug}-${b.id}`,
+    }));
+
+    return {
+      root: category.root,
+      breadcrumbs,
+      children,
+    } as CategoryNav;
   }
 
   async findByFilter(filterCategoryDto: FilterCategoryDto): Promise<any> {
@@ -67,34 +92,9 @@ export class CategoriesService {
       return this.findByParentId(filterCategoryDto.parent_id);
     } else if (filterCategoryDto.slug) {
       return this.findBySlug(filterCategoryDto.slug);
-    } else if (filterCategoryDto.path) {
-      return this.findByPath(filterCategoryDto.path);
     }
 
     throw new NotFoundException('Filter not supported');
-  }
-
-  async findById(id: number, depth: number = 3) {
-    const category = await this.categoryRepository.findOneBy({
-      id,
-      active: true,
-    });
-
-    if (!category) {
-      return null;
-    }
-
-    const categories = await this.categoryRepository.find({
-      where: {
-        active: true,
-        id: Not(category.id),
-      },
-    });
-
-    return {
-      ...category,
-      children: this.getCategoryTree(category.id, categories, depth),
-    };
   }
 
   async cacheReset() {
@@ -103,6 +103,7 @@ export class CategoriesService {
 
   private async findByRoot(): Promise<Category[]> {
     return this.categoryRepository.find({
+      select: ['id', 'name', 'icon', 'slug'],
       where: {
         root: true,
         active: true
@@ -135,130 +136,59 @@ export class CategoriesService {
     return this.categoryRepository.findOneBy({ slug, active: true });
   }
 
-  private async findByPath(path: string): Promise<{ formatCategory: Category; idMap: Map<number, Category>; }> {
-    const idMap: Map<number, Category> = new Map();
-    const category = await this.categoryRepository.findOneBy({
-      path,
-      active: true,
-    });
-
-    if (!category) {
-      throw new HttpException('Category not found', HttpStatus.BAD_REQUEST);
-    }
-
-    const categories = await this.categoryRepository.find({
-      where: {
-        lft: MoreThanOrEqual(category.lft),
-        rgt: LessThanOrEqual(category.rgt),
-        active: true,
-        id: Not(category.id),
-      },
-    });
-
-    for (let i = 0; i < categories.length; i++) {
-      idMap.set(categories[i].id, categories[i]);
-    }
-
-    return { formatCategory: category, idMap };
-  }
-
-  private async formatMenu(depth: number = 3) {
-    const cacheCategoryMenu: ReturnType<typeof this.buildMenuTree> = await this.cacheManager.get(CacheKeys.Categories);
-
-    if (cacheCategoryMenu) return cacheCategoryMenu;
-
-    const categories = await this.categoryRepository.find({
-      where: {
-        active: true
-      },
-      order: {
-        position: 'ASC',
-      },
-    });
-
-    const categoryMenu = this.buildMenuTree(categories, depth);
-
-    await this.cacheManager.set(
-      CacheKeys.Categories,
-      categoryMenu,
-      this.cacheMenuTTL,
-    );
-
-    return categoryMenu;
-  }
-
-  private getCategoryTree(
-    categoryId: Category['id'],
-    categories: CategoryNode[] | Category[],
+  private getCategoryTree<IsRoot extends boolean>(
+    isRoot: IsRoot,
+    rootId: Category['id'],
+    rows: Category[],
     depthLimit: number,
-    depth: number = 1,
-  ): CategoryNode[] {
-    if (depth > depthLimit) {
-      return [];
+    lang = 'uk'
+  ): CategoryNavNode<IsRoot>[] {
+    const map = new Map<number, CategoryNavNode<IsRoot>>();
+    const parentMap = new Map<number | null, number[]>();
+
+    for (const row of rows) {
+      const node = {
+        id: row.id,
+        name: row.name?.[lang] || '',
+        slug: row.slug,
+        ...(isRoot && {
+          icon: row.icon || '',
+          image: row.image || '',
+        }),
+        children: [],
+      } as CategoryNavNode<IsRoot>;
+
+      map.set(row.id, node);
+
+      const parentId = row.parentId ?? null;
+      if (!parentMap.has(parentId)) {
+        parentMap.set(parentId, []);
+      }
+      parentMap.get(parentId)!.push(row.id);
     }
 
-    const filteredCategories = categories.filter(
-      (node) => node.parentId === categoryId,
-    ) as CategoryNode[];
+    function buildTree(parentId: Category['id'], currentDepth: number): CategoryNavNode<IsRoot>[] {
+      if (currentDepth > depthLimit) {
+        return [];
+      }
 
-    return filteredCategories.map((node) => {
-      const children = this.getCategoryTree(
-        node.id,
-        categories,
-        depthLimit,
-        depth + 1,
-      );
+      const childIds = parentMap.get(parentId) || [];
+      return childIds.map((id) => {
+        const node = map.get(id)!;
+        node.children = buildTree(id, currentDepth + 1);
+        return node;
+      });
+    }
 
-      node.children = children.length > 0 ? children : [];
-
-      return node;
-    });
+    return buildTree(rootId, 1);
   }
 
-  private buildMenuTree(
-    categories: Category[],
-    depth: number,
-    fromCategory: Category = null,
-  ) {
-    const idMap: Map<number, CategoryNode & { depth: number }> = new Map();
-    const rootNodes: CategoryNode[] = [];
-
-    for (let i = 0; i < categories.length; i++) {
-      idMap.set(
-        categories[i].id,
-        Object.assign({}, categories[i], {
-          depth: 1,
-          children: [],
-        }),
-      );
-    }
-
-    for (let i = 0; i < categories.length; i++) {
-      const category = categories[i];
-      const node = idMap.get(category.id);
-      if (
-        fromCategory &&
-        !fromCategory.root &&
-        category.id === fromCategory.id
-      ) {
-        category.parentId = null;
-      }
-
-      if (category.parentId) {
-        const parentNode = idMap.get(category.parentId);
-
-        if (parentNode) {
-          node.depth = parentNode.depth + 1;
-
-          if (node.depth > depth) continue;
-
-          parentNode.children.push(node);
-        }
-      } else {
-        rootNodes.push(node);
-      }
-    }
-
-    return rootNodes;
+  private formatMenuRoot(categories: Category[], lang: string): CategoryMenuRoot[] {
+    return categories.map((c) => ({
+      id: c.id,
+      name: c.name[lang],
+      icon: c.icon,
+      slug: c.slug,
+    }));
   }
 }

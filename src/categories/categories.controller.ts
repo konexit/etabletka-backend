@@ -15,10 +15,10 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
-import { ResponseCategoryDto } from './dto/response-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { FilterCategoryDto } from './dto/filter-category.dto';
+import { Categories, CategoryNav } from './categories.interface';
 
 @ApiTags('categories')
 @Controller('api/v1')
@@ -33,7 +33,7 @@ export class CategoriesController {
   }
 
   @Get('/categories')
-  async findAll(@Query('format') format?: string) {
+  async findAll(@Query('format') format?: string): Promise<Categories> {
     return this.categoriesService.findAll(format);
   }
 
@@ -45,12 +45,12 @@ export class CategoriesController {
 
   @Get('/categories/:id')
   @UseInterceptors(ClassSerializerInterceptor)
-  async getCategoryById(
+  async getNavCategory(
     @Param('id', ParseIntPipe) id: number,
     @Query('depth', new ParseIntPipe({ optional: true })) depth: number,
     @Query('lang') lang: string,
-  ): Promise<ResponseCategoryDto> {
-    return this.categoriesService.getCategoryById(id, depth, lang);
+  ): Promise<CategoryNav> {
+    return this.categoriesService.getNavCategory(id, depth, lang);
   }
 
   @UseGuards(JwtAuthGuard)

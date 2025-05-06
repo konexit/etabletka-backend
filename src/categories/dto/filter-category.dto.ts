@@ -21,9 +21,4 @@ export class FilterCategoryDto {
 	@IsString()
 	@Type(() => String)
 	readonly slug?: string;
-
-	@IsOptional()
-	@IsString()
-	@Type(() => String)
-	readonly path?: string;
 }

@@ -4,7 +4,7 @@ export interface LangContent {
 
 export interface Breadcrumb {
 	name: string;
-	url: string;
+	path: string;
 	index: boolean;
 }
 
