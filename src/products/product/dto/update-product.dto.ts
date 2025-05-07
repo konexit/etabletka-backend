@@ -1,4 +1,6 @@
-import { IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsOptional, ValidateNested } from 'class-validator';
+import { LangContentDto } from 'src/common/dto/lang.dto';
 
 export class UpdateProductDto {
   @IsOptional()
@@ -11,10 +13,14 @@ export class UpdateProductDto {
   brandId: number;
 
   @IsOptional()
-  name: JSON;
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  name: LangContentDto;
 
   @IsOptional()
-  shortName: JSON;
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  shortName: LangContentDto;
 
   @IsOptional()
   atc: string;

@@ -1,10 +1,13 @@
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsNumber,
   IsJSON,
   IsString,
   IsBoolean,
+  ValidateNested,
 } from 'class-validator';
+import { LangContentDto } from 'src/common/dto/lang.dto';
 
 export class CreateProduct {
   @IsNumber()
@@ -17,13 +20,15 @@ export class CreateProduct {
   @IsNumber()
   brandId: number;
 
-  @IsJSON()
   @IsNotEmpty()
-  name: JSON;
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  name: LangContentDto;
 
-  @IsJSON()
   @IsNotEmpty()
-  shortName: JSON;
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  shortName: LangContentDto;
 
   @IsString()
   atc: string;

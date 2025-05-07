@@ -32,6 +32,7 @@ import { Order } from './entities/order.entity';
 import { CheckoutDto } from './dto/checkout.dto';
 import { CancelDto } from './dto/cancel.dto';
 import { OrderStatusDescription } from './entities/order-statuses-description.entity';
+import { UserIdGuard } from 'src/common/guards/user-id.guard';
 
 @ApiTags('order')
 @Controller('api/v1/order')
@@ -60,15 +61,11 @@ export class OrderController {
   }
 
   @Get('/')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, UserIdGuard)
   getOrders(
     @JWTPayload() jwtPayload: JwtPayload,
     @Query() pagination?: PaginationDto,
   ) {
-    if (!jwtPayload.userId) {
-      throw new HttpException('User access denied', HttpStatus.FORBIDDEN);
-    }
-
     return this.orderService.getOrders(jwtPayload.userId, pagination);
   }
 
@@ -80,29 +77,21 @@ export class OrderController {
   }
 
   @Get('/:orderId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, UserIdGuard)
   getOrder(
     @Param('orderId', ParseIntPipe) orderId: Order['id'],
     @JWTPayload() jwtPayload: JwtPayload,
   ) {
-    if (!jwtPayload.userId) {
-      throw new HttpException('User access denied', HttpStatus.FORBIDDEN);
-    }
-
     return this.orderService.getOrder(jwtPayload.userId, orderId);
   }
 
   @Get('/:orderId/statuses')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, UserIdGuard)
   getOrderStatuses(
     @Param('orderId', ParseIntPipe) orderId: Order['id'],
     @JWTPayload() jwtPayload: JwtPayload,
     @Query() pagination?: PaginationDto,
   ) {
-    if (!jwtPayload.userId) {
-      throw new HttpException('User access denied', HttpStatus.FORBIDDEN);
-    }
-
     return this.orderService.getOrderStatuses(
       jwtPayload.userId,
       orderId,

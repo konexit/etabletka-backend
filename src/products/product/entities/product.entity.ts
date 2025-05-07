@@ -18,6 +18,7 @@ import { Discount } from 'src/promo/discount/entities/discount.entity';
 import { Brand } from 'src/brands/entities/brand.entity';
 import { ProductGroup } from 'src/products/groups/entities/product-group.entity';
 import { Category } from 'src/categories/entities/category.entity';
+import { LangContent } from 'src/common/types/common/general.interface';
 
 @Entity({
   name: 'products',
@@ -36,10 +37,10 @@ export class Product {
   brandId: number;
 
   @Column({ type: 'jsonb' })
-  name: JSON;
+  name: LangContent;
 
   @Column({ name: 'short_name', type: 'jsonb' })
-  shortName: JSON;
+  shortName: LangContent;
 
   @Column({ nullable: true })
   atc: string;
@@ -100,7 +101,7 @@ export class Product {
 
   @Column({ name: 'morion_code', default: 0 })
   morionCode: number;
-  
+
   @Column({ type: 'jsonb', nullable: true })
   attributes: Products.AttributesRaw;
 

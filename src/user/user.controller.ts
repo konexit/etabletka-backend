@@ -27,7 +27,7 @@ import { JWTPayload } from 'src/common/decorators/jwt-payload';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { OptionalJwtAuthGuard } from 'src/auth/jwt/optional-jwt-auth.guard';
 import { UserProfile } from './entities/user-profile.entity';
-import { UserIdGuard } from 'src/common/guards/user-id.guard';
+import { UserIdParamGuard } from 'src/common/guards/user-id-param.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GetByUserIdsDto } from './dto/get-by-user-ids.dto';
@@ -99,7 +99,7 @@ export class UserController {
     return this.userService.getProfilesByUserIds(getByUserIdsDto.ids, jwtPayload);
   }
 
-  @UseGuards(JwtAuthGuard, UserIdGuard)
+  @UseGuards(JwtAuthGuard, UserIdParamGuard)
   @Get('/user/profile/:userId')
   async getProfileByUserId(
     @Param('userId', ParseIntPipe) userId: number,
@@ -107,7 +107,7 @@ export class UserController {
     return this.userService.getProfileByUserId(userId);
   }
 
-  @UseGuards(JwtAuthGuard, UserIdGuard)
+  @UseGuards(JwtAuthGuard, UserIdParamGuard)
   @Post('/user/profile/avatar/:userId')
   @UseInterceptors(FileInterceptor('file'))
   async uploadAvatarProfileByUserId(
@@ -117,7 +117,7 @@ export class UserController {
     return this.userService.uploadAvatar(userId, file);
   }
 
-  @UseGuards(JwtAuthGuard, UserIdGuard)
+  @UseGuards(JwtAuthGuard, UserIdParamGuard)
   @Delete('/user/profile/avatar/:userId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteAvatarProfileByUserId(
@@ -126,7 +126,7 @@ export class UserController {
     return this.userService.deleteAvatar(userId);
   }
 
-  @UseGuards(JwtAuthGuard, UserIdGuard)
+  @UseGuards(JwtAuthGuard, UserIdParamGuard)
   @Patch('/user/profile/:userId')
   async patchProfileByUserId(
     @Param('userId', ParseIntPipe) userId: number,
@@ -136,7 +136,7 @@ export class UserController {
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
-  @UseGuards(JwtAuthGuard, UserIdGuard)
+  @UseGuards(JwtAuthGuard, UserIdParamGuard)
   @Get('/user/:userId')
   async getUserById(
     @Param('userId', ParseIntPipe) userId: number,
