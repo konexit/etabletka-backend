@@ -44,7 +44,6 @@ import {
   SearchIndexDataSource,
   SearchIndexType
 } from 'src/common/types/search/search.enum';
-import { Category } from 'src/categories/entities/category.entity';
 import { CategoriesService } from 'src/categories/categories.service';
 
 // Documentation:  https://www.npmjs.com/package/meilisearch

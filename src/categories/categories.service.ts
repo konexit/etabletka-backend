@@ -118,7 +118,7 @@ export class CategoriesService {
 
   async getCategoryChildrenId(id: Category['id']): Promise<Category['id'][]> {
     const { lft, rgt } = await this.categoryRepository.findOneOrFail({
-      where: { id: 553 },
+      where: { id },
       select: ['lft', 'rgt'],
     });
 
