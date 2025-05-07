@@ -27,6 +27,10 @@ export class SearchDto {
 
   @IsOptional()
   @IsNumber()
+  categoryId?: number;
+
+  @IsOptional()
+  @IsNumber()
   limit?: number;
 
   @IsOptional()

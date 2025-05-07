@@ -116,6 +116,23 @@ export class CategoriesService {
     this.cacheManager.set(CacheKeys.Categories, null);
   }
 
+  async getCategoryChildrenId(id: Category['id']): Promise<Category['id'][]> {
+    const { lft, rgt } = await this.categoryRepository.findOneOrFail({
+      where: { id: 553 },
+      select: ['lft', 'rgt'],
+    });
+
+    const children = await this.categoryRepository.find({
+      where: {
+        lft: MoreThanOrEqual(lft),
+        rgt: LessThanOrEqual(rgt),
+      },
+      select: ['id'],
+    });
+
+    return children.map(c => c.id);
+  }
+
   private async findByRoot(): Promise<Category[]> {
     return this.categoryRepository.find({
       select: ['id', 'name', 'icon', 'slug'],

@@ -44,6 +44,8 @@ import {
   SearchIndexDataSource,
   SearchIndexType
 } from 'src/common/types/search/search.enum';
+import { Category } from 'src/categories/entities/category.entity';
+import { CategoriesService } from 'src/categories/categories.service';
 
 // Documentation:  https://www.npmjs.com/package/meilisearch
 @Injectable()
@@ -66,6 +68,7 @@ export class SearchService implements OnApplicationBootstrap {
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    private categoryService: CategoriesService,
     private configService: ConfigService,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
@@ -233,15 +236,15 @@ export class SearchService implements OnApplicationBootstrap {
     });
   }
 
-/**
- * Extracts and categorizes facet filters into checkbox, range, and private filters.
- *
- * @param filters - Array of raw facet filter inputs.
- * @returns A tuple:
- *   - [0] Selected checkbox filters
- *   - [1] Selected range filters
- *   - [2] Private filters as SQL strings
- */
+  /**
+   * Extracts and categorizes facet filters into checkbox, range, and private filters.
+   *
+   * @param filters - Array of raw facet filter inputs.
+   * @returns A tuple:
+   *   - [0] Selected checkbox filters
+   *   - [1] Selected range filters
+   *   - [2] Private filters as SQL strings
+   */
   private extractFacetFilters(filters: SearchFacetFilters): [SearchSelectedCheckboxFilters[], SearchSelectedRangeFilters[], SearchPrivateFilters] {
     const result: [
       SearchSelectedCheckboxFilters[],
@@ -324,9 +327,7 @@ export class SearchService implements OnApplicationBootstrap {
 
   private async createFacetFilters(searchDto: SearchDto, searchParams: SearchParams): Promise<FacetSearchFilterDto> {
     const searchIndex = searchDto.searchIndex ?? SearchIndexType.Products;
-    const filterActive = searchDto.active !== null && searchDto.active !== undefined
-      ? `active = ${searchDto.active}`
-      : '';
+    const transitFilters = await this.transitFilters(searchDto);
 
     const attributes: SearchAttributes = await this.cacheManager.get(CacheKeys.ProductAttributes);
     const [selectedCheckboxFilters, selectedRangeFilters, privateFilters] = this.extractFacetFilters(searchDto.filters);
@@ -335,7 +336,7 @@ export class SearchService implements OnApplicationBootstrap {
     const filterRange = selectedRangeFilters.map(f => f.sql).join(this.SQL_AND);
 
     // Combine all filters: active, checkbox, and range
-    searchParams.filter = [filterActive, filterCheckbox, filterRange].filter(f => !!f).join(this.SQL_AND);
+    searchParams.filter = [...transitFilters, filterCheckbox, filterRange].filter(f => !!f).join(this.SQL_AND);
 
     // Main search query
     const searchQueriesPromises: Promise<SearchResponse>[] = [
@@ -344,7 +345,7 @@ export class SearchService implements OnApplicationBootstrap {
 
     // Facet queries for checkbox filters
     if (selectedCheckboxFilters.length) {
-      const filterScope = [filterActive, ...privateFilters, filterRange].filter(f => !!f).join(this.SQL_AND);
+      const filterScope = [...transitFilters, ...privateFilters, filterRange].filter(f => !!f).join(this.SQL_AND);
       selectedCheckboxFilters.forEach(filter => {
         const checkboxFilter = selectedCheckboxFilters.length === 1
           ? filterScope
@@ -360,7 +361,7 @@ export class SearchService implements OnApplicationBootstrap {
 
     // Facet queries for range filters
     if (selectedRangeFilters.length) {
-      const rangeFilter = [filterActive, filterCheckbox].filter(f => !!f).join(this.SQL_AND);
+      const rangeFilter = [...transitFilters, filterCheckbox].filter(f => !!f).join(this.SQL_AND);
       searchQueriesPromises.push(
         this.client.index(searchIndex).search(searchDto.text, {
           limit: 0,
@@ -600,5 +601,20 @@ export class SearchService implements OnApplicationBootstrap {
     );
     await this.createIndexIfNotExists(this.indexesConfig.products);
     await this.makeIndex(this.indexesConfig.products.name);
+  }
+
+  private async transitFilters(searchDto: SearchDto): Promise<string[]> {
+    const filters: string[] = [];
+
+    if (typeof searchDto.active === 'boolean') {
+      filters.push(`active = ${searchDto.active}`);
+    }
+
+    if (typeof searchDto.categoryId === 'number') {
+      const children = await this.categoryService.getCategoryChildrenId(searchDto.categoryId);
+      filters.push(`_categories IN [${children.join(',')}]`)
+    }
+
+    return filters;
   }
 }
