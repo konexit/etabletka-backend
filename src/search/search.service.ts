@@ -531,7 +531,11 @@ export class SearchService implements OnApplicationBootstrap {
                 id,
                 sync_id,
                 name->>'${lang}' AS name,
-                attributes #>> '{manufacturer,name,${lang}}' AS "manufacturerName",
+                COALESCE(
+                  attributes #>> '{manufacturer,name,${lang}}',
+                  attributes #>> '{brand-name,name,${lang}}',
+                  attributes #>> '{brand,name,${lang}}'
+                ) AS "manufacturerName",
                 active,
                 images,
                 slug,
