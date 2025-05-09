@@ -1,15 +1,24 @@
+import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
+import { LangContentDto } from 'src/common/dto/lang.dto';
+import { ProductGroup } from '../entities/product-group.entity';
 
-export class UpdateProductGroup {
+export class UpdateProductGroupDto {
   @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  name: LangContentDto;
+
+  @IsOptional()
   @IsString()
-  name: string;
+  slug: string;
 
   @IsOptional()
   @IsBoolean()
@@ -17,8 +26,5 @@ export class UpdateProductGroup {
 
   @IsOptional()
   @IsNumber()
-  parentId: number;
-
-  @IsOptional()
-  products: [];
+  parentId: ProductGroup['id'];
 }

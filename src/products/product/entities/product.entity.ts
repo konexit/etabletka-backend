@@ -9,7 +9,6 @@ import {
   UpdateDateColumn,
   ManyToMany,
   JoinTable,
-  Index,
 } from 'typeorm';
 import { ProductRemnant } from 'src/products/remnants/entities/product-remnant.entity';
 import { ProductType } from 'src/products/types/entities/product-type.entity';
@@ -108,6 +107,9 @@ export class Product {
   @Column({ name: 'categories', type: 'integer', array: true, default: {} })
   categories: Category['id'][];
 
+  @Column({ name: 'product_groups', type: 'integer', array: true, default: {} })
+  productGroups: ProductGroup['id'][];
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
@@ -132,8 +134,4 @@ export class Product {
   @ManyToMany(() => Discount)
   @JoinTable({ name: 'products_discounts' })
   discounts: Discount[];
-
-  @ManyToMany(() => ProductGroup)
-  @JoinTable({ name: 'products_groups' })
-  productGroups: ProductGroup[];
 }

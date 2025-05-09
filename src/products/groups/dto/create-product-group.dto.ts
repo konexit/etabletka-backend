@@ -1,27 +1,30 @@
 import {
+  IsBoolean,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
+import { ProductGroup } from '../entities/product-group.entity';
+import { LangContentDto } from 'src/common/dto/lang.dto';
+import { Type } from 'class-transformer';
 
-export class CreateProductGroup {
+export class CreateProductGroupDto {
   @IsNotEmpty()
-  @IsString()
-  name: string;
+  @ValidateNested()
+  @Type(() => LangContentDto)
+  name: LangContentDto;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   slug: string;
 
   @IsOptional()
-  @IsString()
+  @IsBoolean()
   root: boolean;
 
   @IsOptional()
-  @IsString()
-  parentId: number;
-
-  @IsOptional()
-  @IsString()
-  products: [];
+  @IsNumber()
+  parentId: ProductGroup['id'];
 }

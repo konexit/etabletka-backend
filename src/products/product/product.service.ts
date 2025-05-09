@@ -20,7 +20,7 @@ import { ProductGroup } from 'src/products/groups/entities/product-group.entity'
 import { ProductRemnant } from 'src/products/remnants/entities/product-remnant.entity';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { USER_ROLE_JWT_ADMIN } from 'src/user/user.constants';
-import { Comment, CommentType } from 'src/comment/entities/comment.entity';
+import { Comment } from 'src/comment/entities/comment.entity';
 
 @Injectable()
 export class ProductService {
@@ -43,7 +43,7 @@ export class ProductService {
     private cacheManager: Cache,
     private jwtService: JwtService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   cacheSalesProductsKey = 'salesProducts';
   cacheProductsTTL = 7200000; // 2Hour
@@ -84,7 +84,7 @@ export class ProductService {
     await this.productRepository.update(id, updateProductDto);
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: ['badges', 'categories', 'discounts', 'productGroups'],
+      relations: ['badges', 'categories', 'discounts'],
     });
     if (!product) {
       throw new HttpException(
@@ -119,20 +119,6 @@ export class ProductService {
       }
     } else {
       product.discounts = [];
-    }
-
-    if (productGroupIds) {
-      if (!Array.isArray(productGroupIds)) {
-        const ids: Array<number> = String(productGroupIds)
-          .split(',')
-          .map(Number);
-
-        product.productGroups = await this.addProductGroups(ids);
-      } else {
-        product.productGroups = await this.addProductGroups(productGroupIds);
-      }
-    } else {
-      product.productGroups = [];
     }
 
     if (productRemnantIds) {

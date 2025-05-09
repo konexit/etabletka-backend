@@ -19,6 +19,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { FilterCategoryDto } from './dto/filter-category.dto';
 import { Categories, CategoryFilter, CategoryNav } from './categories.interface';
+import { Category } from './entities/category.entity';
 
 @ApiTags('categories')
 @Controller('api/v1')
@@ -27,7 +28,7 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) { }
 
   @UseGuards(JwtAuthGuard)
-  @Post('/categories')
+  @Post('/category')
   createCategory(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.createCategory(createCategoryDto);
   }
@@ -54,17 +55,17 @@ export class CategoriesController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('/categories/:id')
+  @Patch('/category/:id')
   patchCategory(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: Category['id'],
     @Body() updateCategoryDto: UpdateCategoryDto,
   ) {
     return this.categoriesService.patchCategory(id, updateCategoryDto);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete('/categories/:id')
-  removeCategory(@Param('id', ParseIntPipe) id: number) {
+  @Delete('/category/:id')
+  removeCategory(@Param('id', ParseIntPipe) id: Category['id']) {
     return this.categoriesService.removeCategory(id);
   }
 }

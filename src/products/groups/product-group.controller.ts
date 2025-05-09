@@ -6,86 +6,52 @@ import {
   Param,
   Patch,
   Post,
-  Req,
+  ParseIntPipe,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import slugify from 'slugify';
 import { ProductGroupService } from './product-group.service';
-import { CreateProductGroup } from './dto/create-product-group.dto';
-import { Request } from 'express';
-import { UpdateProductGroup } from './dto/update-product-group.dto';
+import { CreateProductGroupDto } from './dto/create-product-group.dto';
+import { UpdateProductGroupDto } from './dto/update-product-group.dto';
 import { ProductGroup } from './entities/product-group.entity';
 import { ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { USER_ROLE_JWT_ADMIN } from 'src/user/user.constants';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { ProductGroupPage } from './product-group.interface';
 
 @ApiTags('product-groups')
 @Controller('api/v1')
 export class ProductGroupController {
-  constructor(private readonly productGroupService: ProductGroupService) {}
+  constructor(private readonly productGroupService: ProductGroupService) { }
 
-  @UseGuards(AuthGuard)
-  @Post('/product-group/create')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(USER_ROLE_JWT_ADMIN)
+  @Post('/product-group')
   @UseInterceptors(ClassSerializerInterceptor)
-  async create(
-    @Req() request: Request,
-    @Body() createProductGroup: CreateProductGroup,
-  ) {
-    console.log('CreateProductGroup', createProductGroup);
-    const token = request.headers.authorization?.split(' ')[1] ?? '';
-
-    if (!createProductGroup.slug)
-      createProductGroup.slug = slugify(createProductGroup.name);
-
-    if (!createProductGroup.slug)
-      createProductGroup.slug = slugify(createProductGroup.name);
-
-    if (
-      createProductGroup.parentId &&
-      typeof createProductGroup.parentId === 'string'
-    )
-      createProductGroup.parentId = +createProductGroup.parentId;
-
-    if (createProductGroup.root && typeof createProductGroup.root === 'string')
-      createProductGroup.root = createProductGroup.root === 'true';
-
-    return await this.productGroupService.create(token, createProductGroup);
+  async createProductGroup(@Body() createProductGroupDto: CreateProductGroupDto): Promise<ProductGroup> {
+    return this.productGroupService.createProductGroup(createProductGroupDto);
   }
 
-  @UseGuards(AuthGuard)
-  @Patch('/product-group/update/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(USER_ROLE_JWT_ADMIN)
+  @Patch('/product-group/:id')
   @UseInterceptors(ClassSerializerInterceptor)
-  async update(
-    @Req() request: Request,
-    @Param('id') id: number,
-    @Body() updateProductGroup: UpdateProductGroup,
-  ) {
-    try {
-      const token = request.headers.authorization?.split(' ')[1] ?? '';
-
-      if (
-        updateProductGroup.root &&
-        typeof updateProductGroup.root === 'string'
-      )
-        updateProductGroup.root = updateProductGroup.root === 'true';
-
-      return await this.productGroupService.update(
-        token,
-        +id,
-        updateProductGroup,
-      );
-    } catch (error) {
-      throw error;
-    }
+  async patchProductGroup(
+    @Param('id', ParseIntPipe) id: ProductGroup['id'],
+    @Body() updateProductGroupDto: UpdateProductGroupDto,
+  ): Promise<ProductGroup> {
+    return this.productGroupService.patchProductGroup(id, updateProductGroupDto)
   }
 
   @Get('/product-groups')
-  async getProductGroups() {
-    return await this.productGroupService.getProductGroups();
+  async findAll(): Promise<ProductGroup[]> {
+    return this.productGroupService.findAll();
   }
 
-  @Get('/product-group/:id')
-  async getProductGroupById(@Param('id') id: number): Promise<ProductGroup> {
-    return await this.productGroupService.getProductGroupById(+id);
+  @Get('/product-groups/:slug')
+  async getProductGroupBySlug(@Param('slug') slug: ProductGroup['slug']): Promise<ProductGroupPage> {
+    return this.productGroupService.getProductGroupBySlug(slug);
   }
 }

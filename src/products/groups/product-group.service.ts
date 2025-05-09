@@ -1,158 +1,67 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductGroup } from './entities/product-group.entity';
-import { In, Repository } from 'typeorm';
-import { JwtService } from '@nestjs/jwt';
-import { CreateProductGroup } from './dto/create-product-group.dto';
-import { UpdateProductGroup } from './dto/update-product-group.dto';
-import { Product } from '../product/entities/product.entity';
+import { Repository } from 'typeorm';
+import { CreateProductGroupDto } from './dto/create-product-group.dto';
+import { UpdateProductGroupDto } from './dto/update-product-group.dto';
+import { ProductGroupPage } from './product-group.interface';
 
 @Injectable()
 export class ProductGroupService {
   constructor(
     @InjectRepository(ProductGroup)
-    private productGroupRepository: Repository<ProductGroup>,
-    @InjectRepository(Product)
-    private productRepository: Repository<Product>,
-    private jwtService: JwtService,
-  ) {}
+    private productGroupRepository: Repository<ProductGroup>
+  ) { }
 
-  async addProducts(ids: Array<number>) {
-    return await this.productRepository.find({
-      where: { syncId: In(ids) },
-    });
-  }
-
-  async create(token: string, createProductGroup: CreateProductGroup) {
-    if (!token || typeof token !== 'string') {
-      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
-    }
-
-    const payload = await this.jwtService.decode(token);
-    if (payload?.roleId !== 1) {
-      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
-    }
-
-    const productGroup: ProductGroup =
-      this.productGroupRepository.create(createProductGroup);
-    if (!productGroup) {
+  async createProductGroup(createProductGroupDto: CreateProductGroupDto): Promise<ProductGroup> {
+    const newProductGroup = this.productGroupRepository.create(createProductGroupDto);
+    if (!newProductGroup) {
       throw new HttpException(
-        `Can't create product group with data: ${createProductGroup}`,
+        `Can't create product group with data: ${createProductGroupDto}`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    if (createProductGroup.products) {
-      const ids: Array<number> = String(createProductGroup.products)
-        .split(',')
-        .map(Number);
-
-      productGroup.products = await this.addProducts(ids);
-    }
-
-    const productGroupUpd: ProductGroup =
-      await this.productGroupRepository.save(productGroup);
-    return await this.productGroupRepository.findOne({
-      where: { id: productGroupUpd.id },
-      relations: ['products'],
-    });
+    return this.productGroupRepository.save(newProductGroup);
   }
 
-  async update(
-    token: string,
-    id: number,
-    updateProductGroup: UpdateProductGroup,
-  ) {
-    if (!token || typeof token !== 'string') {
-      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
-    }
+  async patchProductGroup(id: ProductGroup['id'], updateProductGroupDto: UpdateProductGroupDto): Promise<ProductGroup> {
+    await this.productGroupRepository.update(id, updateProductGroupDto);
 
-    const payload = await this.jwtService.decode(token);
-    if (payload?.roleId !== 1) {
-      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
-    }
-
-    const productIds = updateProductGroup.products;
-    delete updateProductGroup['products'];
-
-    await this.productGroupRepository.update(id, updateProductGroup);
-    const productGroup: ProductGroup =
-      await this.productGroupRepository.findOne({
-        where: { id },
-        relations: ['products'],
-      });
+    const productGroup: ProductGroup = await this.productGroupRepository.findOne({ where: { id } });
     if (!productGroup) {
-      throw new HttpException(
-        `Can't update product group with data: ${updateProductGroup}`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new HttpException(`Can't update product groups`, HttpStatus.BAD_REQUEST);
     }
 
-    if (productIds) {
-      if (!Array.isArray(productIds)) {
-        const ids: Array<number> = String(productIds).split(',').map(Number);
-
-        console.log('ProductIds', ids);
-        productGroup.products = await this.addProducts(ids);
-      } else {
-        productGroup.products = await this.addProducts(productIds);
-      }
-    } else {
-      productGroup.products = [];
-    }
-
-    const productGroupUpd: ProductGroup =
-      await this.productGroupRepository.save(productGroup);
-
-    return await this.productGroupRepository.findOne({
-      where: { id: productGroupUpd.id },
-      relations: ['products'],
-    });
+    return productGroup;
   }
 
-  async delete(token: string, id: number) {
-    if (!token || typeof token !== 'string') {
-      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
-    }
+  async findAll(): Promise<ProductGroup[]> {
+    const productGroups = await this.productGroupRepository.find({ order: { id: 'ASC' } });
 
-    const payload = await this.jwtService.decode(token);
-    if (payload?.roleId !== 1) {
-      throw new HttpException('You have not permissions', HttpStatus.FORBIDDEN);
-    }
-
-    const productGroup: ProductGroup =
-      await this.productGroupRepository.findOneBy({
-        id,
-      });
-    if (!productGroup) {
-      throw new HttpException(
-        `Can't find product group with ID: ${id}`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    //TODO: delete ? all if it's a root and remove products from this group
-  }
-
-  async getProductGroups() {
-    const productGroups = await this.productGroupRepository.find({
-      order: { id: 'ASC' },
-      relations: ['products'],
-    });
-
-    if (!productGroups) return [];
+    if (!productGroups)
+      throw new HttpException('Product groups not found', HttpStatus.NOT_FOUND);
 
     return productGroups;
   }
 
-  async getProductGroupById(id) {
+  async getProductGroupBySlug(slug: ProductGroup['slug'], lang = 'uk'): Promise<ProductGroupPage> {
     const productGroup = await this.productGroupRepository.findOne({
-      where: { id },
-      relations: ['products'],
+      select: ['id', 'name', 'slug'],
+      where: { slug }
     });
+
     if (!productGroup) {
       throw new HttpException('Can`t get product group', HttpStatus.NOT_FOUND);
     }
-    return productGroup;
+
+    return {
+      breadcrumbs: [],
+      content: {
+        id: productGroup.id,
+        name: productGroup.name[lang],
+        slug: productGroup.slug
+      }
+    };
   }
 }
