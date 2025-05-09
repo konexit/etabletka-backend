@@ -17,6 +17,7 @@ import {
   CategoryNavNode,
   DefaultDepth
 } from './categories.interface';
+import { Breadcrumbs } from 'src/common/types/common/general.interface';
 
 @Injectable()
 export class CategoriesService {
@@ -131,6 +132,27 @@ export class CategoriesService {
     });
 
     return children.map(c => c.id);
+  }
+
+  async getCategoryBreadcrumbs(ids: Category['id'][], lang = 'uk', index = true): Promise<Breadcrumbs> {
+    const categories = await this.categoryRepository.find({
+      select: ['id', 'name', 'slug'],
+      where: {
+        active: true,
+        id: In(ids)
+      },
+      order: {
+        lft: 'ASC',
+      },
+    });
+
+    const breadcrumbs = categories.map(c => ({
+      name: c.name[lang],
+      index,
+      path: `category/${c.slug}-${c.id}`
+    }));
+
+    return breadcrumbs;
   }
 
   private async findByRoot(): Promise<Category[]> {

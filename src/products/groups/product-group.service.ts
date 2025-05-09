@@ -5,12 +5,15 @@ import { Repository } from 'typeorm';
 import { CreateProductGroupDto } from './dto/create-product-group.dto';
 import { UpdateProductGroupDto } from './dto/update-product-group.dto';
 import { ProductGroupPage } from './product-group.interface';
+import { Breadcrumbs } from 'src/common/types/common/general.interface';
+import { CategoriesService } from 'src/categories/categories.service';
 
 @Injectable()
 export class ProductGroupService {
   constructor(
     @InjectRepository(ProductGroup)
-    private productGroupRepository: Repository<ProductGroup>
+    private productGroupRepository: Repository<ProductGroup>,
+    private categoryService: CategoriesService
   ) { }
 
   async createProductGroup(createProductGroupDto: CreateProductGroupDto): Promise<ProductGroup> {
@@ -47,21 +50,49 @@ export class ProductGroupService {
 
   async getProductGroupBySlug(slug: ProductGroup['slug'], lang = 'uk'): Promise<ProductGroupPage> {
     const productGroup = await this.productGroupRepository.findOne({
-      select: ['id', 'name', 'slug'],
-      where: { slug }
+      select: ['id', 'parentId', 'name', 'slug', 'breadcrumbsCategory'],
+      where: { slug },
     });
 
     if (!productGroup) {
       throw new HttpException('Can`t get product group', HttpStatus.NOT_FOUND);
     }
 
+    const breadcrumbs: Breadcrumbs = [];
+
+    if (productGroup.breadcrumbsCategory?.length) {
+      const categoryBreadcrumbs = await this.categoryService.getCategoryBreadcrumbs(productGroup.breadcrumbsCategory);
+      breadcrumbs.push(...categoryBreadcrumbs);
+    }
+
+    breadcrumbs.push({
+      name: productGroup.name[lang] || productGroup.name['uk'],
+      index: true,
+      path: `brand/${productGroup.slug}`,
+    });
+
+    if (productGroup.parentId) {
+      const parent = await this.productGroupRepository.findOne({
+        select: ['name', 'slug'],
+        where: { id: productGroup.parentId },
+      });
+
+      if (parent) {
+        breadcrumbs.push({
+          name: parent.name[lang] || parent.name['uk'],
+          index: true,
+          path: `brand/${productGroup.slug}/${parent.slug}`,
+        });
+      }
+    }
+
     return {
-      breadcrumbs: [],
+      breadcrumbs,
       content: {
         id: productGroup.id,
-        name: productGroup.name[lang],
-        slug: productGroup.slug
-      }
-    };
+        name: productGroup.name[lang] || productGroup.name['uk'],
+        slug: productGroup.slug,
+      },
+    }
   }
 }
