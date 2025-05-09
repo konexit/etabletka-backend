@@ -30,6 +30,10 @@ export class SearchDto {
   categoryId?: number;
 
   @IsOptional()
+  @IsString()
+  productGroupSlug?: string;
+
+  @IsOptional()
   @IsNumber()
   limit?: number;
 

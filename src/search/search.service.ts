@@ -58,7 +58,7 @@ export class SearchService implements OnApplicationBootstrap {
       localizedSlugMap: {},
       primaryKey: 'id',
       searchableAttr: ['name', 'sync_id'],
-      filterableAttr: ['sync_id', 'active'],
+      filterableAttr: ['sync_id', 'active', 'product-groups'],
       sortableAttr: ['name', 'price', 'rating'],
       facetAttr: [],
     },
@@ -531,6 +531,14 @@ export class SearchService implements OnApplicationBootstrap {
                 id,
                 sync_id,
                 name->>'${lang}' AS name,
+                jsonb_path_query_array(
+                  jsonb_build_array(
+                    to_jsonb(attributes #>> '{brand-name,slug}'),
+                    to_jsonb(attributes #>> '{brand,slug}'),
+                    to_jsonb(attributes #>> '{brand-series-line,slug}')
+                  ),
+                  '$[*] ? (@ != null)'
+                ) AS "product-groups",
                 COALESCE(
                   attributes #>> '{manufacturer,name,${lang}}',
                   attributes #>> '{brand-name,name,${lang}}',
@@ -615,7 +623,9 @@ export class SearchService implements OnApplicationBootstrap {
 
     if (typeof searchDto.categoryId === 'number') {
       const children = await this.categoryService.getCategoryChildrenId(searchDto.categoryId);
-      filters.push(`_categories IN [${children.join(',')}]`)
+      filters.push(`categories IN [${children.join(',')}]`)
+    } else if (typeof searchDto.productGroupSlug === 'string') {
+      filters.push(`product-groups = '${searchDto.productGroupSlug}'`)
     }
 
     return filters;

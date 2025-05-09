@@ -75,9 +75,6 @@ export class ProductService {
     const productDiscountIds = updateProductDto.discounts;
     delete updateProductDto.discounts;
 
-    const productGroupIds = updateProductDto.productGroups;
-    delete updateProductDto.productGroups;
-
     const productRemnantIds = updateProductDto.productRemnants;
     delete updateProductDto.productRemnants;
 
@@ -215,7 +212,6 @@ export class ProductService {
       .leftJoinAndSelect('product.discounts', 'discount')
       .leftJoinAndSelect('product.badges', 'badges')
       .leftJoinAndSelect('product.productRemnants', 'productRemnants')
-      .leftJoinAndSelect('product.productGroups', 'productGroups')
       .where('product.isActive = :isActive', { isActive: true })
       .andWhere('categories.id = :categoryId', { categoryId: categoryId })
       .getMany();
@@ -243,7 +239,6 @@ export class ProductService {
       const products = await this.productRepository.find({
         where: { isActive: true },
         relations: [
-          'productGroups',
           'productRemnants',
           'productRemnants.store',
           'productType',
@@ -264,7 +259,6 @@ export class ProductService {
       return await this.productRepository.find({
         where: { isActive: true },
         relations: [
-          'productGroups',
           'productRemnants',
           'productRemnants.store',
           'productType',
@@ -356,7 +350,6 @@ export class ProductService {
     const product = await this.productRepository.findOne({
       where: isAdmin ? { id } : { id, isActive: true },
       relations: [
-        'productGroups',
         'productRemnants',
         'productRemnants.store',
         'productType',
@@ -402,7 +395,6 @@ export class ProductService {
     const products = await this.productRepository.find({
       where: { id: In(productIds), isActive: true },
       relations: [
-        'productGroups',
         'productRemnants',
         'productRemnants.store',
         'productType',
@@ -449,7 +441,6 @@ export class ProductService {
         isActive: true,
       },
       relations: [
-        'productGroups',
         'productRemnants',
         'productRemnants.store',
         'productType',
