@@ -31,6 +31,7 @@ export class CommentService {
         const comment = entityManager.create(Comment, {
           ...createCommentDto,
           userId,
+          approved: true
         });
 
         await entityManager.save(Comment, comment);
@@ -133,6 +134,7 @@ export class CommentService {
           ...createAnswerDto,
           commentId,
           userId,
+          approved: true
         });
 
         await entityManager.save(Answer, answer);
