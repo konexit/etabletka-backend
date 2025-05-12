@@ -68,7 +68,7 @@ export class ProductGroupService {
     breadcrumbs.push({
       name: productGroup.name[lang] || productGroup.name['uk'],
       index: true,
-      path: `brand/${productGroup.slug}`,
+      path: `/brand/${productGroup.slug}`,
     });
 
     if (productGroup.parentId) {
@@ -81,7 +81,7 @@ export class ProductGroupService {
         breadcrumbs.push({
           name: parent.name[lang] || parent.name['uk'],
           index: true,
-          path: `brand/${productGroup.slug}/${parent.slug}`,
+          path: `/brand/${productGroup.slug}/${parent.slug}`,
         });
       }
     }

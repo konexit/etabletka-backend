@@ -149,7 +149,7 @@ export class CategoriesService {
     const breadcrumbs = categories.map(c => ({
       name: c.name[lang],
       index,
-      path: `category/${c.slug}-${c.id}`
+      path: `/category/${c.slug}-${c.id}`
     }));
 
     return breadcrumbs;
