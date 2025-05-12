@@ -573,33 +573,33 @@ export class SearchService implements OnApplicationBootstrap {
 
   private async getLocalizedSlugMap(productIds?: string[]): Promise<Record<string, Record<string, string>>> {
     const useFilter = Array.isArray(productIds) && productIds.length;
-    const productIdsCondition = useFilter ? 'AND p.id = ANY($1)' : '';
+    const productIdsCondition = useFilter ? 'WHERE p.id = ANY($1)' : '';
 
     const localizedSlugMapSQL = `
       SELECT jsonb_object_agg(key, value) AS attrs
       FROM (
-          SELECT key,
-                jsonb_object_agg(elem->>'slug', elem->'name'->>'uk') AS value
-          FROM products p,
-              jsonb_each(p.attributes) AS attr(key, val),
-              jsonb_array_elements(val) AS elem
-          WHERE jsonb_typeof(val) = 'array'
-            AND elem->>'slug' IS NOT NULL
-            AND elem->'name'->>'uk' IS NOT NULL ${productIdsCondition}
-          GROUP BY key
-          UNION ALL
-          SELECT key,
-                jsonb_object_agg(val->>'slug', val->'name'->>'uk') AS value
-          FROM products p,
-              jsonb_each(p.attributes) AS attr(key, val)
-          WHERE jsonb_typeof(val) = 'object'
-            AND val->>'slug' IS NOT NULL
-            AND val->'name'->>'uk' IS NOT NULL ${productIdsCondition}
-          GROUP BY key
+        SELECT
+          attr.key,
+          jsonb_object_agg(data.elem->>'slug', data.elem->'name'->>'uk') AS value
+        FROM products p,
+            jsonb_each(p.attributes) AS attr(key, val),
+            LATERAL (
+              SELECT elem
+              FROM jsonb_array_elements(
+                jsonb_path_query_array(
+                  CASE
+                    WHEN jsonb_typeof(val) = 'array' THEN val
+                    ELSE jsonb_build_array(val)
+                  END,
+                  '$[*] ? (@.slug != null && @.name.uk != null)'
+                )
+              ) AS elems(elem)
+            ) AS data
+        ${productIdsCondition}
+        GROUP BY attr.key
       )`;
 
-    const params = useFilter ? productIds : [];
-    const [{ attrs }] = await this.productRepository.query(localizedSlugMapSQL, params);
+    const [{ attrs }] = await this.productRepository.query(localizedSlugMapSQL, useFilter ? [productIds] : []);
     return attrs;
   }
 
