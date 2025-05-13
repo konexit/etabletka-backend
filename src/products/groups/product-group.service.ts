@@ -55,7 +55,7 @@ export class ProductGroupService {
     });
 
     if (!productGroup) {
-      throw new HttpException('Can`t get product group', HttpStatus.NOT_FOUND);
+      throw new HttpException('Can\'t get product group', HttpStatus.NOT_FOUND);
     }
 
     const breadcrumbs: Breadcrumbs = [];
@@ -64,12 +64,6 @@ export class ProductGroupService {
       const categoryBreadcrumbs = await this.categoryService.getCategoryBreadcrumbs(productGroup.breadcrumbsCategory);
       breadcrumbs.push(...categoryBreadcrumbs);
     }
-
-    breadcrumbs.push({
-      name: productGroup.name[lang] || productGroup.name['uk'],
-      index: true,
-      path: `/brand/${productGroup.slug}`,
-    });
 
     if (productGroup.parentId) {
       const parent = await this.productGroupRepository.findOne({
@@ -81,10 +75,16 @@ export class ProductGroupService {
         breadcrumbs.push({
           name: parent.name[lang] || parent.name['uk'],
           index: true,
-          path: `/brand/${productGroup.slug}/${parent.slug}`,
+          path: `/brand/${parent.slug}`,
         });
       }
     }
+
+    breadcrumbs.push({
+      name: productGroup.name[lang] || productGroup.name['uk'],
+      index: false,
+      path: `/brand/${productGroup.slug}`,
+    });
 
     return {
       breadcrumbs,
@@ -93,6 +93,6 @@ export class ProductGroupService {
         name: productGroup.name[lang] || productGroup.name['uk'],
         slug: productGroup.slug,
       },
-    }
+    };
   }
 }
