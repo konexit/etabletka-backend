@@ -81,6 +81,7 @@ export class CommentController {
   ): Promise<CommentResponseDto[]> {
     const comments = await this.commentService.getCommentsByIds(
       getByCommentIdsDto.ids,
+      jwtPayload.userId
     );
 
     if (!comments.length) {

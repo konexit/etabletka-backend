@@ -1,15 +1,13 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, In, Repository } from 'typeorm';
+import { Brackets, EntityManager, In, Repository } from 'typeorm';
 import { Comment, CommentType, ModelId } from './entities/comment.entity';
-import { Product } from 'src/products/product/entities/product.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UserProfile } from 'src/user/entities/user-profile.entity';
 import { JwtPayload } from 'src/common/types/jwt/jwt.interfaces';
 import { Answer } from './entities/comment-answer.entity';
 import { CreateAnswerDto } from './dto/create-answer.dto';
 import { User } from 'src/user/entities/user.entity';
-import { Article } from 'src/ui/pages/article/entities/article.entity';
 
 @Injectable()
 export class CommentService {
@@ -31,7 +29,7 @@ export class CommentService {
         const comment = entityManager.create(Comment, {
           ...createCommentDto,
           userId,
-          approved: true
+          approved: true,
         });
 
         await entityManager.save(Comment, comment);
@@ -134,7 +132,7 @@ export class CommentService {
           ...createAnswerDto,
           commentId,
           userId,
-          approved: true
+          approved: true,
         });
 
         await entityManager.save(Answer, answer);
@@ -268,20 +266,32 @@ export class CommentService {
     );
   }
 
-  async getCommentsByIds(commentIds: Comment['id'][]) {
+  async getCommentsByIds(
+    commentIds: Comment['id'][],
+    userId: User['id'] | null = null,
+  ) {
     if (!commentIds.length) {
       throw new HttpException('Comments not found', HttpStatus.NOT_FOUND);
     }
 
-    return await this.commentRepository.find({
-      where: {
-        id: In(commentIds),
-        approved: true,
-      },
-      order: {
-        id: 'DESC',
-      },
-    });
+    const query = this.commentRepository
+      .createQueryBuilder('comment')
+      .where('comment.id IN (:...ids)', { ids: commentIds });
+
+    if (userId !== null) {
+      query.andWhere(
+        new Brackets((qb) => {
+          qb.where('comment.approved = true').orWhere(
+            'comment.userId = :userId',
+            { userId },
+          );
+        }),
+      );
+    } else {
+      query.andWhere('comment.approved = true');
+    }
+
+    return await query.orderBy('comment.id', 'DESC').getMany();
   }
 
   async getAnswersByIds(answerIds: Answer['id'][]) {
@@ -296,10 +306,7 @@ export class CommentService {
     });
   }
 
-  async getCommentIdsByModelId(
-    modelType: CommentType,
-    modelId: ModelId,
-  ) {
+  async getCommentIdsByModelId(modelType: CommentType, modelId: ModelId) {
     const comments: Pick<Comment, 'id'>[] = await this.commentRepository.find({
       select: ['id'],
       where: { type: modelType, modelId, approved: true },
